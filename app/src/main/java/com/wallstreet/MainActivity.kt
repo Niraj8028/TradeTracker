@@ -27,7 +27,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             var isDarkMode by remember { mutableStateOf(false) }
 
-            WallstreetandroidTheme {
+            WallstreetandroidTheme(
+                darkTheme = isDarkMode
+            ) {
                 FirebaseTestScreen(
                     isDarkMode = isDarkMode,
                     onToggleTheme = { isDarkMode = !isDarkMode }
