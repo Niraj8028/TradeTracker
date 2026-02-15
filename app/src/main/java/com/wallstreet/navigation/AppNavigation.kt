@@ -5,11 +5,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.wallstreet.presentation.auth.login.LoginScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
@@ -23,7 +22,7 @@ import com.wallstreet.presentation.splash.SplashScreen
 fun AppNavigation() {
 
     // Own the back stack (official Nav3 pattern)
-    val backStack = remember { mutableStateListOf<NavKey>(SplashKey) }
+    val backStack = rememberNavBackStack(SplashKey)
 
     NavDisplay(
         backStack = backStack,
@@ -131,8 +130,8 @@ fun AppNavigation() {
 
 @Composable
 fun MainScaffold(
-    backStack: SnapshotStateList<NavKey>,
-    content: @Composable () -> Unit
+    backStack: NavBackStack<NavKey>,
+    content: @Composable (() -> Unit)
 ) {
     Scaffold(
         bottomBar = {
