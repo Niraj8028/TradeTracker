@@ -63,6 +63,10 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.nav3)
 //lotti
     implementation(libs.lottie.compose)
+
+    //material-icons-extended
+    implementation(libs.androidx.material.icons.extended)
+
     // Required for @Serializable nav keys
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
     androidTestImplementation(libs.androidx.junit)

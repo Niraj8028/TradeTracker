@@ -1,9 +1,7 @@
 package com.wallstreet.presentation.splash
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -14,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,8 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,23 +46,18 @@ fun SplashScreen(
         speed = 1f
     )
 
-    // Controls whether the text is visible — triggered after Lottie loads
     var textVisible by remember { mutableStateOf(false) }
-
-    // Subtitle fades in slightly after the title
     var subtitleVisible by remember { mutableStateOf(false) }
 
-    // Trigger text animations once composition is loaded
     LaunchedEffect(composition) {
         if (composition != null) {
-            delay(400)          // wait for Lottie to start playing
+            delay(400)
             textVisible = true
-            delay(200)          // subtitle staggered 200ms after title
+            delay(200)
             subtitleVisible = true
         }
     }
 
-    // Navigate away when animation finishes
     LaunchedEffect(progress) {
         if (progress == 1f) {
             delay(400)
@@ -76,16 +68,17 @@ fun SplashScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0D0D0D)),
+            .background(MaterialTheme.colorScheme.background),  // DarkSurface
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LottieAnimation(
             composition = composition,
             progress = { progress },
-            modifier = Modifier.size(200.dp)
+            modifier = Modifier.size(180.dp)
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Title — slides up + fades in
         AnimatedVisibility(
@@ -93,21 +86,20 @@ fun SplashScreen(
             enter = fadeIn(animationSpec = tween(600, easing = FastOutSlowInEasing)) +
                     slideInVertically(
                         animationSpec = tween(600, easing = FastOutSlowInEasing),
-                        initialOffsetY = { it / 2 }   // slides up from 50% below
+                        initialOffsetY = { it / 2 }
                     )
         ) {
             Text(
                 text = "WallStreet",
-                color = Color(0xFF00C087),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,          // PrimaryBlue
+                style = MaterialTheme.typography.headlineLarge,      // 32sp Bold
                 letterSpacing = 2.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // Subtitle — fades in only, staggered after title
+        // Subtitle — staggered fade + slide after title
         AnimatedVisibility(
             visible = subtitleVisible,
             enter = fadeIn(animationSpec = tween(800, easing = FastOutSlowInEasing)) +
@@ -118,8 +110,8 @@ fun SplashScreen(
         ) {
             Text(
                 text = "Trading Journal",
-                color = Color.White.copy(alpha = 0.6f),
-                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,  // DarkTextSecondary
+                style = MaterialTheme.typography.bodyMedium,          // 14sp Normal
                 letterSpacing = 4.sp,
                 fontWeight = FontWeight.Light
             )

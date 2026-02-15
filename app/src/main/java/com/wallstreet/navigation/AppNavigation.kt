@@ -11,7 +11,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import com.wallstreet.presentation.auth.login.LoginScreen
+import com.wallstreet.presentation.auth.register.RegisterScreen
 import com.wallstreet.presentation.components.AppBottomBar
+import com.wallstreet.presentation.onboarding.OnboardingScreen
+import com.wallstreet.presentation.profile.ProfileScreen
+import com.wallstreet.presentation.profile.User
 import com.wallstreet.presentation.splash.SplashScreen
 
 @Composable
@@ -30,20 +35,39 @@ fun AppNavigation() {
             entry<SplashKey> {
                 SplashScreen( onSplashComplete = {
                     backStack.removeLastOrNull()
-                    backStack.add(DashboardKey)
+                    backStack.add(OnboardingKey)
                 })
             }
 
             entry<OnboardingKey> {
-                Text("Onboarding")
+                OnboardingScreen(onFinish={
+                    backStack.removeLastOrNull()
+                    backStack.add(LoginKey)
+                })
             }
 
             entry<LoginKey> {
-                Text("Login")
+                LoginScreen (
+                    onLoginSuccess = {
+                        backStack.clear()
+                        backStack.add(DashboardKey)
+                    },
+                    onNavigateToRegister = {
+                        backStack.add(RegisterKey)
+                    }
+                )
             }
 
             entry<RegisterKey> {
-                Text("Register")
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        backStack.clear()
+                        backStack.add(DashboardKey)
+                    },
+                    onNavigateToLogin = {
+                        backStack.removeLastOrNull()  // pops back to Login
+                    }
+                )
             }
 
             // ---------------- MAIN APP (WITH BOTTOM BAR) ----------------
@@ -67,8 +91,14 @@ fun AppNavigation() {
             }
 
             entry<ProfileKey> {
+//NOTE Tem hardcode user to check of prop handling done here
+                val testUser = User(
+                    id = "1",
+                    name = "Shreyas Damase",
+                    email = "shreyas@test.com"
+                )
                 MainScaffold(backStack) {
-                    Text("Profile")
+                    ProfileScreen(user = testUser)
                 }
             }
 
