@@ -20,10 +20,10 @@ private val DarkColorScheme = darkColorScheme(
     secondary = PrimaryBlue,
     onSecondary = White,
 
-    background = DarkBackground,
+    background = DarkSurface,
     onBackground = DarkTextPrimary,
 
-    surface = DarkSurface,
+    surface = DarkBackground,
     onSurface = DarkTextPrimary,
     surfaceVariant = DarkSurfaceVariant,
     onSurfaceVariant = DarkTextSecondary,
