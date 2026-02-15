@@ -20,13 +20,13 @@ val WarningOrange = Color(0xFFF59E0B)
 val WarningYellow = Color(0xFFFBBF24)
 
 // ============ Dark Mode ============
-val DarkBackground = Color(0xFF0B0F19)
-val DarkSurface = Color(0xFFFFFFFF)
-val DarkSurfaceVariant = Color(0xFFF5F5F5)
+val DarkBackground = Color(0xFF0E1116) // main background
+val DarkSurface = Color(0xFF161B22) // cards
+val DarkSurfaceVariant = Color(0xFF1F2630) // alternate surfaces
 
-val DarkTextPrimary = Color(0xFF1F2937)
-val DarkTextSecondary = Color(0xFF6B7280)
-val DarkTextTertiary = Color(0xFF9CA3AF)
+val DarkTextPrimary = Color(0xFFFFFFFF) // white text
+val DarkTextSecondary = Color(0xFFB1BAC4) // light gray
+val DarkTextTertiary = Color(0xFF8B949E)
 
 // ============ Light Mode ============
 val LightBackground = Color(0xFFF5F5F5)
