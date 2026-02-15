@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            var isDarkMode by remember { mutableStateOf(false) }
+            var isDarkMode by remember { mutableStateOf(true) }
 
             WallstreetandroidTheme(
                 darkTheme = isDarkMode
