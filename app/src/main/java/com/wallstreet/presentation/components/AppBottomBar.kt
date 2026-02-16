@@ -11,6 +11,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.wallstreet.navigation.BottomNavItem
@@ -33,11 +34,11 @@ fun AppBottomBar(
                 icon = {
                     Icon(
                         imageVector = item.icon,
-                        contentDescription = item.label,
+                        contentDescription = stringResource(item.label),
                         modifier = Modifier.size(24.dp)
                     )
                 },
-                label = { Text(item.label) }
+                label = { Text(stringResource(item.label)) }
             )
         }
 
@@ -64,11 +65,11 @@ fun AppBottomBar(
                 icon = {
                     Icon(
                         imageVector = item.icon,
-                        contentDescription = item.label,
+                        contentDescription = stringResource(item.label),
                         modifier = Modifier.size(24.dp)
                     )
                 },
-                label = { Text(item.label) }
+                label = { Text(stringResource(item.label)) }
             )
         }
     }
