@@ -2,13 +2,14 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     id("com.google.gms.google-services")
 
 }
 
 android {
     namespace = "com.wallstreet"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.wallstreet"
@@ -67,7 +68,18 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.kotlinx.coroutines.play.services)
+    // Nav3
+    implementation(libs.nav3.runtime)
+    implementation(libs.nav3.ui)
+    implementation(libs.lifecycle.viewmodel.nav3)
+//lotti
+    implementation(libs.lottie.compose)
 
+    //material-icons-extended
+    implementation(libs.androidx.material.icons.extended)
+
+    // Required for @Serializable nav keys
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
     // Charts
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)

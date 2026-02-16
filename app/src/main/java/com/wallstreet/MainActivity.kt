@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.wallstreet.navigation.AppNavigation
 import com.wallstreet.ui.theme.WallstreetandroidTheme
 import kotlinx.coroutines.tasks.await
 
@@ -30,10 +31,8 @@ class MainActivity : ComponentActivity() {
             WallstreetandroidTheme(
                 darkTheme = isDarkMode
             ) {
-                FirebaseTestScreen(
-                    isDarkMode = isDarkMode,
-                    onToggleTheme = { isDarkMode = !isDarkMode }
-                )
+                AppNavigation()
+
             }
         }
     }

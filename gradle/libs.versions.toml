@@ -9,6 +9,10 @@ lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
 composeBom = "2024.09.00"
 firebase = "34.9.0"
+nav3Runtime = "1.0.1"
+lifecycleViewmodelNav3 = "2.10.0"
+kotlinxSerialization = "1.9.0"
+lottie="6.7.1"
 
 # New versions
 navigationCompose = "2.8.5"
@@ -39,6 +43,10 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version = "1.7.3" }
+nav3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "nav3Runtime" }
+nav3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "nav3Runtime" }
+lifecycle-viewmodel-nav3 = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 
 # New libraries
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
@@ -61,4 +69,6 @@ koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin"
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinxSerialization" }
+
 
