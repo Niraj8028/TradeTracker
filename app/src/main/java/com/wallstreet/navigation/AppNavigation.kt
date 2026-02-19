@@ -3,153 +3,98 @@ package com.wallstreet.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.wallstreet.presentation.auth.login.LoginScreen
-import com.wallstreet.presentation.auth.register.RegisterScreen
+import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.components.AppBottomBar
-import com.wallstreet.presentation.onboarding.OnboardingScreen
-import com.wallstreet.presentation.profile.ProfileScreen
-import com.wallstreet.presentation.profile.User
-import com.wallstreet.presentation.splash.SplashScreen
-
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    modifier: Modifier= Modifier
+) {
 
-    // Own the back stack (official Nav3 pattern)
-    val backStack = rememberNavBackStack(SplashKey)
+     val backStack = rememberNavBackStack(
+        configuration = SavedStateConfiguration {
+            serializersModule = SerializersModule {
+                polymorphic(NavKey::class) {
+                    subclass(AppRoute.OnBoarding::class, AppRoute.OnBoarding.serializer())
+                    subclass(AppRoute.Home::class,       AppRoute.Home.serializer())
+                }
+            }
+        },
+        AppRoute.OnBoarding
+    )
 
     NavDisplay(
+        modifier=modifier,
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator()
+        ),
         entryProvider = entryProvider {
 
             // ---------------- AUTH FLOW (NO BOTTOM BAR) ----------------
 
-            entry<SplashKey> {
-                SplashScreen( onSplashComplete = {
-                    backStack.removeLastOrNull()
-                    backStack.add(OnboardingKey)
-                })
+            entry<AppRoute.OnBoarding> {
+           OnboardingNavigation(
+               onLogin={
+                   backStack.remove(AppRoute.OnBoarding)
+                   backStack.add(AppRoute.Home)
+               }
+           )
+            }
+            entry<AppRoute.Home> {
+                HomeNavigation()
             }
 
-            entry<OnboardingKey> {
-                OnboardingScreen(onFinish={
-                    backStack.removeLastOrNull()
-                    backStack.add(LoginKey)
-                })
-            }
-
-            entry<LoginKey> {
-                LoginScreen (
-                    onLoginSuccess = {
-                        backStack.clear()
-                        backStack.add(DashboardKey)
-                    },
-                    onNavigateToRegister = {
-                        backStack.add(RegisterKey)
-                    }
-                )
-            }
-
-            entry<RegisterKey> {
-                RegisterScreen(
-                    onRegisterSuccess = {
-                        backStack.clear()
-                        backStack.add(DashboardKey)
-                    },
-                    onNavigateToLogin = {
-                        backStack.removeLastOrNull()  // pops back to Login
-                    }
-                )
-            }
-
-            // ---------------- MAIN APP (WITH BOTTOM BAR) ----------------
-
-            entry<DashboardKey> {
-                MainScaffold(backStack) {
-                    Text("Dashboard")
-                }
-            }
-
-            entry<TradeHistoryKey> {
-                MainScaffold(backStack) {
-                    Text("Trade History")
-                }
-            }
-
-            entry<StrategiesKey> {
-                MainScaffold(backStack) {
-                    Text("Strategies")
-                }
-            }
-
-            entry<ProfileKey> {
-//NOTE Tem hardcode user to check of prop handling done here
-                val testUser = User(
-                    id = "1",
-                    name = "Shreyas Damase",
-                    email = "shreyas@test.com"
-                )
-                MainScaffold(backStack) {
-                    ProfileScreen(user = testUser)
-                }
-            }
-
-            entry<EquityMetricsKey> {
-                MainScaffold(backStack) {
-                    Text("Equity Metrics")
-                }
-            }
-
-            entry<LogTradeKey> {
-                MainScaffold(backStack) {
-                    Text("Log Trade")
-                }
-            }
-
-            entry<JournalDetailKey> { key ->
-                MainScaffold(backStack) {
-                    Text("Journal: ${key.tradeId}")
-                }
-            }
-
-            entry<StrategyDetailKey> { key ->
-                MainScaffold(backStack) {
-                    Text("Strategy: ${key.strategyId}")
-                }
-            }
         }
     )
 }
-
 @Composable
 fun MainScaffold(
     backStack: NavBackStack<NavKey>,
-    content: @Composable (() -> Unit)
+    content: @Composable () -> Unit
 ) {
     Scaffold(
         bottomBar = {
             AppBottomBar(
                 currentKey = backStack.last(),
                 onItemClick = { key ->
+                    // Don't navigate if we're already on that tab
                     if (backStack.last() != key) {
-                        backStack.removeLastOrNull()
+                        // Remove all Home-level destinations above the root
+                        // so tab switches don't stack on top of each other
+                        val homeKeys = setOf(
+                            AppRoute.Home.DashboardKey,
+                            AppRoute.Home.TradeHistoryKey,
+                            AppRoute.Home.EquityMetricsKey,
+                            AppRoute.Home.StrategiesKey,
+                            AppRoute.Home.ProfileKey
+                        )
+                        // Pop back to AppRoute.Home, then push the selected tab
+                        while (backStack.size > 1 && backStack.last() in homeKeys) {
+                            backStack.removeLastOrNull()
+                        }
                         backStack.add(key)
                     }
                 },
                 onFabClick = {
-                    backStack.add(LogTradeKey)
+                    backStack.add(AppRoute.Home.LogTradeKey)
                 }
             )
         }
     ) { padding ->
-        Box(modifier = androidx.compose.ui.Modifier.padding(padding)) {
+        Box(modifier = Modifier.padding(padding)) {
             content()
         }
     }

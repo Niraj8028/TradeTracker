@@ -1,6 +1,5 @@
 package com.wallstreet.presentation.components
 
-
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -15,7 +14,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.wallstreet.navigation.BottomNavItem
-import com.wallstreet.navigation.LogTradeKey
 
 @Composable
 fun AppBottomBar(

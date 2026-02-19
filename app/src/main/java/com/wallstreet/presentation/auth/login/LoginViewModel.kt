@@ -1,4 +1,46 @@
 package com.wallstreet.presentation.auth.login
 
-class LoginViewModel {
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.result.Result
+import com.wallstreet.domain.usecase.auth.SignInUseCase
+import com.wallstreet.domain.usecase.auth.SignInWithGoogleUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+data class LoginUiState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val isSuccess: Boolean = false
+)
+
+class LoginViewModel(
+    private val signIn: SignInUseCase,
+    private val signInWithGoogle: SignInWithGoogleUseCase
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(LoginUiState())
+    val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    fun signIn(email: String, password: String) = viewModelScope.launch {
+        _uiState.value = LoginUiState(isLoading = true)
+        _uiState.value = when (val r = signIn.invoke(email, password)) {
+            is Result.Success -> LoginUiState(isSuccess = true)
+            is Result.Error   -> LoginUiState(error = r.message)
+            is Result.Loading -> LoginUiState(isLoading = true)
+        }
+    }
+
+    fun signInWithGoogle(idToken: String) = viewModelScope.launch {
+        _uiState.value = LoginUiState(isLoading = true)
+        _uiState.value = when (val r = signInWithGoogle.invoke(idToken)) {
+            is Result.Success -> LoginUiState(isSuccess = true)
+            is Result.Error   -> LoginUiState(error = r.message)
+            is Result.Loading -> LoginUiState(isLoading = true)
+        }
+    }
+
+    fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
 }
