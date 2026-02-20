@@ -18,7 +18,7 @@ class AuthRepositoryImpl(
 
     override suspend fun signInWithEmail(email: String, password: String): Result<User> = try {
         val result = auth.signInWithEmailAndPassword(email, password).await()
-        Result.Success(result.user!!.toDomainUser())
+        Result.Success(result.user!!.toUserModel())
     } catch (e: Exception) {
         Result.Error(e.friendlyMessage(), e)
     }
@@ -26,7 +26,7 @@ class AuthRepositoryImpl(
     override suspend fun signInWithGoogle(idToken: String): Result<User> = try {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         val result = auth.signInWithCredential(credential).await()
-        val user = result.user!!.toDomainUser()
+        val user = result.user!!.toUserModel()
         saveUserToFirestore(user)
         Result.Success(user)
     } catch (e: Exception) {
@@ -46,7 +46,7 @@ class AuthRepositoryImpl(
 
     override suspend fun signOut() = auth.signOut()
 
-    override fun getCurrentUser(): User? = auth.currentUser?.toDomainUser()
+    override fun getCurrentUser(): User? = auth.currentUser?.toUserModel()
 
     private suspend fun saveUserToFirestore(user: User) {
         firestore.collection(AppConstants.COLLECTION_USERS)
@@ -56,7 +56,7 @@ class AuthRepositoryImpl(
             .await()
     }
 
-    private fun FirebaseUser.toDomainUser() = User(
+    private fun FirebaseUser.toUserModel() = User(
         id = uid,
         name = displayName ?: "Trader",
         email = email ?: "",
