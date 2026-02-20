@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.WallStreet" parent="android:Theme.Material.Light.NoActionBar">
+
+        <!-- System Splash Background -->
+        <item name="android:windowSplashScreenBackground">
+            @android:color/white
+        </item>
+
+        <!-- Default Android App Icon -->
+        <item name="android:windowSplashScreenAnimatedIcon">
+            @mipmap/ic_launcher
+        </item>
+
+        <!-- No circle behind icon -->
+        <item name="android:windowSplashScreenIconBackgroundColor">
+            @android:color/transparent
+        </item>
+
+        <!-- After splash, use same theme -->
+        <item name="postSplashScreenTheme">
+            @style/Theme.WallStreet
+        </item>
+
+    </style>
+</resources>

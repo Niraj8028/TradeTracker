@@ -64,7 +64,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun WallstreetandroidTheme(
+fun WallStreetAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
