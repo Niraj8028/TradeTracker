@@ -25,17 +25,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.wallstreet.R
 import kotlinx.coroutines.delay
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SplashScreen(
-    onSplashComplete: () -> Unit
+    onNavigateToOnboarding: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    viewModel: SplashViewModel = koinViewModel ()
 ) {
+    val destination by viewModel.destination.collectAsStateWithLifecycle()
+
+
+    // React to auth result
+    LaunchedEffect(destination) {
+        when (destination) {
+            is SplashDestination.Home       -> onNavigateToHome()
+            is SplashDestination.Onboarding -> onNavigateToOnboarding()
+            is SplashDestination.None       -> Unit
+        }
+    }
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.splash_logo)
     )
@@ -45,7 +60,12 @@ fun SplashScreen(
         iterations = 1,
         speed = 1f
     )
-
+    LaunchedEffect(progress) {
+        if (progress == 1f) {
+            delay(400)
+            viewModel.checkAuthState()
+        }
+    }
     var textVisible by remember { mutableStateOf(false) }
     var subtitleVisible by remember { mutableStateOf(false) }
 
@@ -58,12 +78,7 @@ fun SplashScreen(
         }
     }
 
-    LaunchedEffect(progress) {
-        if (progress == 1f) {
-            delay(400)
-            onSplashComplete()
-        }
-    }
+
 
     Column(
         modifier = Modifier

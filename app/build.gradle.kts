@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias (libs.plugins.ksp)
     id("com.google.gms.google-services")
-
 }
 
 android {
@@ -13,17 +13,18 @@ android {
 
     defaultConfig {
         applicationId = "com.wallstreet"
-        minSdk = 24
-        targetSdk = 35
+        minSdk = 26                              // ← RAISE to 26: LocalDate needs no desugaring
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
+        debug {  isMinifyEnabled = false }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -31,14 +32,15 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -56,30 +58,38 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
-    // Navigation
-    implementation(libs.androidx.navigation.compose)
-
     // ViewModel
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Nav3
+    implementation(libs.nav3.runtime)
+    implementation(libs.nav3.ui)
+    implementation(libs.lifecycle.viewmodel.nav3)
+
+    // Kotlinx Serialization (Nav3 keys)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)                    // journal images
     implementation(libs.kotlinx.coroutines.play.services)
-    // Nav3
-    implementation(libs.nav3.runtime)
-    implementation(libs.nav3.ui)
-    implementation(libs.lifecycle.viewmodel.nav3)
-//lotti
-    implementation(libs.lottie.compose)
 
-    //material-icons-extended
-    implementation(libs.androidx.material.icons.extended)
+    // Google Sign-In                                        //   OAuth2
+    implementation(libs.google.play.services.auth)
 
-    // Required for @Serializable nav keys
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    // Room                                                  //  entire Room block
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // Koin
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.core)
+
     // Charts
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
@@ -87,17 +97,18 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
-    // Coil (Image Loading)
+    // Coil
     implementation(libs.coil.compose)
+
+    // Lottie
+    implementation(libs.lottie.compose)
 
     // Accompanist
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.permissions)
 
-    // Koin for Android
-    implementation(libs.koin.android)
-    implementation(libs.koin.androidx.compose)
-    implementation(libs.koin.core)
+
+    implementation(libs.timber)
 
     // Testing
     testImplementation(libs.junit)
