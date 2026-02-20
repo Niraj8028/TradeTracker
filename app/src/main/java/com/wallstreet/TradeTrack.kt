@@ -2,8 +2,7 @@ package com.wallstreet
 
 import android.app.Application
  import com.wallstreet.di.appModule
-import com.wallstreet.di.databaseModule
-import com.wallstreet.di.firebaseModule
+ import com.wallstreet.di.firebaseModule
 import com.wallstreet.di.repositoryModule
 import com.wallstreet.di.useCaseModule
 import com.wallstreet.di.viewModelModule
@@ -25,8 +24,7 @@ class TradeTrack: Application() {
             modules(
                 appModule,
                 firebaseModule,
-                databaseModule,
-                repositoryModule,
+                 repositoryModule,
                 useCaseModule,
                 viewModelModule
             )

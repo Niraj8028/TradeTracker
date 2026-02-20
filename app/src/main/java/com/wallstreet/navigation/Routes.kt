@@ -24,6 +24,7 @@ sealed interface AppRoute : NavKey {
         @Serializable
         data object Register : NavKey
     }
+
 // Bottom nav destinations
 
     @Serializable
