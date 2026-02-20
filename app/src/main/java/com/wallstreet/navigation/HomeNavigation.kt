@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.wallstreet.presentation.profile.ProfileScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -83,7 +84,7 @@ fun HomeNavigation(modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.ProfileKey> {
                 MainScaffold(homeBackStack) {
-                    Text("Profile")
+                    ProfileScreen()
                 }
             }
 
