@@ -2,6 +2,7 @@ package com.wallstreet
 
 import android.app.Application
 import com.wallstreet.di.firebaseModule
+import com.wallstreet.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -24,7 +25,7 @@ class TradeTrack: Application() {
 //                appModule,
                 firebaseModule,
 //                repositoryModule,
-//                viewModelModule
+                viewModelModule,
             )
         }
     }
