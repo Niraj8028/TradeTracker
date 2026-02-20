@@ -182,7 +182,7 @@ fun OnboardingScreen(
                     )
                 ) {
                     Text(
-                        text = "← Prev",
+                        text = "Prev",
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -200,7 +200,7 @@ fun OnboardingScreen(
                 )
             ) {
                 Text(
-                    text = if (isLast) "Get Started" else "Next →",
+                    text = if (isLast) "Get Started" else "Next",
                     style = MaterialTheme.typography.labelLarge
                 )
             }
