@@ -25,14 +25,13 @@ fun OnboardingNavigation(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
-                    subclass(AppRoute.OnBoarding.Splash::class,      AppRoute.OnBoarding.Splash.serializer())
-                    subclass(AppRoute.OnBoarding.Onboarding::class,  AppRoute.OnBoarding.Onboarding.serializer())
+                     subclass(AppRoute.OnBoarding.Onboarding::class,  AppRoute.OnBoarding.Onboarding.serializer())
                     subclass(AppRoute.OnBoarding.Login::class,        AppRoute.OnBoarding.Login.serializer())
                     subclass(AppRoute.OnBoarding.Register::class,     AppRoute.OnBoarding.Register.serializer())
                 }
             }
         },
-        AppRoute.OnBoarding.Splash
+        AppRoute.OnBoarding.Onboarding
     )
 
     NavDisplay(
@@ -45,17 +44,6 @@ fun OnboardingNavigation(
         ),
         entryProvider = entryProvider {
 
-            entry<AppRoute.OnBoarding.Splash> {
-                SplashScreen (
-                    onNavigateToOnboarding = {
-                        onBoardingBackStack.removeLastOrNull()
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
-                    },
-                    onNavigateToHome = {
-                        onLogin()  
-                    }
-                    )
-                }
 
 
             entry<AppRoute.OnBoarding.Onboarding> {
