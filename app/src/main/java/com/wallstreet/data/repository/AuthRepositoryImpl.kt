@@ -9,6 +9,7 @@ import com.wallstreet.core.constants.AppConstants
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
 class AuthRepositoryImpl(
@@ -37,7 +38,11 @@ class AuthRepositoryImpl(
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         val firebaseUser = result.user!!
         firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
-        val user = User(id = firebaseUser.uid, name = fullName, email = email)
+        val user = User(
+            id = firebaseUser.uid, name = fullName, email = email,
+            photoUrl = TODO(),
+//            createdAt = TODO()
+        )
         saveUserToFirestore(user)
         Result.Success(user)
     } catch (e: Exception) {
@@ -47,6 +52,11 @@ class AuthRepositoryImpl(
     override suspend fun signOut() = auth.signOut()
 
     override fun getCurrentUser(): User? = auth.currentUser?.toUserModel()
+
+
+    override fun observeAuthState(): Flow<User?> {
+        TODO("Not yet implemented")
+    }
 
     private suspend fun saveUserToFirestore(user: User) {
         firestore.collection(AppConstants.COLLECTION_USERS)
@@ -60,7 +70,8 @@ class AuthRepositoryImpl(
         id = uid,
         name = displayName ?: "Trader",
         email = email ?: "",
-        photoUrl = photoUrl?.toString()
+        photoUrl = photoUrl?.toString(),
+//        createdAt = TODO()
     )
 
     private fun Exception.friendlyMessage(): String = when {

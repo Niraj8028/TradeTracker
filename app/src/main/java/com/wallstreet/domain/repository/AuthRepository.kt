@@ -2,6 +2,7 @@ package com.wallstreet.domain.repository
 
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.User
+import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
     suspend fun signInWithEmail(email: String, password: String): Result<User>
@@ -9,4 +10,5 @@ interface AuthRepository {
     suspend fun signUp(fullName: String, email: String, password: String): Result<User>
     suspend fun signOut()
     fun getCurrentUser(): User?
+    fun observeAuthState(): Flow<User?>
 }
