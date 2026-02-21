@@ -13,14 +13,21 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.wallstreet.core.splash.StartDestination
 import com.wallstreet.presentation.components.AppBottomBar
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 @Composable
 fun AppNavigation(
+    startDestination: StartDestination,
+
     modifier: Modifier= Modifier
 ) {
-
+    val initialRoute = when (startDestination) {
+        StartDestination.Home -> AppRoute.Home
+        StartDestination.Auth -> AppRoute.OnBoarding
+        StartDestination.Unknown -> AppRoute.OnBoarding
+    }
      val backStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
@@ -30,8 +37,7 @@ fun AppNavigation(
                 }
             }
         },
-        AppRoute.OnBoarding
-    )
+         initialRoute    )
 
     NavDisplay(
         modifier=modifier,
