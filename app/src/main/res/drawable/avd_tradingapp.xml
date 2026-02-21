@@ -1,0 +1,102 @@
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="192dp"
+            android:height="192dp"
+            android:viewportWidth="288"
+            android:viewportHeight="288">
+
+            <!-- Bars -->
+            <group
+                android:name="bars"
+                android:pivotX="144"
+                android:pivotY="144">
+
+                <path
+                    android:pathData="M 79 124.818 L 101.333 124.818 L 101.333 211 L 79 211 Z"
+                    android:fillColor="#4f9cf9"/>
+
+                <path
+                    android:pathData="M 158 124.818 L 180.333 124.818 L 180.333 196.636 L 158 196.636 Z"
+                    android:fillColor="#4f9cf9"/>
+            </group>
+
+            <!-- Center candle -->
+            <group
+                android:name="center"
+                android:pivotX="144"
+                android:pivotY="144">
+
+                <path
+                    android:pathData="M 118.5 67.364 L 140.833 67.364 L 140.833 182.273 L 118.5 182.273 Z"
+                    android:fillColor="#4f9cf9"/>
+
+                <path
+                    android:pathData="M 128.021 53 L 131.313 53 L 131.313 196.636 L 128.021 196.636 Z"
+                    android:fillColor="#4f9cf9"
+                    android:fillAlpha="0.4"/>
+            </group>
+
+            <!-- Baseline -->
+            <group
+                android:name="baseline"
+                android:pivotX="208"
+                android:pivotY="141">
+
+                <path
+                    android:pathData="M 182.333 140.9 L 235 140.9 L 235 141.1 L 182.333 141.1 Z"
+                    android:fillColor="#4f9cf9"
+                    android:fillAlpha="0.3"/>
+            </group>
+
+        </vector>
+    </aapt:attr>
+
+    <!-- Bars slide up -->
+    <target android:name="bars">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="translateY"
+                android:duration="520"
+                android:valueFrom="160"
+                android:valueTo="0"
+                android:interpolator="@android:interpolator/fast_out_slow_in"/>
+        </aapt:attr>
+    </target>
+
+    <!-- Center grows -->
+    <target android:name="center">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="scaleY"
+                android:duration="520"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:interpolator="@android:interpolator/fast_out_slow_in"/>
+        </aapt:attr>
+    </target>
+
+    <!-- Baseline fade + slight scale -->
+    <target android:name="baseline">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:duration="420"
+                    android:valueFrom="0.7"
+                    android:valueTo="1"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"/>
+
+                <objectAnimator
+                    android:propertyName="alpha"
+                    android:duration="420"
+                    android:valueFrom="0"
+                    android:valueTo="1"/>
+            </set>
+        </aapt:attr>
+    </target>
+
+</animated-vector>
