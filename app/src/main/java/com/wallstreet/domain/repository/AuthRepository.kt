@@ -13,5 +13,6 @@ interface AuthRepository {
     suspend fun sendPasswordResetEmail(email: String): Result<Unit>
     suspend fun verifyEmail(): Result<Boolean>
     fun getCurrentUser(): User?
+    fun observeAuthState(): Flow<User?>
     fun observeAuthState(): Flow<AuthState>
 }

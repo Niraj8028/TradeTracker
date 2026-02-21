@@ -13,6 +13,7 @@ import com.wallstreet.data.model.UserDto
 import com.wallstreet.data.remote.FirebaseService
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
