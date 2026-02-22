@@ -93,6 +93,11 @@ class AuthRepositoryImpl(
 
     override fun getCurrentUser(): User? = auth.currentUser?.toUserModel()
 
+
+    override fun observeAuthState(): Flow<User?> {
+        TODO("Not yet implemented")
+    }
+
     private suspend fun saveUserToFirestore(user: User) {
         firestore.collection(AppConstants.COLLECTION_USERS)
             .document(user.id)
