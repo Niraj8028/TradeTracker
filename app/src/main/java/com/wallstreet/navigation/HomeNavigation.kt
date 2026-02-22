@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -92,7 +93,7 @@ fun HomeNavigation(modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.LogTradeRoute> {
                 MainScaffold(homeBackStack) {
-                    Text("Log Trade")
+                    LogTradeScreen()
                 }
 
             }

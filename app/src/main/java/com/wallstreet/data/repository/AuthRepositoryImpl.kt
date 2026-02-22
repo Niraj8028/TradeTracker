@@ -6,10 +6,16 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.wallstreet.core.constants.AppConstants
+import com.wallstreet.core.result.AuthState
 import com.wallstreet.core.result.Result
+import com.wallstreet.data.mapper.toDomain
+import com.wallstreet.data.model.UserDto
+import com.wallstreet.data.remote.FirebaseService
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class AuthRepositoryImpl(
@@ -40,7 +46,7 @@ class AuthRepositoryImpl(
         firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
         val user = User(
             id = firebaseUser.uid, name = fullName, email = email,
-            photoUrl = TODO(),
+            photoUrl = firebaseUser.photoUrl.toString(),
 //            createdAt = TODO()
         )
         saveUserToFirestore(user)
@@ -52,11 +58,6 @@ class AuthRepositoryImpl(
     override suspend fun signOut() = auth.signOut()
 
     override fun getCurrentUser(): User? = auth.currentUser?.toUserModel()
-
-
-    override fun observeAuthState(): Flow<User?> {
-        TODO("Not yet implemented")
-    }
 
     private suspend fun saveUserToFirestore(user: User) {
         firestore.collection(AppConstants.COLLECTION_USERS)
@@ -84,5 +85,35 @@ class AuthRepositoryImpl(
         message?.contains("network") == true ->
             "Network error. Please check your connection"
         else -> message ?: "An error occurred"
+    }
+
+    // TODO user this reactive method in navigation
+    override fun observeAuthState(): Flow<AuthState> = callbackFlow {
+        trySend(AuthState.Loading)
+
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            val firebaseUser = auth.currentUser;
+            if(firebaseUser != null){
+                firestore.collection(FirebaseService.Collections.USERS)
+                    .document(firebaseUser.uid)
+                    .addSnapshotListener { snapshot, error ->
+                        if(error != null) {
+                            trySend(AuthState.UnAuthenticated)
+                            return@addSnapshotListener
+                        }
+
+                        val user = snapshot?.toObject(UserDto::class.java)?.toDomain()
+                        if (user!=null) {
+                            trySend(AuthState.Authenticated(user))
+                        } else {
+                            trySend(AuthState.UnAuthenticated)
+                        }
+                    }
+            } else {
+                trySend(AuthState.UnAuthenticated)
+            }
+        }
+        auth.addAuthStateListener(listener)
+        awaitClose { auth.removeAuthStateListener(listener)}
     }
 }
