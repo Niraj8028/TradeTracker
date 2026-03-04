@@ -24,7 +24,7 @@ data class TradeDto(
     val comments: String? = null,
     // TODO work on mistakes model
     val mistakes: List<String> = emptyList(),
-    val createdAt: Timestamp = Timestamp.now()
+    val createdAt: Long? = null
 ) {
     fun calculateProfitLoss(): Double {
         return if (exitPrice != null) {

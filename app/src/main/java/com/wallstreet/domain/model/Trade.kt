@@ -22,7 +22,7 @@ data class Trade(
     val comments: String? = null,
     // TODO work on mistakes model
     val mistakes: List<String> = emptyList(),
-    val createAt: Timestamp = Timestamp.now()
+    val createAt: Long? = null
 )
 
 enum class TradeType {
