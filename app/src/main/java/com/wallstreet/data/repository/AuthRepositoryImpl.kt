@@ -10,6 +10,7 @@ import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class AuthRepositoryImpl(
     private val auth: FirebaseAuth,
@@ -33,26 +34,51 @@ class AuthRepositoryImpl(
         Result.Error(e.friendlyMessage(), e)
     }
 
-    override suspend fun signUp(fullName: String, email: String, password: String): Result<User> = try {
-        val result = auth.createUserWithEmailAndPassword(email, password).await()
-        val firebaseUser = result.user!!
-        firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
-        val user = User(id = firebaseUser.uid, name = fullName, email = email)
-        saveUserToFirestore(user)
-        Result.Success(user)
+    override suspend fun signUp(fullName: String, email: String, password: String): Result<User> =
+        try {
+            //1 create account
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user!!
+            firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
+            val user = User(id = firebaseUser.uid, name = fullName, email = email)
+            //save User to fire store
+            sendOtp(firebaseUser)
+
+            saveUserToFirestore(user)
+            Result.Success(user)
+        } catch (e: Exception) {
+            Result.Error(e.friendlyMessage(), e)
+        }
+
+    private suspend fun sendOtp(firebaseUser: FirebaseUser) {
+        firebaseUser.sendEmailVerification().await()
+    }
+
+
+    override suspend fun verifyOtp(): Result<Boolean> = try {
+        auth.currentUser?.reload()?.await()
+        val isVerified = auth.currentUser?.isEmailVerified ?: false
+        Result.Success(isVerified)
     } catch (e: Exception) {
+        Timber.e(e, e.friendlyMessage())
         Result.Error(e.friendlyMessage(), e)
+
     }
 
     override suspend fun signOut() = auth.signOut()
+
 
     override fun getCurrentUser(): User? = auth.currentUser?.toUserModel()
 
     private suspend fun saveUserToFirestore(user: User) {
         firestore.collection(AppConstants.COLLECTION_USERS)
             .document(user.id)
-            .set(mapOf("id" to user.id, "name" to user.name,
-                "email" to user.email, "photoUrl" to user.photoUrl))
+            .set(
+                mapOf(
+                    "id" to user.id, "name" to user.name,
+                    "email" to user.email, "photoUrl" to user.photoUrl
+                )
+            )
             .await()
     }
 
@@ -66,12 +92,18 @@ class AuthRepositoryImpl(
     private fun Exception.friendlyMessage(): String = when {
         message?.contains("email address is already in use") == true ->
             "An account with this email already exists"
+
         message?.contains("password is invalid") == true ->
             "Incorrect password"
+
         message?.contains("no user record") == true ->
             "No account found with this email"
+
         message?.contains("network") == true ->
             "Network error. Please check your connection"
+
         else -> message ?: "An error occurred"
     }
+
+
 }

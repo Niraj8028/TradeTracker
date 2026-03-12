@@ -34,6 +34,15 @@ class SignUpUseCase(private val repo: AuthRepository) {
     }
 }
 
+class VerifyOtpUseCase(
+    private val repository: AuthRepository
+){
+    suspend fun invoke(): Result<Boolean>{
+        return repository.verifyOtp()
+    }
+}
+
+
 // domain/usecase/auth/SignOutUseCase.kt
 class SignOutUseCase(private val repo: AuthRepository) {
     suspend operator fun invoke() = repo.signOut()

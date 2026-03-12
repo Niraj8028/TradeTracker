@@ -33,7 +33,7 @@ private val DarkColorScheme = darkColorScheme(
     errorContainer = DangerRedDark,
     onErrorContainer = DangerRedLight,
 
-    outline = BorderPrimary,
+    outline = DarkSurfaceVariant,
     outlineVariant = BorderSecondary,
 )
 

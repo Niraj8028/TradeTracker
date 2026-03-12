@@ -13,7 +13,8 @@ import kotlinx.coroutines.launch
 data class RegisterUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val navigateToOtp: Boolean = false
 )
 
 class RegisterViewModel(
@@ -26,10 +27,29 @@ class RegisterViewModel(
 
     fun signUp(fullName: String, email: String, password: String, confirmPassword: String) =
         viewModelScope.launch {
+            if(fullName.isBlank()){
+                _uiState.value= RegisterUiState(error="Please enter your name")
+                return@launch
+            }
+            if(email.isBlank()){
+                _uiState.value= RegisterUiState(error="Please enter your email")
+                return@launch
+            }
+            if(password.length<6){
+                _uiState.value= RegisterUiState(error="Password must be at least 6 characters")
+                return@launch
+            }
+            if(password!= confirmPassword){
+                _uiState.value= RegisterUiState(error="Passwords do not match")
+                return@launch
+            }
+
+
             _uiState.value = RegisterUiState(isLoading = true)
+
             _uiState.value = when (val r = signUp.invoke(fullName, email, password, confirmPassword)) {
-                is Result.Success -> RegisterUiState(isSuccess = true)
-                is Result.Error   -> RegisterUiState(error = r.message)
+                is Result.Success -> RegisterUiState(navigateToOtp = true)
+                is Result.Error -> RegisterUiState(error = r.message)
                 is Result.Loading -> RegisterUiState(isLoading = true)
             }
         }
