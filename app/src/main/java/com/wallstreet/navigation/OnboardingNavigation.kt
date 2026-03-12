@@ -10,9 +10,9 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.auth.login.LoginScreen
+import com.wallstreet.presentation.auth.otp.OtpScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
 import com.wallstreet.presentation.onboarding.OnboardingScreen
-import com.wallstreet.presentation.splash.SplashScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -25,9 +25,18 @@ fun OnboardingNavigation(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
-                     subclass(AppRoute.OnBoarding.Onboarding::class,  AppRoute.OnBoarding.Onboarding.serializer())
-                    subclass(AppRoute.OnBoarding.Login::class,        AppRoute.OnBoarding.Login.serializer())
-                    subclass(AppRoute.OnBoarding.Register::class,     AppRoute.OnBoarding.Register.serializer())
+                    subclass(
+                        AppRoute.OnBoarding.Onboarding::class,
+                        AppRoute.OnBoarding.Onboarding.serializer()
+                    )
+                    subclass(
+                        AppRoute.OnBoarding.Login::class,
+                        AppRoute.OnBoarding.Login.serializer()
+                    )
+                    subclass(
+                        AppRoute.OnBoarding.Register::class,
+                        AppRoute.OnBoarding.Register.serializer()
+                    )
                 }
             }
         },
@@ -45,7 +54,6 @@ fun OnboardingNavigation(
         entryProvider = entryProvider {
 
 
-
             entry<AppRoute.OnBoarding.Onboarding> {
                 OnboardingScreen {
                     onBoardingBackStack.add(AppRoute.OnBoarding.Login)
@@ -57,7 +65,10 @@ fun OnboardingNavigation(
                     onLoginSuccess = { onLogin() },
                     onNavigateToRegister = {
                         onBoardingBackStack.add(AppRoute.OnBoarding.Register)
-                    }
+                    },
+                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.OtpScreen) }
+
+
                 )
             }
 
@@ -66,6 +77,16 @@ fun OnboardingNavigation(
                     onRegisterSuccess = { onLogin() },
                     onNavigateToLogin = {
                         onBoardingBackStack.removeLastOrNull()
+                    },
+                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.OtpScreen) }
+       
+                )
+            }
+            entry<AppRoute.OnBoarding.OtpScreen> {
+                OtpScreen(
+                    onVerified = {
+
+                        onLogin()
                     }
                 )
             }

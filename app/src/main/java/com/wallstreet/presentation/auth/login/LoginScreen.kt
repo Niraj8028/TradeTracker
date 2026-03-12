@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,12 +12,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +28,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -35,7 +39,7 @@ import timber.log.Timber
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit,
+    onNavigateToRegister: () -> Unit, onNavigateToOtp: () -> Unit,
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -44,7 +48,9 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-
+    LaunchedEffect(uiState.navigateToOtp) {
+        if (uiState.navigateToOtp) onNavigateToOtp()
+    }
 
 
     // Google Sign-In launcher
@@ -94,7 +100,28 @@ fun LoginScreen(
 
 
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+    Scaffold(snackbarHost = {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 50.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.padding(horizontal = 16.dp)
+
+            ) { snackbarData ->
+
+                Snackbar(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                ) {
+                    Text(snackbarData.visuals.message)
+                }
+            }
+        }
+    }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -103,33 +130,40 @@ fun LoginScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(64.dp))
+            Spacer(Modifier.height(48.dp))
 
             // Logo
             Box(
-                modifier = Modifier.size(72.dp).clip(RoundedCornerShape(20.dp))
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) { Text("📊", fontSize = 32.sp) }
 
             Spacer(Modifier.height(16.dp))
-            Text("WallStreet", style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(4.dp))
-            Text("Master your trading psychology",
+            Text(
+                "TradeTrack", style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "Master your trading psychology",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(48.dp))
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(50.dp))
 
             // Email
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Email Address", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = email, onValueChange = { email = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("name@example.com") },
+                    placeholder = { Text("Enter your email id") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true, shape = RoundedCornerShape(12.dp)
+                    singleLine = true, shape = RoundedCornerShape(8.dp)
                 )
             }
 
@@ -138,6 +172,7 @@ fun LoginScreen(
             // Password
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Password", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = password, onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
@@ -146,13 +181,17 @@ fun LoginScreen(
                         VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(if (passwordVisible) Icons.Filled.Visibility
-                            else Icons.Filled.VisibilityOff, null)
+                            Icon(
+                                if (passwordVisible) Icons.Filled.Visibility
+                                else Icons.Filled.VisibilityOff, null
+                            )
                         }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    singleLine = true, shape = RoundedCornerShape(12.dp)
-                )
+                    singleLine = true, shape = RoundedCornerShape(8.dp),
+
+
+                    )
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -166,20 +205,26 @@ fun LoginScreen(
             // Sign In
             Button(
                 onClick = { viewModel.signIn(email, password) },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(8.dp),
                 enabled = !uiState.isLoading
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                    CircularProgressIndicator(
+                        Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp
+                    )
                 } else {
                     Text("Sign In", fontWeight = FontWeight.Bold)
                 }
             }
 
             Spacer(Modifier.height(24.dp))
-            HorizontalDivider()
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+
             Spacer(Modifier.height(16.dp))
 
             // Google Sign In
@@ -190,11 +235,15 @@ fun LoginScreen(
                         .requestEmail().build()
                     googleLauncher.launch(GoogleSignIn.getClient(context, gso).signInIntent)
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text("G", fontWeight = FontWeight.Bold, fontSize = 16.sp,
-                    color = Color(0xFF4285F4))
+                Image(
+                    painter = painterResource(R.drawable.google_icon),
+                    contentDescription = "Google", modifier = Modifier.size(20.dp)
+                )
                 Spacer(Modifier.width(8.dp))
                 Text("Continue with Google")
             }
@@ -206,8 +255,12 @@ fun LoginScreen(
                     withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
                         append("Don't have an account? ")
                     }
-                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold)) {
+                    withStyle(
+                        SpanStyle(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    ) {
                         append("Sign Up")
                     }
                 })
