@@ -24,11 +24,20 @@ class AuthRepositoryImpl(
     private val firestore: FirebaseFirestore
 ) : AuthRepository {
 
-    override suspend fun signInWithEmail(email: String, password: String): Result<User> = try {
-        val result = auth.signInWithEmailAndPassword(email, password).await()
-        Result.Success(result.user!!.toUserModel())
-    } catch (e: Exception) {
-        Result.Error(e.friendlyMessage(), e)
+    override suspend fun signInWithEmail(email: String, password: String): Result<User> {
+        return try {
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user!!
+
+            if (!firebaseUser.isEmailVerified) {
+                auth.signOut() // kick them out immediately
+                return Result.Error("Please verify your email before logging in.")
+            }
+
+            Result.Success(firebaseUser.toUserModel())
+        } catch (e: Exception) {
+            Result.Error(e.friendlyMessage(), e)
+        }
     }
 
     override suspend fun signInWithGoogle(idToken: String): Result<User> = try {
@@ -61,8 +70,14 @@ class AuthRepositoryImpl(
         firebaseUser.sendEmailVerification().await()
     }
 
+    class SendPasswordResetEmailUseCase(private val repo: AuthRepository) {
+        suspend operator fun invoke(email: String): Result<Unit> {
+            if (email.isBlank()) return Result.Error("Please enter your email address")
+            return repo.sendPasswordResetEmail(email)
+        }
+    }
 
-    override suspend fun verifyOtp(): Result<Boolean> = try {
+    override suspend fun verifyEmail(): Result<Boolean> = try {
         auth.currentUser?.reload()?.await()
         val isVerified = auth.currentUser?.isEmailVerified ?: false
         Result.Success(isVerified)
@@ -73,6 +88,12 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun signOut() = auth.signOut()
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> = try {
+        auth.sendPasswordResetEmail(email).await()
+        Result.Success(Unit)
+    } catch (e: Exception) {
+        Result.Error(e.friendlyMessage(), e)
+    }
 
 
     override fun getCurrentUser(): User? = auth.currentUser?.toUserModel()

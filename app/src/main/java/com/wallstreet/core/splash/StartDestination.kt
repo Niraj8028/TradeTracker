@@ -5,4 +5,6 @@ sealed interface StartDestination {
     data object Unknown : StartDestination
     data object Home : StartDestination
     data object Auth : StartDestination
+    data object Otp : StartDestination
+
 }

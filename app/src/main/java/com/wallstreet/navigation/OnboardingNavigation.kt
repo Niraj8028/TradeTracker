@@ -1,6 +1,7 @@
 package com.wallstreet.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
@@ -10,7 +11,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.auth.login.LoginScreen
-import com.wallstreet.presentation.auth.otp.OtpScreen
+import com.wallstreet.presentation.auth.verification.EmailVerificationScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
 import com.wallstreet.presentation.onboarding.OnboardingScreen
 import kotlinx.serialization.modules.SerializersModule
@@ -19,6 +20,7 @@ import kotlinx.serialization.modules.polymorphic
 @Composable
 fun OnboardingNavigation(
     onLogin: () -> Unit,
+    goToOtp: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val onBoardingBackStack = rememberNavBackStack(
@@ -37,11 +39,22 @@ fun OnboardingNavigation(
                         AppRoute.OnBoarding.Register::class,
                         AppRoute.OnBoarding.Register.serializer()
                     )
+                    subclass(
+                        AppRoute.OnBoarding.EmailVerificationScreen::class,
+                        AppRoute.OnBoarding.EmailVerificationScreen.serializer()
+                    ) // ← missing
                 }
             }
         },
         AppRoute.OnBoarding.Onboarding
     )
+
+    // ← missing entirely
+    LaunchedEffect(goToOtp) {
+        if (goToOtp) {
+            onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen)
+        }
+    }
 
     NavDisplay(
         backStack = onBoardingBackStack,
@@ -53,7 +66,6 @@ fun OnboardingNavigation(
         ),
         entryProvider = entryProvider {
 
-
             entry<AppRoute.OnBoarding.Onboarding> {
                 OnboardingScreen {
                     onBoardingBackStack.add(AppRoute.OnBoarding.Login)
@@ -63,32 +75,21 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Login> {
                 LoginScreen(
                     onLoginSuccess = { onLogin() },
-                    onNavigateToRegister = {
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Register)
-                    },
-                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.OtpScreen) }
-
-
+                    onNavigateToRegister = { onBoardingBackStack.add(AppRoute.OnBoarding.Register) },
+                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen) }
                 )
             }
 
             entry<AppRoute.OnBoarding.Register> {
                 RegisterScreen(
                     onRegisterSuccess = { onLogin() },
-                    onNavigateToLogin = {
-                        onBoardingBackStack.removeLastOrNull()
-                    },
-                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.OtpScreen) }
-       
+                    onNavigateToLogin = { onBoardingBackStack.removeLastOrNull() },
+                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen) }
                 )
             }
-            entry<AppRoute.OnBoarding.OtpScreen> {
-                OtpScreen(
-                    onVerified = {
 
-                        onLogin()
-                    }
-                )
+            entry<AppRoute.OnBoarding.EmailVerificationScreen> {
+                EmailVerificationScreen(onVerified = { onLogin() })
             }
         }
     )

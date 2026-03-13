@@ -17,30 +17,33 @@ import com.wallstreet.core.splash.StartDestination
 import com.wallstreet.presentation.components.AppBottomBar
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+
 @Composable
 fun AppNavigation(
     startDestination: StartDestination,
 
-    modifier: Modifier= Modifier
+    modifier: Modifier = Modifier
 ) {
     val initialRoute = when (startDestination) {
         StartDestination.Home -> AppRoute.Home
         StartDestination.Auth -> AppRoute.OnBoarding
+        StartDestination.Otp -> AppRoute.OnBoarding
         StartDestination.Unknown -> AppRoute.OnBoarding
     }
-     val backStack = rememberNavBackStack(
+    val backStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
                     subclass(AppRoute.OnBoarding::class, AppRoute.OnBoarding.serializer())
-                    subclass(AppRoute.Home::class,       AppRoute.Home.serializer())
+                    subclass(AppRoute.Home::class, AppRoute.Home.serializer())
                 }
             }
         },
-         initialRoute    )
+        initialRoute
+    )
 
     NavDisplay(
-        modifier=modifier,
+        modifier = modifier,
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(
@@ -52,12 +55,13 @@ fun AppNavigation(
             // ---------------- AUTH FLOW (NO BOTTOM BAR) ----------------
 
             entry<AppRoute.OnBoarding> {
-           OnboardingNavigation(
-               onLogin={
-                   backStack.remove(AppRoute.OnBoarding)
-                   backStack.add(AppRoute.Home)
-               }
-           )
+                OnboardingNavigation(
+                    goToOtp = startDestination == StartDestination.Otp,
+                    onLogin = {
+                        backStack.remove(AppRoute.OnBoarding)
+                        backStack.add(AppRoute.Home)
+                    }
+                )
             }
             entry<AppRoute.Home> {
                 HomeNavigation()
@@ -66,6 +70,7 @@ fun AppNavigation(
         }
     )
 }
+
 @Composable
 fun MainScaffold(
     backStack: NavBackStack<NavKey>,

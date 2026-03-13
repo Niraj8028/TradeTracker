@@ -51,8 +51,74 @@ fun LoginScreen(
     LaunchedEffect(uiState.navigateToOtp) {
         if (uiState.navigateToOtp) onNavigateToOtp()
     }
+    var showForgotDialog by remember { mutableStateOf(false) }
+    var resetEmail by remember { mutableStateOf("") }
+    LaunchedEffect(uiState.navigateToOtp) {
+        if (uiState.navigateToOtp) onNavigateToOtp()
+    }
 
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) onLoginSuccess()
+    }
 
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+    LaunchedEffect(uiState.resetEmailSent) {
+        if (uiState.resetEmailSent) {
+            showForgotDialog = false
+            snackbarHostState.showSnackbar("Password reset email sent. Check your inbox.")
+        }
+    }
+    if (showForgotDialog) {
+        AlertDialog(
+            onDismissRequest = { showForgotDialog = false },
+            title = { Text("Reset Password") },
+            text = {
+                Column {
+                    Text(
+                        "Enter your email and we'll send you a reset link.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = resetEmail,
+                        onValueChange = { resetEmail = it },
+                        placeholder = { Text("Enter your email") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.forgotPassword(resetEmail) },
+                    enabled = !uiState.isLoading
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Send Reset Link")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showForgotDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
     // Google Sign-In launcher
     val googleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -195,7 +261,10 @@ fun LoginScreen(
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = { }) {
+                TextButton(onClick = {
+                    resetEmail = email
+                    showForgotDialog = true
+                }) {
                     Text("Forgot Password?", color = MaterialTheme.colorScheme.primary)
                 }
             }
