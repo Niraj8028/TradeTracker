@@ -3,6 +3,7 @@ package com.wallstreet.presentation.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
+import com.wallstreet.domain.usecase.auth.SendPasswordResetEmailUseCase
 import com.wallstreet.domain.usecase.auth.SignInUseCase
 import com.wallstreet.domain.usecase.auth.SignInWithGoogleUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +15,15 @@ data class LoginUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isSuccess: Boolean = false,
-    val navigateToOtp: Boolean = false
+    val navigateToOtp: Boolean = false,
+    val resetEmailSent: Boolean = false
 )
 
 class LoginViewModel(
     private val signIn: SignInUseCase,
-    private val signInWithGoogle: SignInWithGoogleUseCase
+    private val signInWithGoogle: SignInWithGoogleUseCase,
+    private val sendPasswordResetEmail: SendPasswordResetEmailUseCase
+
 
 ) : ViewModel() {
 
@@ -53,6 +57,15 @@ class LoginViewModel(
             is Result.Success -> LoginUiState(isSuccess = true)
             is Result.Error -> LoginUiState(error = r.message)
             is Result.Loading -> LoginUiState(isLoading = true)
+        }
+    }
+
+    fun forgotPassword(email: String) = viewModelScope.launch {
+        _uiState.value = LoginUiState(isLoading = true)
+        when (val r = sendPasswordResetEmail.invoke(email)) {
+            is Result.Success -> _uiState.value = LoginUiState(resetEmailSent = true)
+            is Result.Error -> _uiState.value = LoginUiState(error = r.message)
+            else -> {}
         }
     }
 

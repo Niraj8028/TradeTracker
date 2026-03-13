@@ -1,7 +1,7 @@
 package com.wallstreet.di
 
 import com.wallstreet.presentation.auth.login.LoginViewModel
-import com.wallstreet.presentation.auth.otp.OtpViewModel
+import com.wallstreet.presentation.auth.verification.EmailVerifyViewModel
 import com.wallstreet.presentation.auth.register.RegisterViewModel
 import com.wallstreet.presentation.profile.ProfileViewModel
 import com.wallstreet.presentation.splash.SplashViewModel
@@ -13,5 +13,5 @@ val viewModelModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::RegisterViewModel)
     viewModelOf(::ProfileViewModel)
-    viewModelOf(::OtpViewModel)
+    viewModelOf(::EmailVerifyViewModel)
 }

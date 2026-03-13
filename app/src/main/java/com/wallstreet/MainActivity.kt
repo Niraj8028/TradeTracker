@@ -43,14 +43,12 @@ class MainActivity : ComponentActivity() {
     private fun decideStartDestination() {
         val user = FirebaseAuth.getInstance().currentUser
 
-        SplashGate.startDestination =
-            if (user != null) {
-                StartDestination.Home
-            } else {
-                StartDestination.Auth
-            }
+        SplashGate.startDestination = when {
+            user == null -> StartDestination.Auth
+            user.isEmailVerified -> StartDestination.Home
+            else -> StartDestination.Otp
+        }
 
-        // 🚀 Release splash
         SplashGate.isReady = true
     }
 }

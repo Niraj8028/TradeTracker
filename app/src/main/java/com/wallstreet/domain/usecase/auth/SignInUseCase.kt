@@ -1,7 +1,6 @@
 package com.wallstreet.domain.usecase.auth
 
 
-
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
@@ -36,12 +35,18 @@ class SignUpUseCase(private val repo: AuthRepository) {
 
 class VerifyOtpUseCase(
     private val repository: AuthRepository
-){
-    suspend fun invoke(): Result<Boolean>{
-        return repository.verifyOtp()
+) {
+    suspend fun invoke(): Result<Boolean> {
+        return repository.verifyEmail()
     }
 }
 
+class SendPasswordResetEmailUseCase(private val repo: AuthRepository) {
+    suspend operator fun invoke(email: String): Result<Unit> {
+        if (email.isBlank()) return Result.Error("Please enter your email address")
+        return repo.sendPasswordResetEmail(email)
+    }
+}
 
 // domain/usecase/auth/SignOutUseCase.kt
 class SignOutUseCase(private val repo: AuthRepository) {
