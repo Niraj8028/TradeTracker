@@ -20,7 +20,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
 @Composable
-fun HomeNavigation(modifier: Modifier = Modifier) {
+fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
     val homeBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
@@ -52,8 +52,7 @@ fun HomeNavigation(modifier: Modifier = Modifier) {
         ),
         transitionSpec = {
             EnterTransition.None togetherWith ExitTransition.None
-        }
-,
+        },
 
         entryProvider = entryProvider {
 
@@ -85,7 +84,7 @@ fun HomeNavigation(modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.ProfileRoute> {
                 MainScaffold(homeBackStack) {
-                    ProfileScreen()
+                    ProfileScreen(onLogout = onLogout)
                 }
             }
 
