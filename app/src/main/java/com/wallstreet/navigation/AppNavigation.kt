@@ -64,7 +64,11 @@ fun AppNavigation(
                 )
             }
             entry<AppRoute.Home> {
-                HomeNavigation()
+                HomeNavigation(
+                    onLogout = {
+                        backStack.remove(AppRoute.Home)
+                        backStack.add(AppRoute.OnBoarding)
+                    })
             }
 
         }
