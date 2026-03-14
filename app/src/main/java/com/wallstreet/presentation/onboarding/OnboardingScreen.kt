@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wallstreet.core.preferences.OnboardingPreferences
+import kotlinx.coroutines.launch
 
 data class OnboardingPage(
     val title: String,
@@ -67,11 +70,15 @@ private val pages = listOf(
 
 @Composable
 fun OnboardingScreen(
-    onFinish: () -> Unit
+    onFinish: () -> Unit, onboardingPreferences: OnboardingPreferences
 ) {
+    val scope = rememberCoroutineScope()
     var currentPage by remember { mutableIntStateOf(0) }
     val isLast = currentPage == pages.lastIndex
-
+    val finish = {
+        scope.launch { onboardingPreferences.setOnboardingCompleted() }
+        onFinish()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -85,7 +92,7 @@ fun OnboardingScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onFinish) {
+            TextButton(onClick = finish) {
                 Text(
                     text = "Skip",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,  // DarkTextSecondary
@@ -189,7 +196,7 @@ fun OnboardingScreen(
             }
 
             Button(
-                onClick = { if (isLast) onFinish() else currentPage++ },
+                onClick = { if (isLast) finish() else currentPage++ },
                 modifier = Modifier
                     .weight(1f)
                     .height(52.dp),

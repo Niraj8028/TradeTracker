@@ -26,6 +26,7 @@ fun AppNavigation(
 ) {
     val initialRoute = when (startDestination) {
         StartDestination.Home -> AppRoute.Home
+        StartDestination.Onboarding -> AppRoute.OnBoarding
         StartDestination.Auth -> AppRoute.OnBoarding
         StartDestination.Otp -> AppRoute.OnBoarding
         StartDestination.Unknown -> AppRoute.OnBoarding
@@ -56,6 +57,7 @@ fun AppNavigation(
 
             entry<AppRoute.OnBoarding> {
                 OnboardingNavigation(
+                    skipToLogin = startDestination == StartDestination.Auth,
                     goToOtp = startDestination == StartDestination.Otp,
                     onLogin = {
                         backStack.remove(AppRoute.OnBoarding)
@@ -85,10 +87,8 @@ fun MainScaffold(
             AppBottomBar(
                 currentKey = backStack.last(),
                 onItemClick = { key ->
-                    // Don't navigate if we're already on that tab
                     if (backStack.last() != key) {
-                        // Remove all Home-level destinations above the root
-                        // so tab switches don't stack on top of each other
+
                         val homeKeys = setOf(
                             AppRoute.Home.DashboardKey,
                             AppRoute.Home.TradeHistoryKey,
@@ -96,7 +96,7 @@ fun MainScaffold(
                             AppRoute.Home.StrategiesKey,
                             AppRoute.Home.ProfileKey
                         )
-                        // Pop back to AppRoute.Home, then push the selected tab
+                       
                         while (backStack.size > 1 && backStack.last() in homeKeys) {
                             backStack.removeLastOrNull()
                         }
