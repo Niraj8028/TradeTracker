@@ -1,6 +1,7 @@
 package com.wallstreet.di
 
 import com.wallstreet.domain.usecase.auth.*
+import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -9,6 +10,6 @@ val useCaseModule = module {
     factory { SignUpUseCase(get()) }
     factory { SignOutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
-
+    factory { AddTradeUseCase(get()) }
 
 }

@@ -2,14 +2,16 @@ package com.wallstreet.presentation.log_trade
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeType
+import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class LogTradeViewModel: ViewModel() {
+class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel() {
 
     private val _uiState = MutableStateFlow(LogTradeUiState())
     val uiState: StateFlow<LogTradeUiState> = _uiState.asStateFlow()
@@ -38,6 +40,7 @@ class LogTradeViewModel: ViewModel() {
     }
 
     fun onTradeTypeChanged(tradeType: TradeType) {
+        clearError()
         _uiState.value = _uiState.value.copy(tradeType = tradeType)
     }
 
@@ -46,15 +49,30 @@ class LogTradeViewModel: ViewModel() {
     }
 
     fun onQuantityChanged(quantity: String) {
-        _uiState.value = _uiState.value.copy(quantity = quantity)
+        if (isValidDecimalInput(quantity)) {
+            _uiState.value = _uiState.value.copy(
+                quantity = quantity,
+                quantityError = null
+            )
+        }
     }
 
     fun onEntryPriceChanged(price: String) {
-        _uiState.value = _uiState.value.copy(entryPrice = price)
+        if (isValidDecimalInput(price)) {
+            _uiState.value = _uiState.value.copy(
+                entryPrice = price,
+                entryPriceError = null
+            )
+        }
     }
 
     fun onExitPriceChanged(price: String) {
-        _uiState.value = _uiState.value.copy(exitPrice = price)
+        if (isValidDecimalInput(price)) {
+            _uiState.value = _uiState.value.copy(
+                exitPrice = price,
+                exitPriceError = null
+            )
+        }
     }
 
     fun onStrategySelected(strategy: String) {
@@ -73,6 +91,7 @@ class LogTradeViewModel: ViewModel() {
 
     fun onSaveTrade() {
         if(!validateForm()) return
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true);
             val state = _uiState.value;
@@ -102,9 +121,25 @@ class LogTradeViewModel: ViewModel() {
                 mistakes = state.selectedMistakes.toList(),
                 comments = "",
             )
+            when(val result = addTradeUseCase.invoke(trade)) {
+                is Result.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        error = result.message,
+                        isLoading = false,
+                    )
+                }
+                Result.Loading -> TODO()
+                is Result.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        success = true,
+                        isLoading = false
 
-            // TODO add trade usaces
+                    )
+
+                }
+            }
         }
+//        clearError()
     }
 
     private fun validateForm(): Boolean {
@@ -167,8 +202,26 @@ class LogTradeViewModel: ViewModel() {
         )
     }
 
-    fun clearError() {
+    private fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+        _uiState.value = _uiState.value.copy(
+            exitPriceError = null,
+            entryPriceError = null,
+            error = null,
+            symbolError = null,
+            quantityError = null
+        )
+    }
+
+    private fun isValidDecimalInput(input: String): Boolean {
+        if (input.isEmpty()) return true
+
+        // Regex explanation:
+        // ^\d* - starts with zero or more digits
+        // \.? - optionally followed by a decimal point
+        // \d{0,2}$ - ends with 0 to 2 digits (for 2 decimal places)
+        val regex = Regex("^\\d*\\.?\\d{0,2}\$")
+        return input.matches(regex)
     }
 
 }
