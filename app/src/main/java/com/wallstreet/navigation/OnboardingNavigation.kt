@@ -1,8 +1,8 @@
 package com.wallstreet.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -10,6 +10,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.wallstreet.core.preferences.OnboardingPreferences
 import com.wallstreet.presentation.auth.login.LoginScreen
 import com.wallstreet.presentation.auth.verification.EmailVerificationScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
@@ -21,8 +22,17 @@ import kotlinx.serialization.modules.polymorphic
 fun OnboardingNavigation(
     onLogin: () -> Unit,
     goToOtp: Boolean = false,
+    skipToLogin: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    // ✅ Compute correct initial route BEFORE first composition
+    // This completely eliminates any flash — no LaunchedEffect navigation needed
+    val initialRoute: NavKey = when {
+        goToOtp -> AppRoute.OnBoarding.EmailVerificationScreen
+        skipToLogin -> AppRoute.OnBoarding.Login
+        else -> AppRoute.OnBoarding.Onboarding
+    }
+
     val onBoardingBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
@@ -42,19 +52,15 @@ fun OnboardingNavigation(
                     subclass(
                         AppRoute.OnBoarding.EmailVerificationScreen::class,
                         AppRoute.OnBoarding.EmailVerificationScreen.serializer()
-                    ) // ← missing
+                    )
                 }
             }
         },
-        AppRoute.OnBoarding.Onboarding
+        initialRoute  // ✅ Correct screen from frame zero — not AppRoute.OnBoarding.Onboarding
     )
 
-    // ← missing entirely
-    LaunchedEffect(goToOtp) {
-        if (goToOtp) {
-            onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen)
-        }
-    }
+    // ✅ No LaunchedEffect blocks — they caused the 1-frame flash
+    // initialRoute already handles all three cases correctly
 
     NavDisplay(
         backStack = onBoardingBackStack,
@@ -67,9 +73,16 @@ fun OnboardingNavigation(
         entryProvider = entryProvider {
 
             entry<AppRoute.OnBoarding.Onboarding> {
-                OnboardingScreen {
-                    onBoardingBackStack.add(AppRoute.OnBoarding.Login)
-                }
+                val context = LocalContext.current
+                OnboardingScreen(
+                    onboardingPreferences = OnboardingPreferences(context),
+                    onFinish = {
+                        // ✅ Remove onboarding from backstack so back button
+                        // doesn't return to it after navigating to Login
+                        onBoardingBackStack.removeLastOrNull()
+                        onBoardingBackStack.add(AppRoute.OnBoarding.Login)
+                    }
+                )
             }
 
             entry<AppRoute.OnBoarding.Login> {
