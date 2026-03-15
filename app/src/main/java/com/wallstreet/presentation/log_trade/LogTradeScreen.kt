@@ -85,14 +85,14 @@ fun LogTradeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(8.dp)
                 .background(MaterialTheme.colorScheme.background)
         ) {
             Column(
                 modifier = Modifier.weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp, vertical = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(horizontal = 16.dp, vertical = 0.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 TradeTypeToggle(
                     selectedType = uiState.tradeType,
@@ -109,6 +109,7 @@ fun LogTradeScreen(
                             color = DarkTextSecondary
                         )
                     },
+                    textStyle = MaterialTheme.typography.bodyMedium,
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -132,6 +133,7 @@ fun LogTradeScreen(
 
                 OutlinedTextField(
                     value = uiState.quantity,
+                    textStyle = MaterialTheme.typography.bodyMedium,
                     onValueChange = { viewModel.onQuantityChanged(it) },
                     label = {
                         Text(
@@ -173,6 +175,7 @@ fun LogTradeScreen(
                                 color = DarkTextSecondary
                             )
                         },
+                        textStyle = MaterialTheme.typography.bodyMedium,
                         leadingIcon = {
                             Text(
                                 "$",
@@ -205,6 +208,7 @@ fun LogTradeScreen(
                                 color = DarkTextSecondary
                             )
                         },
+                        textStyle = MaterialTheme.typography.bodyMedium,
                         leadingIcon = {
                             Text(
                                 "$",
@@ -246,6 +250,7 @@ fun LogTradeScreen(
                     onValueChange = {
                         viewModel.onCommentsAdded(it)
                     },
+                    textStyle = MaterialTheme.typography.bodyMedium,
 //                    label = {
 //                        Text(
 //                            "Notes",
@@ -283,7 +288,7 @@ fun LogTradeScreen(
                     viewModel.onSaveTrade()
                 },
                 modifier = Modifier.fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(12.dp)
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PrimaryBlue

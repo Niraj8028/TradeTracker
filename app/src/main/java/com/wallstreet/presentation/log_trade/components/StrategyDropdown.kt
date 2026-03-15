@@ -41,6 +41,7 @@ fun StrategyDropdown(
         OutlinedTextField(
             value = selectedStrategy,
             onValueChange = {},
+            textStyle = MaterialTheme.typography.bodyMedium,
             readOnly = true,
             label = {
                 Text(

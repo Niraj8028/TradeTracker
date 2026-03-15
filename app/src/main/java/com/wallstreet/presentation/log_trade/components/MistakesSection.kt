@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -51,15 +52,15 @@ fun MistakesSection(
                     border = if (!isSelected) {
                         androidx.compose.foundation.BorderStroke(1.dp, DarkTextTertiary)
                     } else null,
-                    modifier = Modifier.height(40.dp)
+                    modifier = Modifier.height(32.dp).wrapContentWidth()
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = mistake,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             color = if (isSelected) White else DarkTextSecondary
                         )
                     }
@@ -88,7 +89,7 @@ fun FlowRow(
         var maxHeight = 0
 
         measurables.forEach { measurable ->
-            val placeable = measurable.measure(constraints)
+            val placeable = measurable.measure(constraints.copy(minWidth = 0))
 
             if (currentWidth + placeable.width > constraints.maxWidth && currentSequence.isNotEmpty()) {
                 sequences.add(currentSequence.toList())
