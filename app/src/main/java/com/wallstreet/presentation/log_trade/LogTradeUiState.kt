@@ -22,5 +22,6 @@ data class LogTradeUiState(
     val symbolError: String? = null,
     val quantityError: String? = null,
     val entryPriceError: String? = null,
-    val exitPriceError: String? = null
+    val exitPriceError: String? = null,
+    val stopLoss: String? = null,
 )

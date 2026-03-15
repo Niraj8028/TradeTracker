@@ -9,6 +9,7 @@ import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel() {
@@ -89,6 +90,10 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
         _uiState.value = _uiState.value.copy(selectedMistakes = newMistakes)
     }
 
+    fun onStopLossChanged(value: String) {
+        _uiState.update { it.copy(stopLoss = value) }
+    }
+
     fun onSaveTrade() {
         if(!validateForm()) return
 
@@ -127,15 +132,15 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
                         error = result.message,
                         isLoading = false,
                     )
+
                 }
                 Result.Loading -> TODO()
                 is Result.Success -> {
+                    _uiState.value = LogTradeUiState()
                     _uiState.value = _uiState.value.copy(
                         success = true,
                         isLoading = false
-
                     )
-
                 }
             }
         }
