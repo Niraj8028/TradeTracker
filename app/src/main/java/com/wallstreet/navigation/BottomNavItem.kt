@@ -1,6 +1,9 @@
 package com.wallstreet.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoGraph
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
@@ -12,25 +15,31 @@ sealed class BottomNavItem(
     val icon: ImageVector
 ) {
     data object Journal : BottomNavItem(
-        key = AppRoute.Home.TradeHistoryKey,
+        key = AppRoute.Home.DashboardRoute,
         label = R.string.nav_journal,
-        icon = Icons.Filled.Person
+        icon = Icons.Filled.Home
     )
 
     data object Analytics : BottomNavItem(
-        key = AppRoute.Home.EquityMetricsKey,
+        key = AppRoute.Home.StrategiesRoute,
         label = R.string.nav_analytics,
-        icon = Icons.Filled.Person
+        icon = Icons.Filled.AutoGraph
+    )
+
+    data object LogTrade : BottomNavItem(
+        key = AppRoute.Home.LogTradeRoute,
+        label = R.string.nav_log_trade,
+        icon = Icons.Filled.AutoGraph
     )
 
     data object Strategies : BottomNavItem(
-        key = AppRoute.Home.StrategiesKey,
+        key = AppRoute.Home.CalendarRoute,
         label = R.string.nav_strategies,
-        icon = Icons.Filled.Person
+        icon = Icons.Filled.CalendarMonth
     )
 
     data object Profile : BottomNavItem(
-        key = AppRoute.Home.ProfileKey,
+        key = AppRoute.Home.ProfileRoute,
         label = R.string.nav_profile,
         icon = Icons.Filled.Person
     )

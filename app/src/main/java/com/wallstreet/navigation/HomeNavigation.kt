@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -25,47 +26,20 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
-                    subclass(
-                        AppRoute.Home.DashboardKey::class,
-                        AppRoute.Home.DashboardKey.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.TradeHistoryKey::class,
-                        AppRoute.Home.TradeHistoryKey.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.LogTradeKey::class,
-                        AppRoute.Home.LogTradeKey.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.StrategiesKey::class,
-                        AppRoute.Home.StrategiesKey.serializer()
-                    )
-                    subclass(AppRoute.Home.ProfileKey::class, AppRoute.Home.ProfileKey.serializer())
-                    subclass(
-                        AppRoute.Home.EquityMetricsKey::class,
-                        AppRoute.Home.EquityMetricsKey.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.MistakeAnalysisKey::class,
-                        AppRoute.Home.MistakeAnalysisKey.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.CalendarKey::class,
-                        AppRoute.Home.CalendarKey.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.JournalDetailKey::class,
-                        AppRoute.Home.JournalDetailKey.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.StrategyDetailKey::class,
-                        AppRoute.Home.StrategyDetailKey.serializer()
-                    )
+                    subclass(AppRoute.Home.DashboardRoute::class,      AppRoute.Home.DashboardRoute.serializer())
+                    subclass(AppRoute.Home.TradeHistoryRoute::class,   AppRoute.Home.TradeHistoryRoute.serializer())
+                    subclass(AppRoute.Home.LogTradeRoute::class,       AppRoute.Home.LogTradeRoute.serializer())
+                    subclass(AppRoute.Home.StrategiesRoute::class,     AppRoute.Home.StrategiesRoute.serializer())
+                    subclass(AppRoute.Home.ProfileRoute::class,        AppRoute.Home.ProfileRoute.serializer())
+                    subclass(AppRoute.Home.EquityMetricsRoute::class,  AppRoute.Home.EquityMetricsRoute.serializer())
+                    subclass(AppRoute.Home.MistakeAnalysisRoute::class,AppRoute.Home.MistakeAnalysisRoute.serializer())
+                    subclass(AppRoute.Home.CalendarRoute::class,       AppRoute.Home.CalendarRoute.serializer())
+                    subclass(AppRoute.Home.JournalDetailRoute::class,  AppRoute.Home.JournalDetailRoute.serializer())
+                    subclass(AppRoute.Home.StrategyDetailRoute::class, AppRoute.Home.StrategyDetailRoute.serializer())
                 }
             }
         },
-        AppRoute.Home.DashboardKey
+        AppRoute.Home.DashboardRoute
     )
 
     NavDisplay(
@@ -84,31 +58,31 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             // ---- Bottom nav tabs (with bottom bar) ----
 
-            entry<AppRoute.Home.DashboardKey> {
+            entry<AppRoute.Home.DashboardRoute> {
                 MainScaffold(homeBackStack) {
                     Text("Dashboard")
                 }
             }
 
-            entry<AppRoute.Home.TradeHistoryKey> {
+            entry<AppRoute.Home.TradeHistoryRoute> {
                 MainScaffold(homeBackStack) {
                     Text("Trade History")
                 }
             }
 
-            entry<AppRoute.Home.StrategiesKey> {
+            entry<AppRoute.Home.StrategiesRoute> {
                 MainScaffold(homeBackStack) {
                     Text("Strategies")
                 }
             }
 
-            entry<AppRoute.Home.EquityMetricsKey> {
+            entry<AppRoute.Home.EquityMetricsRoute> {
                 MainScaffold(homeBackStack) {
                     Text("Equity Metrics")
                 }
             }
 
-            entry<AppRoute.Home.ProfileKey> {
+            entry<AppRoute.Home.ProfileRoute> {
                 MainScaffold(homeBackStack) {
                     ProfileScreen(onLogout = onLogout)
                 }
@@ -116,23 +90,28 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             // ---- Push screens (no bottom bar) ----
 
-            entry<AppRoute.Home.LogTradeKey> {
-                Text("Log Trade")
+            entry<AppRoute.Home.LogTradeRoute> {
+                MainScaffold(homeBackStack) {
+                    LogTradeScreen()
+                }
+
             }
 
-            entry<AppRoute.Home.MistakeAnalysisKey> {
+            entry<AppRoute.Home.MistakeAnalysisRoute> {
                 Text("Mistake Analysis")
             }
 
-            entry<AppRoute.Home.CalendarKey> {
-                Text("Calendar")
+            entry<AppRoute.Home.CalendarRoute> {
+                MainScaffold(homeBackStack) {
+                    Text("Calendar")
+                }
             }
 
-            entry<AppRoute.Home.JournalDetailKey> { key ->
+            entry<AppRoute.Home.JournalDetailRoute> { key ->
                 Text("Journal: ${key.tradeId}")
             }
 
-            entry<AppRoute.Home.StrategyDetailKey> { key ->
+            entry<AppRoute.Home.StrategyDetailRoute> { key ->
                 Text("Strategy: ${key.strategyId}")
             }
         }

@@ -93,11 +93,11 @@ fun MainScaffold(
                     if (backStack.last() != key) {
 
                         val homeKeys = setOf(
-                            AppRoute.Home.DashboardKey,
-                            AppRoute.Home.TradeHistoryKey,
-                            AppRoute.Home.EquityMetricsKey,
-                            AppRoute.Home.StrategiesKey,
-                            AppRoute.Home.ProfileKey
+                            AppRoute.Home.DashboardRoute,
+                            AppRoute.Home.TradeHistoryRoute,
+                            AppRoute.Home.EquityMetricsRoute,
+                            AppRoute.Home.StrategiesRoute,
+                            AppRoute.Home.ProfileRoute
                         )
 
                         while (backStack.size > 1 && backStack.last() in homeKeys) {
@@ -107,7 +107,7 @@ fun MainScaffold(
                     }
                 },
                 onFabClick = {
-                    backStack.add(AppRoute.Home.LogTradeKey)
+                    backStack.add(AppRoute.Home.LogTradeRoute)
                 }
             )
         }

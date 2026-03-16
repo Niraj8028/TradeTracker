@@ -5,6 +5,7 @@ import com.wallstreet.presentation.auth.verification.EmailVerifyViewModel
 import com.wallstreet.presentation.auth.register.RegisterViewModel
 import com.wallstreet.presentation.profile.ProfileViewModel
 import com.wallstreet.presentation.splash.SplashViewModel
+import com.wallstreet.presentation.log_trade.LogTradeViewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -13,5 +14,7 @@ val viewModelModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::RegisterViewModel)
     viewModelOf(::ProfileViewModel)
+    viewModelOf(::LogTradeViewModel)
     viewModelOf(::EmailVerifyViewModel)
+    viewModelOf(::OtpViewModel)
 }

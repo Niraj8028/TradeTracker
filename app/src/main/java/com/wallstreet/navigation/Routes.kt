@@ -33,35 +33,35 @@ sealed interface AppRoute : NavKey {
     data object Home : AppRoute, NavKey {
 
         @Serializable
-        data object DashboardKey : NavKey
+        data object DashboardRoute : NavKey
 
         @Serializable
-        data object TradeHistoryKey : NavKey
+        data object TradeHistoryRoute : NavKey
 
         @Serializable
-        data object LogTradeKey : NavKey
+        data object LogTradeRoute : NavKey
 
         @Serializable
-        data object StrategiesKey : NavKey
+        data object StrategiesRoute : NavKey
 
         @Serializable
-        data object ProfileKey : NavKey
+        data object ProfileRoute : NavKey
 
         // Push screens
         @Serializable
-        data object EquityMetricsKey : NavKey
+        data object EquityMetricsRoute : NavKey
 
         @Serializable
-        data object MistakeAnalysisKey : NavKey
+        data object MistakeAnalysisRoute : NavKey
 
         @Serializable
-        data object CalendarKey : NavKey
+        data object CalendarRoute : NavKey
 
         // Screens with arguments
         @Serializable
-        data class JournalDetailKey(val tradeId: String) : NavKey
+        data class JournalDetailRoute(val tradeId: String) : NavKey
 
         @Serializable
-        data class StrategyDetailKey(val strategyId: String) : NavKey
+        data class StrategyDetailRoute(val strategyId: String) : NavKey
     }
 }
