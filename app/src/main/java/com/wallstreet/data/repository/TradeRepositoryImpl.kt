@@ -33,10 +33,6 @@ class TradeRepositoryImpl(
         }
     }
 
-    override suspend fun getTradeById(tradeId: String): Result<Trade> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun addTrade(trade: Trade): Result<String> {
         return try {
 
@@ -48,15 +44,21 @@ class TradeRepositoryImpl(
         }
     }
 
-    override suspend fun updateTrade(trade: Trade): Result<String> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getRecentTrades(userId: String, limit: Int): Result<List<Trade>> {
+        return try {
+            val snapshot = tradesCollection
+                .whereEqualTo("userId", userId)
+                .orderBy("createdAt")
+                .limit(limit.toLong())
+                .get()
+                .await();
 
-    override suspend fun deleteTrade(tradeId: String): Result<String> {
-        TODO("Not yet implemented")
-    }
-
-    override fun observeTrades(userId: String): Flow<List<Trade>> {
-        TODO("Not yet implemented")
+            val trades = snapshot.documents.mapNotNull {
+                it.toObject(TradeDto::class.java)?.toDomain()
+            }
+            Result.Success(trades);
+        } catch (e: Exception) {
+            Result.Error(e.toString())
+        }
     }
 }

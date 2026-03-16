@@ -6,9 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface TradeRepository {
     suspend fun getAllTrades(userId: String): Result<List<Trade>>
-    suspend fun getTradeById(tradeId: String): Result<Trade>
     suspend fun addTrade(trade: Trade): Result<String>
-    suspend fun updateTrade(trade: Trade): Result<String>
-    suspend fun deleteTrade(tradeId: String): Result<String>
-    fun observeTrades(userId: String): Flow<List<Trade>>
+    suspend fun getRecentTrades(userId: String, limit: Int = 10): Result<List<Trade>>
 }
