@@ -1,7 +1,6 @@
 package com.wallstreet.domain.usecase.auth
 
 
-
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
@@ -31,6 +30,21 @@ class SignUpUseCase(private val repo: AuthRepository) {
         if (password.length < 6) return Result.Error("Password must be at least 6 characters")
         if (password != confirmPassword) return Result.Error("Passwords do not match")
         return repo.signUp(fullName, email, password)
+    }
+}
+
+class VerifyOtpUseCase(
+    private val repository: AuthRepository
+) {
+    suspend fun invoke(): Result<Boolean> {
+        return repository.verifyEmail()
+    }
+}
+
+class SendPasswordResetEmailUseCase(private val repo: AuthRepository) {
+    suspend operator fun invoke(email: String): Result<Unit> {
+        if (email.isBlank()) return Result.Error("Please enter your email address")
+        return repo.sendPasswordResetEmail(email)
     }
 }
 

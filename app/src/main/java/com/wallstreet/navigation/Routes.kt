@@ -14,8 +14,7 @@ sealed interface AppRoute : NavKey {
         data object Splash : NavKey
 
         @Serializable
-        data object Onboarding  : NavKey
-
+        data object Onboarding : NavKey
 
 
         @Serializable
@@ -23,6 +22,9 @@ sealed interface AppRoute : NavKey {
 
         @Serializable
         data object Register : NavKey
+
+        @Serializable
+        data object EmailVerificationScreen : NavKey
     }
 
 // Bottom nav destinations

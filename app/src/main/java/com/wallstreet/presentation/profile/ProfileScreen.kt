@@ -1,22 +1,45 @@
 package com.wallstreet.presentation.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.wallstreet.core.preferences.ThemePreferences
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(
+    onLogout: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     val user = viewModel.user
+    val isLoggedOut by viewModel.isLoggedOut.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val themePrefs = remember { ThemePreferences(context) }
+    val scope = rememberCoroutineScope()
+
+    val isDarkMode by themePrefs.isDarkMode.collectAsState(initial = false)
+    LaunchedEffect(isLoggedOut) {
+        if (isLoggedOut) onLogout()
+    }
 
     if (user == null) {
         Text("No user logged in")
@@ -29,8 +52,6 @@ fun ProfileScreen(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-
-        // Profile Image
         AsyncImage(
             model = user.photoUrl,
             contentDescription = "Profile Image",
@@ -43,5 +64,35 @@ fun ProfileScreen(
 
         Text("Name: ${user.name}")
         Text("Email: ${user.email}")
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = { viewModel.signOut() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            )
+        ) {
+            Text("Logout")
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Dark Mode")
+            Switch(
+                checked = isDarkMode,
+                onCheckedChange = { enabled ->
+                    scope.launch { themePrefs.setDarkMode(enabled) }
+                }
+            )
+        }
     }
 }

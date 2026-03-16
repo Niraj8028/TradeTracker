@@ -17,30 +17,37 @@ import com.wallstreet.core.splash.StartDestination
 import com.wallstreet.presentation.components.AppBottomBar
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+
 @Composable
 fun AppNavigation(
     startDestination: StartDestination,
 
-    modifier: Modifier= Modifier
+    modifier: Modifier = Modifier
 ) {
     val initialRoute = when (startDestination) {
         StartDestination.Home -> AppRoute.Home
+        StartDestination.Onboarding -> AppRoute.OnBoarding
         StartDestination.Auth -> AppRoute.OnBoarding
+        StartDestination.Otp -> AppRoute.OnBoarding
         StartDestination.Unknown -> AppRoute.OnBoarding
     }
-     val backStack = rememberNavBackStack(
+
+    val skipToLogin = startDestination == StartDestination.Auth
+    val goToOtp = startDestination == StartDestination.Otp
+    val backStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
                     subclass(AppRoute.OnBoarding::class, AppRoute.OnBoarding.serializer())
-                    subclass(AppRoute.Home::class,       AppRoute.Home.serializer())
+                    subclass(AppRoute.Home::class, AppRoute.Home.serializer())
                 }
             }
         },
-         initialRoute    )
+        initialRoute
+    )
 
     NavDisplay(
-        modifier=modifier,
+        modifier = modifier,
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         entryDecorators = listOf(
@@ -52,20 +59,27 @@ fun AppNavigation(
             // ---------------- AUTH FLOW (NO BOTTOM BAR) ----------------
 
             entry<AppRoute.OnBoarding> {
-           OnboardingNavigation(
-               onLogin={
-                   backStack.remove(AppRoute.OnBoarding)
-                   backStack.add(AppRoute.Home)
-               }
-           )
+                OnboardingNavigation(
+                    skipToLogin = { skipToLogin },
+                    goToOtp = { goToOtp },
+                    onLogin = {
+                        backStack.remove(AppRoute.OnBoarding)
+                        backStack.add(AppRoute.Home)
+                    }
+                )
             }
             entry<AppRoute.Home> {
-                HomeNavigation()
+                HomeNavigation(
+                    onLogout = {
+                        backStack.remove(AppRoute.Home)
+                        backStack.add(AppRoute.OnBoarding)
+                    })
             }
 
         }
     )
 }
+
 @Composable
 fun MainScaffold(
     backStack: NavBackStack<NavKey>,
@@ -76,10 +90,8 @@ fun MainScaffold(
             AppBottomBar(
                 currentKey = backStack.last(),
                 onItemClick = { key ->
-                    // Don't navigate if we're already on that tab
                     if (backStack.last() != key) {
-                        // Remove all Home-level destinations above the root
-                        // so tab switches don't stack on top of each other
+
                         val homeKeys = setOf(
                             AppRoute.Home.DashboardKey,
                             AppRoute.Home.TradeHistoryKey,
@@ -87,7 +99,7 @@ fun MainScaffold(
                             AppRoute.Home.StrategiesKey,
                             AppRoute.Home.ProfileKey
                         )
-                        // Pop back to AppRoute.Home, then push the selected tab
+
                         while (backStack.size > 1 && backStack.last() in homeKeys) {
                             backStack.removeLastOrNull()
                         }

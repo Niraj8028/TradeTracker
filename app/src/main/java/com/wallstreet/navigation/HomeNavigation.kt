@@ -19,22 +19,49 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
 @Composable
-fun HomeNavigation(modifier: Modifier = Modifier) {
+fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
     val homeBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
-                    subclass(AppRoute.Home.DashboardKey::class,      AppRoute.Home.DashboardKey.serializer())
-                    subclass(AppRoute.Home.TradeHistoryKey::class,   AppRoute.Home.TradeHistoryKey.serializer())
-                    subclass(AppRoute.Home.LogTradeKey::class,       AppRoute.Home.LogTradeKey.serializer())
-                    subclass(AppRoute.Home.StrategiesKey::class,     AppRoute.Home.StrategiesKey.serializer())
-                    subclass(AppRoute.Home.ProfileKey::class,        AppRoute.Home.ProfileKey.serializer())
-                    subclass(AppRoute.Home.EquityMetricsKey::class,  AppRoute.Home.EquityMetricsKey.serializer())
-                    subclass(AppRoute.Home.MistakeAnalysisKey::class,AppRoute.Home.MistakeAnalysisKey.serializer())
-                    subclass(AppRoute.Home.CalendarKey::class,       AppRoute.Home.CalendarKey.serializer())
-                    subclass(AppRoute.Home.JournalDetailKey::class,  AppRoute.Home.JournalDetailKey.serializer())
-                    subclass(AppRoute.Home.StrategyDetailKey::class, AppRoute.Home.StrategyDetailKey.serializer())
+                    subclass(
+                        AppRoute.Home.DashboardKey::class,
+                        AppRoute.Home.DashboardKey.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.TradeHistoryKey::class,
+                        AppRoute.Home.TradeHistoryKey.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.LogTradeKey::class,
+                        AppRoute.Home.LogTradeKey.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.StrategiesKey::class,
+                        AppRoute.Home.StrategiesKey.serializer()
+                    )
+                    subclass(AppRoute.Home.ProfileKey::class, AppRoute.Home.ProfileKey.serializer())
+                    subclass(
+                        AppRoute.Home.EquityMetricsKey::class,
+                        AppRoute.Home.EquityMetricsKey.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.MistakeAnalysisKey::class,
+                        AppRoute.Home.MistakeAnalysisKey.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.CalendarKey::class,
+                        AppRoute.Home.CalendarKey.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.JournalDetailKey::class,
+                        AppRoute.Home.JournalDetailKey.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.StrategyDetailKey::class,
+                        AppRoute.Home.StrategyDetailKey.serializer()
+                    )
                 }
             }
         },
@@ -51,8 +78,7 @@ fun HomeNavigation(modifier: Modifier = Modifier) {
         ),
         transitionSpec = {
             EnterTransition.None togetherWith ExitTransition.None
-        }
-,
+        },
 
         entryProvider = entryProvider {
 
@@ -84,7 +110,7 @@ fun HomeNavigation(modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.ProfileKey> {
                 MainScaffold(homeBackStack) {
-                    ProfileScreen()
+                    ProfileScreen(onLogout = onLogout)
                 }
             }
 

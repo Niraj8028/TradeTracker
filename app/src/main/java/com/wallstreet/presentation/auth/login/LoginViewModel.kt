@@ -3,6 +3,7 @@ package com.wallstreet.presentation.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
+import com.wallstreet.domain.usecase.auth.SendPasswordResetEmailUseCase
 import com.wallstreet.domain.usecase.auth.SignInUseCase
 import com.wallstreet.domain.usecase.auth.SignInWithGoogleUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,12 +14,17 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val navigateToOtp: Boolean = false,
+    val resetEmailSent: Boolean = false
 )
 
 class LoginViewModel(
     private val signIn: SignInUseCase,
-    private val signInWithGoogle: SignInWithGoogleUseCase
+    private val signInWithGoogle: SignInWithGoogleUseCase,
+    private val sendPasswordResetEmail: SendPasswordResetEmailUseCase
+
+
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -26,10 +32,22 @@ class LoginViewModel(
 
     fun signIn(email: String, password: String) = viewModelScope.launch {
         _uiState.value = LoginUiState(isLoading = true)
-        _uiState.value = when (val r = signIn.invoke(email, password)) {
-            is Result.Success -> LoginUiState(isSuccess = true)
-            is Result.Error   -> LoginUiState(error = r.message)
-            is Result.Loading -> LoginUiState(isLoading = true)
+        when (val r = signIn.invoke(email, password)) {
+            is Result.Success -> {
+                _uiState.value = LoginUiState(isSuccess = true)
+            }
+
+            is Result.Error -> {
+                if (r.message == "EMAIL_NOT_VERIFIED") {
+
+                    _uiState.value = LoginUiState(navigateToOtp = true)
+                } else {
+                    _uiState.value = LoginUiState(error = r.message)
+                }
+            }
+
+            Result.Loading -> _uiState.value = LoginUiState(isLoading = true)
+
         }
     }
 
@@ -37,10 +55,21 @@ class LoginViewModel(
         _uiState.value = LoginUiState(isLoading = true)
         _uiState.value = when (val r = signInWithGoogle.invoke(idToken)) {
             is Result.Success -> LoginUiState(isSuccess = true)
-            is Result.Error   -> LoginUiState(error = r.message)
+            is Result.Error -> LoginUiState(error = r.message)
             is Result.Loading -> LoginUiState(isLoading = true)
         }
     }
 
-    fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
+    fun forgotPassword(email: String) = viewModelScope.launch {
+        _uiState.value = LoginUiState(isLoading = true)
+        when (val r = sendPasswordResetEmail.invoke(email)) {
+            is Result.Success -> _uiState.value = LoginUiState(resetEmailSent = true)
+            is Result.Error -> _uiState.value = LoginUiState(error = r.message)
+            else -> {}
+        }
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
+    }
 }

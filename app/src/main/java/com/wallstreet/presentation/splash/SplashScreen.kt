@@ -38,7 +38,9 @@ import org.koin.androidx.compose.koinViewModel
 fun SplashScreen(
     onNavigateToOnboarding: () -> Unit,
     onNavigateToHome: () -> Unit,
-    viewModel: SplashViewModel = koinViewModel ()
+    onNavigateToOtp: () -> Unit,
+
+    viewModel: SplashViewModel = koinViewModel()
 ) {
     val destination by viewModel.destination.collectAsStateWithLifecycle()
 
@@ -46,9 +48,10 @@ fun SplashScreen(
     // React to auth result
     LaunchedEffect(destination) {
         when (destination) {
-            is SplashDestination.Home       -> onNavigateToHome()
+            is SplashDestination.Home -> onNavigateToHome()
             is SplashDestination.Onboarding -> onNavigateToOnboarding()
-            is SplashDestination.None       -> Unit
+            is SplashDestination.Otp -> onNavigateToOtp()
+            is SplashDestination.None -> Unit
         }
     }
     val composition by rememberLottieComposition(
