@@ -31,6 +31,9 @@ fun AppNavigation(
         StartDestination.Otp -> AppRoute.OnBoarding
         StartDestination.Unknown -> AppRoute.OnBoarding
     }
+
+    val skipToLogin = startDestination == StartDestination.Auth
+    val goToOtp = startDestination == StartDestination.Otp
     val backStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
@@ -57,8 +60,8 @@ fun AppNavigation(
 
             entry<AppRoute.OnBoarding> {
                 OnboardingNavigation(
-                    skipToLogin = startDestination == StartDestination.Auth,
-                    goToOtp = startDestination == StartDestination.Otp,
+                    skipToLogin = { skipToLogin },
+                    goToOtp = { goToOtp },
                     onLogin = {
                         backStack.remove(AppRoute.OnBoarding)
                         backStack.add(AppRoute.Home)
@@ -96,7 +99,7 @@ fun MainScaffold(
                             AppRoute.Home.StrategiesKey,
                             AppRoute.Home.ProfileKey
                         )
-                       
+
                         while (backStack.size > 1 && backStack.last() in homeKeys) {
                             backStack.removeLastOrNull()
                         }

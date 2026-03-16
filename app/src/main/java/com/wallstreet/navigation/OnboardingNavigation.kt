@@ -1,6 +1,7 @@
 package com.wallstreet.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -21,17 +22,18 @@ import kotlinx.serialization.modules.polymorphic
 @Composable
 fun OnboardingNavigation(
     onLogin: () -> Unit,
-    goToOtp: Boolean = false,
-    skipToLogin: Boolean = false,
+    goToOtp: () -> Boolean = { false },
+    skipToLogin: () -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
-    // ✅ Compute correct initial route BEFORE first composition
-    // This completely eliminates any flash — no LaunchedEffect navigation needed
-    val initialRoute: NavKey = when {
-        goToOtp -> AppRoute.OnBoarding.EmailVerificationScreen
-        skipToLogin -> AppRoute.OnBoarding.Login
-        else -> AppRoute.OnBoarding.Onboarding
+    val initialRoute = remember {
+        when {
+            goToOtp() -> AppRoute.OnBoarding.EmailVerificationScreen
+            skipToLogin() -> AppRoute.OnBoarding.Login
+            else -> AppRoute.OnBoarding.Onboarding
+        }
     }
+
 
     val onBoardingBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
@@ -56,7 +58,7 @@ fun OnboardingNavigation(
                 }
             }
         },
-        initialRoute  // ✅ Correct screen from frame zero — not AppRoute.OnBoarding.Onboarding
+        initialRoute
     )
 
     // ✅ No LaunchedEffect blocks — they caused the 1-frame flash

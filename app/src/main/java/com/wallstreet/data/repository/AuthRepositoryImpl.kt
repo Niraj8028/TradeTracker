@@ -51,7 +51,7 @@ class AuthRepositoryImpl(
             firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
             val user = User(id = firebaseUser.uid, name = fullName, email = email)
             //save User to fire store
-            sendOtp(firebaseUser)
+            verifyEmail(firebaseUser)
 
             saveUserToFirestore(user)
             Result.Success(user)
@@ -59,16 +59,10 @@ class AuthRepositoryImpl(
             Result.Error(e.friendlyMessage(), e)
         }
 
-    private suspend fun sendOtp(firebaseUser: FirebaseUser) {
+    private suspend fun verifyEmail(firebaseUser: FirebaseUser) {
         firebaseUser.sendEmailVerification().await()
     }
 
-    class SendPasswordResetEmailUseCase(private val repo: AuthRepository) {
-        suspend operator fun invoke(email: String): Result<Unit> {
-            if (email.isBlank()) return Result.Error("Please enter your email address")
-            return repo.sendPasswordResetEmail(email)
-        }
-    }
 
     override suspend fun verifyEmail(): Result<Boolean> = try {
         auth.currentUser?.reload()?.await()
