@@ -13,7 +13,6 @@ import com.wallstreet.data.model.UserDto
 import com.wallstreet.data.remote.FirebaseService
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -93,10 +92,6 @@ class AuthRepositoryImpl(
 
     override fun getCurrentUser(): User? = auth.currentUser?.toUserModel()
 
-
-    override fun observeAuthState(): Flow<User?> {
-        TODO("Not yet implemented")
-    }
 
     private suspend fun saveUserToFirestore(user: User) {
         firestore.collection(AppConstants.COLLECTION_USERS)
