@@ -16,5 +16,4 @@ val viewModelModule = module {
     viewModelOf(::ProfileViewModel)
     viewModelOf(::LogTradeViewModel)
     viewModelOf(::EmailVerifyViewModel)
-    viewModelOf(::OtpViewModel)
 }
