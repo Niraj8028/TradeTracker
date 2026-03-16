@@ -2,6 +2,7 @@ package com.wallstreet.di
 
 import com.wallstreet.domain.usecase.auth.*
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
+import com.wallstreet.domain.usecase.trade.GetRecentTradesUsecase
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -13,5 +14,5 @@ val useCaseModule = module {
     factory { VerifyOtpUseCase(get()) }
     factory { SendPasswordResetEmailUseCase(get()) }
     factory { AddTradeUseCase(get()) }
-
+    factory { GetRecentTradesUsecase(get()) }
 }
