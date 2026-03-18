@@ -16,14 +16,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 
-
 class HomeViewModel(
     private val getTradesUsecase: GetTradesUsecase,
     private val getHomeStateUsecase: GetHomeStateUsecase,
     private val authRepository: AuthRepository
 //    userId: String
 ): ViewModel() {
-
     val homeUiState: StateFlow<HomeUiState> =
         getTradesUsecase(
             authRepository.getCurrentUser()!!.id,

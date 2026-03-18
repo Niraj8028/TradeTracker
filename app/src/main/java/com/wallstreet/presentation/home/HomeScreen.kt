@@ -1,9 +1,13 @@
 package com.wallstreet.presentation.home
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,12 +25,13 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
     val uiState by viewModel.homeUiState.collectAsState()
+    val scrollState = rememberScrollState()
 
-    HomeContent(uiState)
+    HomeContent(uiState, scrollState)
 }
 
 @Composable
-fun HomeContent(uiState: HomeUiState) {
+fun HomeContent(uiState: HomeUiState, scrollState: ScrollState) {
     when(uiState) {
         is HomeUiState.Error -> {
             Text("ErrorView", style = MaterialTheme.typography.bodyMedium)
@@ -35,7 +40,7 @@ fun HomeContent(uiState: HomeUiState) {
             LoadingView()
         }
         is HomeUiState.Success -> {
-            SuccessView(uiState.stats)
+            SuccessView(uiState.stats, scrollState)
         }
     }
 }
@@ -51,9 +56,14 @@ fun LoadingView() {
 }
 
 @Composable
-fun SuccessView(uiState: HomeStats) {
+fun SuccessView(uiState: HomeStats, scrollState: ScrollState) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text("Total Pnl ${uiState.totalPnl}")
         Text("Total Trades ${uiState.totalTrades}")
@@ -65,7 +75,9 @@ fun SuccessView(uiState: HomeStats) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeSuccess() {
-    HomeContent(
+    val scrollState = null
+    scrollState?.let {
+        HomeContent(
         HomeUiState.Success(
             stats = HomeStats(
                 totalPnl = 1500.0,
@@ -79,6 +91,8 @@ fun PreviewHomeSuccess() {
                 profitPercentage = 60.0
             ),
             trades = emptyList()
-        )
+        ),
+            it
     )
+    }
 }

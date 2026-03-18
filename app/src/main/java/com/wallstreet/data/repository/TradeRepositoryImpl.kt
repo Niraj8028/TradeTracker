@@ -46,7 +46,6 @@ class TradeRepositoryImpl(
     }
 
     override fun getRecentTrades(userId: String, limit: Int): Flow<List<Trade>> = flow {
-         try {
             val snapshot = tradesCollection
                 .whereEqualTo("userId", userId)
                 .orderBy("createdAt")
@@ -58,8 +57,5 @@ class TradeRepositoryImpl(
                 it.toObject(TradeDto::class.java)?.toDomain()
             }
              emit(trades)
-        } catch (e: Exception) {
-            emit(emptyList())
-        }
     }
 }
