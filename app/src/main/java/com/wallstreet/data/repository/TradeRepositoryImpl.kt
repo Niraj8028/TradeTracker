@@ -9,6 +9,7 @@ import com.wallstreet.data.remote.FirebaseService
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.TradeRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
 class TradeRepositoryImpl(
@@ -44,8 +45,8 @@ class TradeRepositoryImpl(
         }
     }
 
-    override suspend fun getRecentTrades(userId: String, limit: Int): Result<List<Trade>> {
-        return try {
+    override fun getRecentTrades(userId: String, limit: Int): Flow<List<Trade>> = flow {
+         try {
             val snapshot = tradesCollection
                 .whereEqualTo("userId", userId)
                 .orderBy("createdAt")
@@ -56,9 +57,9 @@ class TradeRepositoryImpl(
             val trades = snapshot.documents.mapNotNull {
                 it.toObject(TradeDto::class.java)?.toDomain()
             }
-            Result.Success(trades);
+             emit(trades)
         } catch (e: Exception) {
-            Result.Error(e.toString())
+            emit(emptyList())
         }
     }
 }
