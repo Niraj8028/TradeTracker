@@ -82,7 +82,6 @@ class LogTradeViewModel(
         }
     }
 
-
     fun onStrategySelected(strategy: String) {
         _uiState.value = _uiState.value.copy(selectedStrategy = strategy)
     }
