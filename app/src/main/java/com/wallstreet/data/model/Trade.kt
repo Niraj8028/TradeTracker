@@ -14,7 +14,7 @@ data class TradeDto(
     val quantity: Double = 0.0,
     val tradeType: TradeType = TradeType.LONG,
     // TODO add date
-//    val date: Date,
+    val tradeDate: Long,
     val profitLoss: Double? = null,
     val profitLossPercentage: Double? = null,
     val strategy: String = "",
@@ -28,7 +28,7 @@ data class TradeDto(
 ) {
     fun calculateProfitLoss(): Double {
         return if (exitPrice != null) {
-            when(tradeType) {
+            when (tradeType) {
                 TradeType.LONG -> (exitPrice - entryPrice) * quantity
                 TradeType.SHORT -> (entryPrice - exitPrice) * quantity
             }

@@ -19,7 +19,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wallstreet.core.util.formatDate
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.presentation.log_trade.components.ImageUploadSection
 import com.wallstreet.presentation.log_trade.components.MistakesSection
@@ -43,6 +46,10 @@ fun LogTradeScreen(
     viewModel: LogTradeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = uiState.tradeDate
+    )
     val scrollState = rememberScrollState()
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -61,6 +68,8 @@ fun LogTradeScreen(
             if (isLong) raw else -raw
         } else null
     }
+    var showDatePicker by remember { mutableStateOf(false) }
+
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -77,7 +86,8 @@ fun LogTradeScreen(
                     .padding(horizontal = 12.dp)
                     .padding(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            )
+            {
 
                 // ── Trade Type Toggle ──────────────────────────────
                 TradeTypeToggle(
@@ -89,6 +99,7 @@ fun LogTradeScreen(
                 if (pnl != null) {
                     PnlPreviewCard(pnl = pnl)
                 }
+
 
                 // ── Section: Trade Details ─────────────────────────
                 SectionCard() {
@@ -177,12 +188,33 @@ fun LogTradeScreen(
                     )
                 }
 
+
                 // ── Section: Strategy ──────────────────────────────
                 SectionCard() {
                     StrategyDropdown(
                         selectedStrategy = uiState.selectedStrategy,
                         strategies = viewModel.strategies,
                         onStrategySelected = { viewModel.onStrategySelected(it) }
+                    )
+                }
+//-- Section : Trade date
+                SectionCard {
+                    Text(
+                        text = "TRADE DATE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = DarkTextTertiary
+                    )
+
+                    Text(
+                        text = formatDate(uiState.tradeDate),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = DarkTextPrimary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(DarkSurfaceVariant)
+                            .clickable { showDatePicker = true }
+                            .padding(16.dp)
                     )
                 }
 
@@ -233,7 +265,25 @@ fun LogTradeScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
             }
-
+            if (showDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let {
+                                viewModel.onDateChange(it)
+                            }
+                            showDatePicker = false
+                        }) {
+                            Text("OK")
+                        }
+                    }
+                ) {
+                    DatePicker(
+                        state = datePickerState,
+                    )
+                }
+            }
             // ── Save Button ────────────────────────────────────────
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -361,7 +411,8 @@ private fun AppTextField(
 @Composable
 private fun PnlPreviewCard(pnl: Double) {
     val isProfit = pnl >= 0
-    val bgColor = if (isProfit) SuccessGreenDark.copy(alpha = 0.15f) else DangerRedDark.copy(alpha = 0.15f)
+    val bgColor =
+        if (isProfit) SuccessGreenDark.copy(alpha = 0.15f) else DangerRedDark.copy(alpha = 0.15f)
     val textColor = if (isProfit) SuccessGreen else DangerRed
     val label = if (isProfit) "ESTIMATED PROFIT" else "ESTIMATED LOSS"
     val sign = if (isProfit) "+" else ""
