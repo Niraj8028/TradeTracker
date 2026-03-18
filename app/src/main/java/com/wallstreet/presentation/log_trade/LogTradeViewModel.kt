@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeType
+import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel() {
+class LogTradeViewModel(
+    private val addTradeUseCase: AddTradeUseCase,
+
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogTradeUiState())
     val uiState: StateFlow<LogTradeUiState> = _uiState.asStateFlow()
@@ -95,7 +100,13 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
     }
 
     fun onSaveTrade() {
-        if(!validateForm()) return
+        val user = authRepository.getCurrentUser()
+
+        if (user == null) {
+            _uiState.update { it.copy(error = "User not logged in") }
+            return
+        }
+        if (!validateForm()) return
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true);
@@ -103,6 +114,7 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
             val currentTime = System.currentTimeMillis()
             val trade = Trade(
                 id = "",
+                userId = user.id,
                 symbol = state.symbol,
                 entryPrice = state.entryPrice.toDouble(),
                 exitPrice = state.exitPrice.toDoubleOrNull(),
@@ -126,7 +138,7 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
                 mistakes = state.selectedMistakes.toList(),
                 comments = "",
             )
-            when(val result = addTradeUseCase.invoke(trade)) {
+            when (val result = addTradeUseCase.invoke(trade)) {
                 is Result.Error -> {
                     _uiState.value = _uiState.value.copy(
                         error = result.message,
@@ -134,6 +146,7 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
                     )
 
                 }
+
                 Result.Loading -> TODO()
                 is Result.Success -> {
                     _uiState.value = LogTradeUiState()
@@ -150,7 +163,7 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
     private fun validateForm(): Boolean {
         val state = _uiState.value
         var isValid = true
-        if(state.symbol.isBlank()) {
+        if (state.symbol.isBlank()) {
             _uiState.value = _uiState.value.copy(
                 symbolError = "Symbol is required"
             )
@@ -161,13 +174,15 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
             isValid = false
         }
         if (state.entryPrice.isBlank() || state.entryPrice.toDoubleOrNull() == null || state.entryPrice.toDouble() <= 0) {
-            _uiState.value = _uiState.value.copy(entryPriceError = "Entry price must be greater than 0")
+            _uiState.value =
+                _uiState.value.copy(entryPriceError = "Entry price must be greater than 0")
             isValid = false
         }
         if (state.exitPrice.isNotEmpty()) {
             val exitPriceValue = state.exitPrice.toDoubleOrNull()
             if (exitPriceValue == null || exitPriceValue <= 0) {
-                _uiState.value = _uiState.value.copy(exitPriceError = "Exit price must be greater than 0")
+                _uiState.value =
+                    _uiState.value.copy(exitPriceError = "Exit price must be greater than 0")
                 isValid = false
             }
         }
@@ -182,7 +197,7 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase): ViewModel
         tradeType: TradeType
     ): Double? {
         if (exitPrice == null) return null
-        return when(tradeType) {
+        return when (tradeType) {
             TradeType.LONG -> ((exitPrice - entryPrice) / entryPrice) * quantity
             TradeType.SHORT -> ((entryPrice - exitPrice) / entryPrice) * quantity
         }
