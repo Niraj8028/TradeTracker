@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeType
+import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase) : ViewModel() {
+class LogTradeViewModel(
+    private val addTradeUseCase: AddTradeUseCase,
+
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogTradeUiState())
     val uiState: StateFlow<LogTradeUiState> = _uiState.asStateFlow()
@@ -101,6 +106,12 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase) : ViewMode
     }
 
     fun onSaveTrade() {
+        val user = authRepository.getCurrentUser()
+
+        if (user == null) {
+            _uiState.update { it.copy(error = "User not logged in") }
+            return
+        }
         if (!validateForm()) return
 
         viewModelScope.launch {
@@ -111,6 +122,7 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase) : ViewMode
 
             val trade = Trade(
                 id = "",
+                userId = user.id,
                 symbol = state.symbol,
                 entryPrice = state.entryPrice.toDouble(),
                 exitPrice = state.exitPrice.toDoubleOrNull(),
@@ -199,7 +211,7 @@ class LogTradeViewModel(private val addTradeUseCase: AddTradeUseCase) : ViewMode
             TradeType.SHORT -> (entryPrice - exitPrice) * quantity
         }
     }
-
+    //TODO
     private fun calculateProfitLossPercentage(
         entryPrice: Double,
         exitPrice: Double?,
