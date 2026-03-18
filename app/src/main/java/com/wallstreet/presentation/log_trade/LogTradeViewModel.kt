@@ -118,8 +118,6 @@ class LogTradeViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true);
             val state = _uiState.value;
             val currentTime = System.currentTimeMillis()
-
-
             val trade = Trade(
                 id = "",
                 userId = user.id,
