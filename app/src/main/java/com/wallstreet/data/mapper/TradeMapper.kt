@@ -20,6 +20,7 @@ fun TradeDto.toDomain(): Trade {
         imageUrl = imageUrl,
         userId = userId,
         mistakes = mistakes,
+        tradeDate = tradeDate,
         createAt = createdAt
     )
 }
@@ -40,6 +41,7 @@ fun Trade.toDto(): TradeDto {
         imageUrl = imageUrl,
         userId = userId,
         mistakes = mistakes,
+        tradeDate = tradeDate,
         createdAt = createAt
     )
 }

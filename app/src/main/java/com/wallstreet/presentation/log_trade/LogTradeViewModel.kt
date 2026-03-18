@@ -1,5 +1,6 @@
 package com.wallstreet.presentation.log_trade
 
+import androidx.compose.material3.rememberDatePickerState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
@@ -81,6 +82,7 @@ class LogTradeViewModel(
         }
     }
 
+
     fun onStrategySelected(strategy: String) {
         _uiState.value = _uiState.value.copy(selectedStrategy = strategy)
     }
@@ -99,6 +101,10 @@ class LogTradeViewModel(
         _uiState.update { it.copy(stopLoss = value) }
     }
 
+    fun onDateChange(tileStamp: Long) {
+        _uiState.update { it.copy(tradeDate = tileStamp) }
+    }
+
     fun onSaveTrade() {
         val user = authRepository.getCurrentUser()
 
@@ -112,6 +118,8 @@ class LogTradeViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true);
             val state = _uiState.value;
             val currentTime = System.currentTimeMillis()
+
+
             val trade = Trade(
                 id = "",
                 userId = user.id,
@@ -134,6 +142,7 @@ class LogTradeViewModel(
                 strategy = state.selectedStrategy,
                 notes = "",
                 imageUrl = state.imageUri,
+                tradeDate = state.tradeDate,
                 createAt = currentTime,
                 mistakes = state.selectedMistakes.toList(),
                 comments = "",
@@ -198,11 +207,11 @@ class LogTradeViewModel(
     ): Double? {
         if (exitPrice == null) return null
         return when (tradeType) {
-            TradeType.LONG -> ((exitPrice - entryPrice) / entryPrice) * quantity
-            TradeType.SHORT -> ((entryPrice - exitPrice) / entryPrice) * quantity
+            TradeType.LONG -> (exitPrice - entryPrice) * quantity
+            TradeType.SHORT -> (entryPrice - exitPrice) * quantity
         }
     }
-
+    //TODO
     private fun calculateProfitLossPercentage(
         entryPrice: Double,
         exitPrice: Double?,

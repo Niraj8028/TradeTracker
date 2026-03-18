@@ -12,7 +12,7 @@ data class Trade(
     val quantity: Double = 0.0,
     val tradeType: TradeType = TradeType.LONG,
     // TODO add date
-//    val date: Date,
+    val tradeDate: Long,
     val profitLoss: Double? = null,
     val profitLossPercentage: Double? = null,
     val strategy: String = "",

@@ -17,6 +17,7 @@ data class LogTradeUiState(
     val comments: String = "",
     val selectedMistakes: Set<String> = emptySet(),
     val imageUri: String? = null,
+    val tradeDate: Long = System.currentTimeMillis(),
 
     // Validation
     val symbolError: String? = null,
@@ -24,4 +25,5 @@ data class LogTradeUiState(
     val entryPriceError: String? = null,
     val exitPriceError: String? = null,
     val stopLoss: String? = null,
-)
+
+    )
