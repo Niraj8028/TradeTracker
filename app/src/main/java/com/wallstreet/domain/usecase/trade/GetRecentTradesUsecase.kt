@@ -3,9 +3,10 @@ package com.wallstreet.domain.usecase.trade
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.TradeRepository
+import kotlinx.coroutines.flow.Flow
 
-class GetRecentTradesUsecase(private val tradeRepository: TradeRepository) {
-    suspend operator fun invoke(userId: String, limit: Int): Result<List<Trade>> {
+class GetTradesUsecase(private val tradeRepository: TradeRepository) {
+     operator fun invoke(userId: String, limit: Int): Flow<List<Trade>> {
         return tradeRepository.getRecentTrades(userId, limit);
     }
 }

@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.wallstreet.presentation.home.HomeScreen
 import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
 import kotlinx.serialization.modules.SerializersModule
@@ -60,7 +61,7 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.DashboardRoute> {
                 MainScaffold(homeBackStack) {
-                    Text("Dashboard")
+                    HomeScreen()
                 }
             }
 
