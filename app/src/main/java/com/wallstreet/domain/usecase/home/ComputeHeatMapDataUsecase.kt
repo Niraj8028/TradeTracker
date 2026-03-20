@@ -15,15 +15,14 @@ class ComputeHeatMapDataUsecase {
         return buildHeatMapData(trades, weeks);
     }
 
-    private fun buildHeatMapData(trades: List<Trade>, weeks: Int): HeatMapData {
+    private fun buildHeatMapData(trades: List<Trade>, weeks: Int = 4): HeatMapData {
         val today = LocalDate.now();
-        val mostRecentMonday = today.with(java.time.DayOfWeek.MONDAY)
-        val gridStart = mostRecentMonday.minusWeeks((weeks -1).toLong())
-        val gridEnd = mostRecentMonday.plusDays(6)
+        val gridEnd = today.with(java.time.DayOfWeek.SUNDAY)
+        val gridStart = gridEnd.minusDays((weeks * 7 - 1).toLong())
 
         val dailyMap: Map<LocalDate, Pair<Double, Int>> = trades
             .groupBy { trade ->
-                Instant.ofEpochMilli(trade.createAt!!)
+                Instant.ofEpochMilli(trade.tradeDate)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate()
             }

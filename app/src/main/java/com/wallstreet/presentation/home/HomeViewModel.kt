@@ -27,11 +27,11 @@ class HomeViewModel(
     val homeUiState: StateFlow<HomeUiState> =
         getTradesUsecase(
             authRepository.getCurrentUser()!!.id,
-            limit = 10
+            limit = 100
         )
             .map { trades ->
             val stats = getHomeStateUsecase(trades);
-                val heatMapData = heatMapDataUsecase(trades)
+                val heatMapData = heatMapDataUsecase(trades, 5)
             HomeUiState.Success(
                 stats = stats,
                 trades = trades,

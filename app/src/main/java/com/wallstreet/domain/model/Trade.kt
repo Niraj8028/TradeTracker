@@ -2,6 +2,7 @@ package com.wallstreet.domain.model
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
+import com.google.type.DateTime
 
 data class Trade(
     @DocumentId
@@ -12,7 +13,7 @@ data class Trade(
     val quantity: Double = 0.0,
     val tradeType: TradeType = TradeType.LONG,
     // TODO add date
-    val tradeDate: Long,
+    val tradeDate: Long = System.currentTimeMillis(),
     val profitLoss: Double? = null,
     val profitLossPercentage: Double? = null,
     val strategy: String = "",
@@ -22,7 +23,7 @@ data class Trade(
     val comments: String? = null,
     // TODO work on mistakes model
     val mistakes: List<String> = emptyList(),
-    val createAt: Long? = null
+    val createAt: Long? = null,
 )
 
 enum class TradeType {

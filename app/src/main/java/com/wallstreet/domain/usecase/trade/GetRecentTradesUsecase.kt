@@ -9,7 +9,7 @@ import timber.log.Timber
 class GetTradesUsecase(private val tradeRepository: TradeRepository) {
      operator fun invoke(userId: String, limit: Int): Flow<List<Trade>> {
          Timber.d("GetTradesUsecase called userid $userId")
-         val result = tradeRepository.getRecentTrades(userId, 10);
+         val result = tradeRepository.getRecentTrades(userId, limit);
          Timber.d("GetTradesUsecase called userid ${result.toString()}")
         return result
     }
