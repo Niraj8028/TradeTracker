@@ -1,6 +1,8 @@
 package com.wallstreet.presentation.home.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -21,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,9 +43,20 @@ fun HeatMapCard(
     onViewCalender: () -> Unit = {}
     ) {
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxWidth()
+            .shadow(
+                elevation = 1.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color.Black.copy(alpha = 0.3f),
+                spotColor = Color.Black.copy(alpha = 0.3f)
+            )
             .clip(RoundedCornerShape(16.dp))
-            .background(DarkSurface)
+            .background(MaterialTheme.colorScheme.background)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = RoundedCornerShape(16.dp)
+            )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -62,7 +76,7 @@ fun DayLabelRow() {
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 color = DarkTextTertiary,
-                fontSize = 9.sp,
+                fontSize = 10.sp,
                 modifier = Modifier.weight(1f),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
@@ -98,9 +112,10 @@ fun HeatMapDay(
     cell: HeatMapCell?,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isSystemInDarkTheme()
     val cellColour = when {
         cell == null -> Color.Transparent
-        cell.type == HeatType.NEUTRAL -> Color(0xFF1A2332)
+        cell.type == HeatType.NEUTRAL -> MaterialTheme.colorScheme.surfaceVariant
         cell.type == HeatType.PROFIT -> SuccessGreen.copy(alpha = cell.intensity)
         else -> DangerRed.copy(alpha = cell.intensity)
     }

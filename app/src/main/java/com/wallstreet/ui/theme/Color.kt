@@ -42,6 +42,10 @@ val BorderPrimary = Color(0xFFE5E7EB)
 val BorderSecondary = Color(0xFFF3F4F6)
 val DividerColor = Color(0xFFE5E7EB)
 
+// HeatMap
+val HeatmapEmpty = Color(0xFFE2E8F0)      // light: visible gray-blue
+val HeatmapEmptyDark = Color(0xFF1A2332) // dark
+
 // ============ Badges ============
 val BadgeLongBg = Color(0xFF065F46)
 val BadgeLongText = Color(0xFF10B981)
