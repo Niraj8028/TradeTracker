@@ -1,5 +1,6 @@
 package com.wallstreet.domain.model
 
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 data class HeatMapCell(
@@ -7,7 +8,7 @@ data class HeatMapCell(
     val noOfTrades: Int,
     val totalPnl: Double,
     val type: HeatType,
-    val intensity: Int,
+    val intensity: Float,
 )
 
 enum class HeatType {

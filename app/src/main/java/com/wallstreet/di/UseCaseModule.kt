@@ -1,6 +1,7 @@
 package com.wallstreet.di
 
 import com.wallstreet.domain.usecase.auth.*
+import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUsecase
@@ -17,4 +18,5 @@ val useCaseModule = module {
     factory { AddTradeUseCase(get()) }
     factory { GetTradesUsecase(get()) }
     factory { GetHomeStateUsecase(get()) }
+    factory { ComputeHeatMapDataUsecase() }
 }
