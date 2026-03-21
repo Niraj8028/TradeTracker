@@ -7,6 +7,8 @@ import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.repository.TradeRepository
 import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
+import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
+import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUsecase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +23,7 @@ class HomeViewModel(
     private val getTradesUsecase: GetTradesUsecase,
     private val getHomeStateUsecase: GetHomeStateUsecase,
     private val heatMapDataUsecase: ComputeHeatMapDataUsecase,
+    private val recentTradesDataUsecase: RecentTradesDataUsecase,
     private val authRepository: AuthRepository
 //    userId: String
 ): ViewModel() {
@@ -30,11 +33,12 @@ class HomeViewModel(
             limit = 100
         )
             .map { trades ->
-            val stats = getHomeStateUsecase(trades);
+            val stats = getHomeStateUsecase(trades)
+                val recentTrades = getRecentTradeData(trades)
                 val heatMapData = heatMapDataUsecase(trades, 5)
             HomeUiState.Success(
                 stats = stats,
-                trades = trades,
+                recentTrades = recentTrades,
                 heatMapData = heatMapData
             ) as HomeUiState
         }

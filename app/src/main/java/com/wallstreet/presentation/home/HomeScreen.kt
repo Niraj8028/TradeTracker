@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.wallstreet.presentation.home.components.HeatMapCard
+import com.wallstreet.presentation.home.components.RecentTradesSection
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -69,6 +70,10 @@ fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState) {
         Text("Total Wiining ${uiState.stats.totalWinningTrades}")
         Text("Total Lossing ${uiState.stats.totalLosingTrades}")
         HeatMapCard(heatMapData = uiState.heatMapData)
+        RecentTradesSection(
+            trades = uiState.recentTrades,
+            onViewAll = { /*TODO*/ }
+        )
     }
 }
 //
