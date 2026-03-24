@@ -53,7 +53,6 @@ private val LightColorScheme = lightColorScheme(
     onSurface = LightTextPrimary,
     surfaceVariant = LightSurfaceVariant,
     onSurfaceVariant = LightTextSecondary,
-
     error = DangerRed,
     onError = White,
     errorContainer = DangerRedDark,

@@ -9,6 +9,7 @@ import com.wallstreet.data.remote.FirebaseService
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.TradeRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
 class TradeRepositoryImpl(
@@ -33,10 +34,6 @@ class TradeRepositoryImpl(
         }
     }
 
-    override suspend fun getTradeById(tradeId: String): Result<Trade> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun addTrade(trade: Trade): Result<String> {
         return try {
 
@@ -48,15 +45,17 @@ class TradeRepositoryImpl(
         }
     }
 
-    override suspend fun updateTrade(trade: Trade): Result<String> {
-        TODO("Not yet implemented")
-    }
+    override fun getRecentTrades(userId: String, limit: Int): Flow<List<Trade>> = flow {
+            val snapshot = tradesCollection
+                .whereEqualTo("userId", userId)
+                .orderBy("createdAt")
+                .limit(limit.toLong())
+                .get()
+                .await();
 
-    override suspend fun deleteTrade(tradeId: String): Result<String> {
-        TODO("Not yet implemented")
-    }
-
-    override fun observeTrades(userId: String): Flow<List<Trade>> {
-        TODO("Not yet implemented")
+            val trades = snapshot.documents.mapNotNull {
+                it.toObject(TradeDto::class.java)?.toDomain()
+            }
+             emit(trades)
     }
 }
