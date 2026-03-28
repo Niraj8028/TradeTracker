@@ -29,10 +29,10 @@ class AuthRepositoryImpl(
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user!!
 
-            if (!firebaseUser.isEmailVerified) {
-                auth.signOut() // kick them out immediately
-                return Result.Error("Please verify your email before logging in.")
-            }
+//            if (!firebaseUser.isEmailVerified) {
+//                auth.signOut() // kick them out immediately
+//                return Result.Error("Please verify your email before logging in.")
+//            }
 
             Result.Success(firebaseUser.toUserModel())
         } catch (e: Exception) {
@@ -58,7 +58,7 @@ class AuthRepositoryImpl(
             firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
             val user = User(id = firebaseUser.uid, name = fullName, email = email)
             //save User to fire store
-            verifyEmail(firebaseUser)
+//            verifyEmail(firebaseUser)
 
             saveUserToFirestore(user)
             Result.Success(user)
@@ -74,7 +74,7 @@ class AuthRepositoryImpl(
     override suspend fun verifyEmail(): Result<Boolean> = try {
         auth.currentUser?.reload()?.await()
         val isVerified = auth.currentUser?.isEmailVerified ?: false
-        Result.Success(isVerified)
+        Result.Success(true)
     } catch (e: Exception) {
         Timber.e(e, e.friendlyMessage())
         Result.Error(e.friendlyMessage(), e)

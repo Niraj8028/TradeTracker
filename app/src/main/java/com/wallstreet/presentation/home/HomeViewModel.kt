@@ -35,7 +35,7 @@ class HomeViewModel(
             .map { trades ->
             val stats = getHomeStateUsecase(trades)
                 val recentTrades = getRecentTradeData(trades)
-                val heatMapData = heatMapDataUsecase(trades, 5)
+                val heatMapData = heatMapDataUsecase(trades, 4)
             HomeUiState.Success(
                 stats = stats,
                 recentTrades = recentTrades,

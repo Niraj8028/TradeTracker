@@ -11,7 +11,7 @@ import java.time.ZoneId
 import kotlin.math.abs
 
 class ComputeHeatMapDataUsecase {
-    operator fun invoke(trades: List<Trade>, weeks: Int = 5): HeatMapData {
+    operator fun invoke(trades: List<Trade>, weeks: Int = 4): HeatMapData {
         return buildHeatMapData(trades, weeks);
     }
 

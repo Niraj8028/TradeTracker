@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.wallstreet.presentation.home.components.HeatMapCard
 import com.wallstreet.presentation.home.components.RecentTradesSection
+import com.wallstreet.presentation.home.components.StatsRow
+import com.wallstreet.presentation.home.components.MainPnLCard
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -61,14 +63,17 @@ fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 12.dp)
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("Total Pnl ${uiState.stats.totalPnl}")
-        Text("Total Trades ${uiState.stats.totalTrades}")
-        Text("Total Wiining ${uiState.stats.totalWinningTrades}")
-        Text("Total Lossing ${uiState.stats.totalLosingTrades}")
+//        Text("Total Pnl ${uiState.stats.totalPnl.formatPnl()}")
+//        Text("Total Trades ${uiState.stats.totalTrades}")
+//        Text("Total Wiining ${uiState.stats.totalWinningTrades}")
+//        Text("Total Lossing ${uiState.stats.totalLosingTrades}")
+//        Text("Win Rate ${uiState.stats.winRate.formatPercent()}")
+        MainPnLCard(stats = uiState.stats)
+        StatsRow(stats = uiState.stats)
         HeatMapCard(heatMapData = uiState.heatMapData)
         RecentTradesSection(
             trades = uiState.recentTrades,
