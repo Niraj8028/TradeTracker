@@ -51,7 +51,7 @@ fun StatsCard(title: String, value: String, modifier: Modifier ) {
         modifier = modifier
             .shadow(
                 elevation = 4.dp,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(4.dp),
                 ambientColor = Color.Black.copy(alpha = 0.3f),
                 spotColor = Color.Black.copy(alpha = 0.3f)
             )
