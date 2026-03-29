@@ -12,7 +12,8 @@ sealed class HomeUiState {
     data class Success(
         val stats: HomeStats,
         val recentTrades:  List<RecentTradeItem>,
-        val heatMapData: HeatMapData
+        val heatMapData: HeatMapData,
+        val selectedPeriod: TimePeriod
     ): HomeUiState()
 }
 

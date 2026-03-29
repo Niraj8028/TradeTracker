@@ -5,7 +5,7 @@ import com.wallstreet.domain.model.Trade
 import kotlinx.coroutines.flow.Flow
 
 interface TradeRepository {
-    suspend fun getAllTrades(userId: String): Result<List<Trade>>
+     fun getAllTrades(userId: String): Flow<List<Trade>>
     suspend fun addTrade(trade: Trade): Result<String>
-    fun getRecentTrades(userId: String, limit: Int = 10): Flow<List<Trade>>
+    fun getRecentTrades(userId: String, fromMilis: Long, limit: Int): Flow<List<Trade>>
 }

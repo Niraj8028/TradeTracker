@@ -27,13 +27,19 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
     val uiState by viewModel.homeUiState.collectAsState()
+    val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     val scrollState = rememberScrollState()
 
-    HomeContent(uiState, scrollState)
+    HomeContent(uiState, scrollState, selectedPeriod = selectedPeriod, onPeriodSelected = viewModel::onPeriodSelected)
 }
 
 @Composable
-fun HomeContent(uiState: HomeUiState, scrollState: ScrollState) {
+fun HomeContent(
+    uiState: HomeUiState,
+    scrollState: ScrollState,
+    onPeriodSelected: (TimePeriod) -> Unit,
+    selectedPeriod: TimePeriod
+) {
     when(uiState) {
         is HomeUiState.Error -> {
             Text("ErrorView ${uiState.error}", style = MaterialTheme.typography.bodyMedium)
@@ -42,7 +48,7 @@ fun HomeContent(uiState: HomeUiState, scrollState: ScrollState) {
             LoadingView()
         }
         is HomeUiState.Success -> {
-            SuccessView(uiState, scrollState)
+            SuccessView(uiState, scrollState, selectedPeriod,  onPeriodSelected = onPeriodSelected)
         }
     }
 }
@@ -58,7 +64,7 @@ fun LoadingView() {
 }
 
 @Composable
-fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState) {
+fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState, selectedPeriod: TimePeriod, onPeriodSelected: (TimePeriod) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -67,12 +73,11 @@ fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState) {
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-//        Text("Total Pnl ${uiState.stats.totalPnl.formatPnl()}")
-//        Text("Total Trades ${uiState.stats.totalTrades}")
-//        Text("Total Wiining ${uiState.stats.totalWinningTrades}")
-//        Text("Total Lossing ${uiState.stats.totalLosingTrades}")
-//        Text("Win Rate ${uiState.stats.winRate.formatPercent()}")
-        MainPnLCard(stats = uiState.stats)
+        MainPnLCard(
+            stats = uiState.stats,
+            selectedPeriod = selectedPeriod,
+            onPeriodSelected = onPeriodSelected
+        )
         StatsRow(stats = uiState.stats)
         HeatMapCard(heatMapData = uiState.heatMapData)
         RecentTradesSection(
@@ -81,28 +86,3 @@ fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState) {
         )
     }
 }
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewHomeSuccess() {
-//    val scrollState = null
-//    scrollState?.let {
-//        HomeContent(
-//        HomeUiState.Success(
-//            stats = HomeStats(
-//                totalPnl = 1500.0,
-//                totalTrades = 10,
-//                totalWinningTrades = 6,
-//                totalLosingTrades = 4,
-//                winRate = 60.0,
-//                avgProfit = 300.0,
-//                avgLoss = -150.0,
-//                riskRewardRatio = 2.0,
-//                profitPercentage = 60.0
-//            ),
-//            trades = emptyList()
-//        ),
-//            it
-//    )
-//    }
-//}
