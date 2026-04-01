@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface UserStrategyRepository {
     suspend fun addStrategy(userStrategy: UserStrategy): Result<String>
     suspend fun getStrategy(): Flow<List<UserStrategy>>
-    suspend fun deleteStrategy(): Result<String>
+    suspend fun deleteStrategy(userStrategy: UserStrategy): Result<String>
     suspend fun updateStrategy(): Result<String>
 
 }
