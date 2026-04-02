@@ -75,8 +75,17 @@ class UserStrategyImpl(
         }
     }
 
-    override suspend fun updateStrategy(): Result<String> {
-        TODO("Not yet implemented")
+    override suspend fun updateStrategy(userStrategy: UserStrategy): Result<String> {
+        return try {
+            val id = userStrategy.id
+            if (id.isBlank()) return Result.Error("Missing strategy Id")
+            strategyCollection.document(id).set(userStrategy).await()
+            Result.Success("Strategy updated successfully")
+
+        } catch (e: Exception) {
+            Result.Error(e.toString());
+
+        }
     }
 
 

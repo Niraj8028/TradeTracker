@@ -8,6 +8,6 @@ interface UserStrategyRepository {
     suspend fun addStrategy(userStrategy: UserStrategy): Result<String>
     suspend fun getStrategy(): Flow<List<UserStrategy>>
     suspend fun deleteStrategy(userStrategy: UserStrategy): Result<String>
-    suspend fun updateStrategy(): Result<String>
+    suspend fun updateStrategy(userStrategy: UserStrategy): Result<String>
 
 }
