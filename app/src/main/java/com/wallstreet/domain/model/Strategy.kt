@@ -1,6 +1,6 @@
 package com.wallstreet.domain.model
 
-data class UserStrategy(
+data class Strategy(
 
     val id: String = "",
     val userId: String = "",

@@ -1,8 +1,5 @@
-import com.google.firebase.firestore.DocumentId
-
 //// TODO rename to User strategy
-data class UserStrategyDto(
-    @DocumentId
+data class strategyDto(
     val id: String = "",
     val userId: String = "",
     val name: String = "",

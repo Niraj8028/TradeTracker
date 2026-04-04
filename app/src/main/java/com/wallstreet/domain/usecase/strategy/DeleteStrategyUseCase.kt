@@ -1,16 +1,16 @@
 package com.wallstreet.domain.usecase.strategy
 
 import com.wallstreet.core.result.Result
-import com.wallstreet.domain.model.UserStrategy
-import com.wallstreet.domain.repository.UserStrategyRepository
+import com.wallstreet.domain.model.Strategy
+import com.wallstreet.domain.repository.StrategyRepository
 
-class DeleteStrategyUseCase(private val userStrategyRepository: UserStrategyRepository) {
+class DeleteStrategyUseCase(private val strategyRepository: StrategyRepository) {
 
-    suspend operator fun invoke(userStrategy: UserStrategy): Result<String> {
-        if (userStrategy.id.isEmpty()) {
+    suspend operator fun invoke(strategy: Strategy): Result<String> {
+        if (strategy.id.isEmpty()) {
             return Result.Error("Id can not be empty")
         }
-        return userStrategyRepository.deleteStrategy(userStrategy)
+        return strategyRepository.deleteStrategy(strategy)
     }
 
 

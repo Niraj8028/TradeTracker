@@ -1,14 +1,14 @@
 package com.wallstreet.domain.usecase.strategy
 
-import com.wallstreet.domain.model.UserStrategy
-import com.wallstreet.domain.repository.UserStrategyRepository
+import com.wallstreet.domain.model.Strategy
+import com.wallstreet.domain.repository.StrategyRepository
 import kotlinx.coroutines.flow.Flow
 
-class GetStrategyUseCase(private val userStrategyRepository: UserStrategyRepository) {
+class GetStrategyUseCase(private val strategyRepository: StrategyRepository) {
 
-    suspend operator fun invoke(): Flow<List<UserStrategy>> {
+    suspend operator fun invoke(): Flow<List<Strategy>> {
 
-        return userStrategyRepository.getStrategy()
+        return strategyRepository.getStrategy()
 
     }
 }

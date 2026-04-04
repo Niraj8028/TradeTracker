@@ -1,15 +1,15 @@
 package com.wallstreet.domain.usecase.strategy
 
-import com.wallstreet.domain.model.UserStrategy
-import com.wallstreet.domain.repository.UserStrategyRepository
+import com.wallstreet.domain.model.Strategy
+import com.wallstreet.domain.repository.StrategyRepository
 import com.wallstreet.core.result.Result
 
-class AddStrategyUseCase(private val userStrategyRepository: UserStrategyRepository) {
+class AddStrategyUseCase(private val strategyRepository: StrategyRepository) {
 
-    suspend operator fun invoke(userStrategy: UserStrategy): Result<String> {
-        if (userStrategy.name.isBlank()) {
+    suspend operator fun invoke(strategy: Strategy): Result<String> {
+        if (strategy.name.isBlank()) {
             return Result.Error("Name can not be empty")
         }
-        return userStrategyRepository.addStrategy(userStrategy)
+        return strategyRepository.addStrategy(strategy)
     }
 }

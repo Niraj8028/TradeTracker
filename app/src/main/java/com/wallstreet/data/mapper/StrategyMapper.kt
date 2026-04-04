@@ -1,11 +1,10 @@
 package com.wallstreet.data.mapper
 
-import UserStrategyDto
-import com.wallstreet.domain.model.UserStrategy
-import kotlin.String
+import strategyDto
+import com.wallstreet.domain.model.Strategy
 
-fun UserStrategyDto.toDomain(): UserStrategy {
-    return UserStrategy(
+fun strategyDto.toDomain(): Strategy {
+    return Strategy(
 
         id = id,
         userId = userId,
@@ -18,10 +17,10 @@ fun UserStrategyDto.toDomain(): UserStrategy {
 }
 
 
-fun UserStrategy.toDto(): UserStrategyDto {
-    return UserStrategyDto(
+fun Strategy.toDto(): strategyDto {
+    return strategyDto(
 
-        id = id,
+
         userId = userId,
         name = name,
         description = description,

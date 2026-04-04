@@ -1,33 +1,39 @@
 package com.wallstreet.data.repository
 
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.wallstreet.core.result.Result
 import com.wallstreet.data.mapper.toDomain
 import com.wallstreet.data.mapper.toDto
 import com.wallstreet.data.remote.FirebaseService
-import com.wallstreet.domain.model.UserStrategy
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.repository.AuthRepository
-import com.wallstreet.domain.repository.UserStrategyRepository
+import com.wallstreet.domain.repository.StrategyRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.channels.awaitClose
 
-class UserStrategyImpl(
+class StrategyImpl(
     private val authRepository: AuthRepository,
     private val firestore: FirebaseFirestore
 ) :
-    UserStrategyRepository {
+    StrategyRepository {
 
     private val strategyCollection =
         FirebaseService.firestore.collection(FirebaseService.Collections.STRATEGIES)
 
-    override suspend fun addStrategy(userStrategy: UserStrategy): Result<String> {
+    override suspend fun addStrategy(strategy: Strategy): Result<String> {
         return try {
+            val userId =
+                authRepository.getCurrentUser()?.id ?: return Result.Error("User not logged in")
 
-            val userStrategyDto = userStrategy.toDto()
-            val docRef = strategyCollection.add(userStrategyDto).await()
+            val strategyDto = strategy.toDto()
+
+            val strategy = strategy.copy(
+                userId = userId,
+                createAt = System.currentTimeMillis()
+            )
+            val docRef = strategyCollection.add(strategy).await()
             Result.Success(docRef.id);
 
         } catch (e: Exception) {
@@ -36,9 +42,8 @@ class UserStrategyImpl(
         }
     }
 
-    override suspend fun getStrategy(): Flow<List<UserStrategy>> = callbackFlow {
+    override suspend fun getStrategy(): Flow<List<Strategy>> = callbackFlow {
         val userId = authRepository.getCurrentUser()!!.id
-
         val listener = strategyCollection
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
@@ -49,7 +54,7 @@ class UserStrategyImpl(
                 }
 
                 val strategies = snapshot?.documents?.mapNotNull { doc ->
-                    val dto = doc.toObject(UserStrategyDto::class.java)
+                    val dto = doc.toObject(strategyDto::class.java)
                     dto?.copy(id = doc.id)?.toDomain()
                 } ?: emptyList()
 
@@ -61,10 +66,10 @@ class UserStrategyImpl(
         }
     }
 
-    override suspend fun deleteStrategy(userStrategy: UserStrategy): Result<String> {
+    override suspend fun deleteStrategy(strategy: Strategy): Result<String> {
 
         return try {
-            val id = userStrategy.id
+            val id = strategy.id
             if (id.isBlank()) return Result.Error("Missing strategy Id")
             strategyCollection.document(id).delete().await()
             Result.Success("Strategy deleted");
@@ -75,11 +80,11 @@ class UserStrategyImpl(
         }
     }
 
-    override suspend fun updateStrategy(userStrategy: UserStrategy): Result<String> {
+    override suspend fun updateStrategy(strategy: Strategy): Result<String> {
         return try {
-            val id = userStrategy.id
+            val id = strategy.id
             if (id.isBlank()) return Result.Error("Missing strategy Id")
-            strategyCollection.document(id).set(userStrategy).await()
+            strategyCollection.document(id).set(strategy).await()
             Result.Success("Strategy updated successfully")
 
         } catch (e: Exception) {
