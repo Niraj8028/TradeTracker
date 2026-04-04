@@ -3,14 +3,17 @@ package com.wallstreet.presentation.strategy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.domain.model.Strategy
 import org.koin.androidx.compose.koinViewModel
+import com.wallstreet.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +29,6 @@ fun StrategyScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 🔔 Error handling
     LaunchedEffect(error) {
         error?.let {
             snackbarHostState.showSnackbar(it)
@@ -35,15 +37,24 @@ fun StrategyScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Strategies") })
-        },
+
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                editStrategy = null
-                showDialog = true
-            }) {
-                Text("+")
+            FloatingActionButton(
+                onClick = {
+                    editStrategy = null
+                    showDialog = true
+
+                },
+                shape = CircleShape
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.add_circle),
+                    contentDescription =
+                        "add strategy",
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+
+                )
             }
         },
         snackbarHost = {
@@ -109,7 +120,6 @@ fun StrategyScreen(
                         )
                     )
                 } else {
-                    // ✏️ UPDATE
                     viewModel.updateStrategy(
                         editStrategy!!.copy(
                             name = name,

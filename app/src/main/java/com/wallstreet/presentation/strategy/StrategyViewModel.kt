@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.wallstreet.core.result.Result
 
 class StrategyViewModel(
     private val updateStrategyUseCase: UpdateStrategyUseCase,
@@ -16,7 +17,7 @@ class StrategyViewModel(
     private val addStrategyUseCase: AddStrategyUseCase
 ) : ViewModel() {
 
-    // 🔹 Direct state (like Profile)
+   
     private val _strategies = MutableStateFlow<List<Strategy>>(emptyList())
     val strategies: StateFlow<List<Strategy>> = _strategies.asStateFlow()
 
@@ -44,11 +45,13 @@ class StrategyViewModel(
             _isLoading.value = true
 
             when (val result = addStrategyUseCase(strategy)) {
-                is com.wallstreet.core.result.Result.Success -> {
+                is
+
+                Result.Success -> {
                     _isLoading.value = false
                 }
 
-                is com.wallstreet.core.result.Result.Error -> {
+                is Result.Error -> {
                     _error.value = result.message
                     _isLoading.value = false
                 }
