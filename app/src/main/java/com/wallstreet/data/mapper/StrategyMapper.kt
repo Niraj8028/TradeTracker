@@ -1,11 +1,10 @@
 package com.wallstreet.data.mapper
 
-import strategyDto
+import com.wallstreet.data.model.strategyDto
 import com.wallstreet.domain.model.Strategy
 
 fun strategyDto.toDomain(): Strategy {
     return Strategy(
-
         id = id,
         userId = userId,
         name = name,
