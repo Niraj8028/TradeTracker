@@ -6,7 +6,7 @@ data class Strategy(
     val userId: String = "",
     val name: String = "",
     val description: String = "",
-    val isCustom: String = "",
+    val isCustom: Boolean = false,
     val createAt: Long? = null,
 
     )
