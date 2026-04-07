@@ -9,7 +9,9 @@ import com.wallstreet.domain.repository.StrategyRepository
 import org.koin.dsl.module
 
 val repositoryModule = module {
-    single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
+    single<AuthRepository> { AuthRepositoryImpl(
+        get(), get(),
+    ) }
     single<TradeRepository> { TradeRepositoryImpl(get()) }
     single<StrategyRepository> {
         StrategyRepositoryImpl(

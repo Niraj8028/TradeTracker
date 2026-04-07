@@ -35,6 +35,7 @@ import com.wallstreet.core.util.formatDate
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.presentation.log_trade.components.ImageUploadSection
 import com.wallstreet.presentation.log_trade.components.MistakesSection
+import com.wallstreet.presentation.log_trade.components.PnlPreviewCard
 import com.wallstreet.presentation.log_trade.components.StrategyDropdown
 import com.wallstreet.presentation.log_trade.components.TradeTypeToggle
 import com.wallstreet.ui.theme.*
@@ -424,42 +425,3 @@ private fun AppTextField(
 
 // ── P&L Preview Card ───────────────────────────────────────────────────────────
 
-@Composable
-private fun PnlPreviewCard(pnl: Double) {
-    val isProfit = pnl >= 0
-    val bgColor =
-        if (isProfit)
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-        else
-            MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
-
-    val textColor =
-        if (isProfit)
-            MaterialTheme.colorScheme.primary
-        else
-            MaterialTheme.colorScheme.error
-    val label = if (isProfit) "ESTIMATED PROFIT" else "ESTIMATED LOSS"
-    val sign = if (isProfit) "+" else ""
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(bgColor)
-            .padding(horizontal = 24.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = textColor.copy(alpha = 0.8f),
-            letterSpacing = 0.8.sp
-        )
-        Text(
-            text = "$sign$${"%.2f".format(pnl)}",
-            style = MaterialTheme.typography.titleMedium,
-            color = textColor
-        )
-    }
-}

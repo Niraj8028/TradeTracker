@@ -15,7 +15,7 @@ import org.koin.dsl.module
 val useCaseModule = module {
     factory { SignInUseCase(get()) }
     factory { SignInWithGoogleUseCase(get()) }
-    factory { SignUpUseCase(get()) }
+    factory { SignUpUseCase(get(), get()) }
     factory { SignOutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
     factory { VerifyOtpUseCase(get()) }
@@ -28,7 +28,6 @@ val useCaseModule = module {
     factory { AddStrategyUseCase(get()) }
     factory { DeleteStrategyUseCase(get()) }
     factory { UpdateStrategyUseCase(get()) }
-
     factory { GetStrategyUseCase(get()) }
 
 }

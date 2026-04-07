@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.ui.theme.DarkSurface
 import com.wallstreet.ui.theme.DarkSurfaceVariant
 import com.wallstreet.ui.theme.DarkTextPrimary
@@ -29,9 +30,9 @@ import com.wallstreet.ui.theme.PrimaryBlue
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StrategyDropdown(
-    selectedStrategy: String,
-    strategies: List<String>,
-    onStrategySelected: (String) -> Unit
+    selectedStrategy: Strategy?,
+    strategies: List<Strategy>,
+    onStrategySelected: (Strategy) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -39,7 +40,7 @@ fun StrategyDropdown(
         onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            value = selectedStrategy,
+            value = selectedStrategy?.name ?: "",
             onValueChange = {},
             textStyle = MaterialTheme.typography.bodyMedium,
             readOnly = true,
@@ -81,7 +82,7 @@ fun StrategyDropdown(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            strategy,
+                            strategy.name,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
