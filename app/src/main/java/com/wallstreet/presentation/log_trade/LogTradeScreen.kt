@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.core.util.formatDate
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.presentation.log_trade.components.ImageUploadSection
@@ -45,8 +46,7 @@ fun LogTradeScreen(
     onNavigateBack: () -> Unit = {},
     viewModel: LogTradeViewModel = koinViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = uiState.tradeDate
     )
@@ -113,7 +113,7 @@ fun LogTradeScreen(
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = null,
-                                tint = DarkTextTertiary,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp)
                             )
                         },
@@ -193,7 +193,7 @@ fun LogTradeScreen(
                 SectionCard() {
                     StrategyDropdown(
                         selectedStrategy = uiState.selectedStrategy,
-                        strategies = viewModel.strategies,
+                        strategies = uiState.strategies,
                         onStrategySelected = { viewModel.onStrategySelected(it) }
                     )
                 }
@@ -202,17 +202,17 @@ fun LogTradeScreen(
                     Text(
                         text = "TRADE DATE",
                         style = MaterialTheme.typography.labelSmall,
-                        color = DarkTextTertiary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
                         text = formatDate(uiState.tradeDate),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = DarkTextPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(DarkSurfaceVariant)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { showDatePicker = true }
                             .padding(16.dp)
                     )
@@ -238,7 +238,7 @@ fun LogTradeScreen(
                         placeholder = {
                             Text(
                                 "What went well? What would you do differently?",
-                                color = DarkTextTertiary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         },
@@ -246,12 +246,21 @@ fun LogTradeScreen(
                             .fillMaxWidth()
                             .height(100.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = DarkSurfaceVariant,
-                            unfocusedContainerColor = DarkSurfaceVariant,
-                            focusedBorderColor = PrimaryBlue,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = DarkTextPrimary,
-                            unfocusedTextColor = DarkTextPrimary
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            errorBorderColor = MaterialTheme.colorScheme.error,
+                            errorContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
                         shape = RoundedCornerShape(12.dp),
                         maxLines = 5
@@ -288,8 +297,8 @@ fun LogTradeScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.background,
-                shadowElevation = 8.dp
-            ) {
+
+                ) {
                 Button(
                     onClick = { viewModel.onSaveTrade() },
                     modifier = Modifier
@@ -297,15 +306,15 @@ fun LogTradeScreen(
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                         .height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryBlue,
-                        disabledContainerColor = PrimaryBlue.copy(alpha = 0.4f)
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                     ),
                     shape = RoundedCornerShape(14.dp),
                     enabled = !uiState.isLoading
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
-                            color = White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp
                         )
@@ -332,8 +341,9 @@ private fun SectionCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(DarkSurface)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 12.dp, vertical = 0.dp),
+
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
@@ -360,13 +370,12 @@ private fun AppTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = DarkTextTertiary,
-            letterSpacing = 0.8.sp
+            color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.8.sp
         )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = DarkTextPrimary),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
             placeholder = {
                 Text(
                     placeholder,
@@ -392,14 +401,21 @@ private fun AppTextField(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkSurfaceVariant,
-                unfocusedContainerColor = DarkSurfaceVariant,
-                focusedBorderColor = PrimaryBlue,
-                unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = DarkTextPrimary,
-                unfocusedTextColor = DarkTextPrimary,
-                errorContainerColor = DarkSurfaceVariant,
-                errorBorderColor = DangerRed
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                cursorColor = MaterialTheme.colorScheme.primary,
+                errorBorderColor = MaterialTheme.colorScheme.error,
+                errorContainerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             shape = RoundedCornerShape(12.dp)
         )
@@ -412,8 +428,16 @@ private fun AppTextField(
 private fun PnlPreviewCard(pnl: Double) {
     val isProfit = pnl >= 0
     val bgColor =
-        if (isProfit) SuccessGreenDark.copy(alpha = 0.15f) else DangerRedDark.copy(alpha = 0.15f)
-    val textColor = if (isProfit) SuccessGreen else DangerRed
+        if (isProfit)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+        else
+            MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
+
+    val textColor =
+        if (isProfit)
+            MaterialTheme.colorScheme.primary
+        else
+            MaterialTheme.colorScheme.error
     val label = if (isProfit) "ESTIMATED PROFIT" else "ESTIMATED LOSS"
     val sign = if (isProfit) "+" else ""
 

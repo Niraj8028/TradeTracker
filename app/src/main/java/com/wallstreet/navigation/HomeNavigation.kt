@@ -17,6 +17,7 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.home.HomeScreen
 import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
+import com.wallstreet.presentation.strategy.StrategyScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -27,16 +28,46 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
-                    subclass(AppRoute.Home.DashboardRoute::class,      AppRoute.Home.DashboardRoute.serializer())
-                    subclass(AppRoute.Home.TradeHistoryRoute::class,   AppRoute.Home.TradeHistoryRoute.serializer())
-                    subclass(AppRoute.Home.LogTradeRoute::class,       AppRoute.Home.LogTradeRoute.serializer())
-                    subclass(AppRoute.Home.StrategiesRoute::class,     AppRoute.Home.StrategiesRoute.serializer())
-                    subclass(AppRoute.Home.ProfileRoute::class,        AppRoute.Home.ProfileRoute.serializer())
-                    subclass(AppRoute.Home.EquityMetricsRoute::class,  AppRoute.Home.EquityMetricsRoute.serializer())
-                    subclass(AppRoute.Home.MistakeAnalysisRoute::class,AppRoute.Home.MistakeAnalysisRoute.serializer())
-                    subclass(AppRoute.Home.CalendarRoute::class,       AppRoute.Home.CalendarRoute.serializer())
-                    subclass(AppRoute.Home.JournalDetailRoute::class,  AppRoute.Home.JournalDetailRoute.serializer())
-                    subclass(AppRoute.Home.StrategyDetailRoute::class, AppRoute.Home.StrategyDetailRoute.serializer())
+                    subclass(
+                        AppRoute.Home.DashboardRoute::class,
+                        AppRoute.Home.DashboardRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.TradeHistoryRoute::class,
+                        AppRoute.Home.TradeHistoryRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.LogTradeRoute::class,
+                        AppRoute.Home.LogTradeRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.StrategiesRoute::class,
+                        AppRoute.Home.StrategiesRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.ProfileRoute::class,
+                        AppRoute.Home.ProfileRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.EquityMetricsRoute::class,
+                        AppRoute.Home.EquityMetricsRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.MistakeAnalysisRoute::class,
+                        AppRoute.Home.MistakeAnalysisRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.CalendarRoute::class,
+                        AppRoute.Home.CalendarRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.JournalDetailRoute::class,
+                        AppRoute.Home.JournalDetailRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.StrategyDetailRoute::class,
+                        AppRoute.Home.StrategyDetailRoute.serializer()
+                    )
                 }
             }
         },
@@ -104,7 +135,7 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.CalendarRoute> {
                 MainScaffold(homeBackStack) {
-                    Text("Calendar")
+                    StrategyScreen()
                 }
             }
 

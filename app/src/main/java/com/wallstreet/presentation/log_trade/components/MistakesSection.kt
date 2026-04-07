@@ -1,6 +1,8 @@
 package com.wallstreet.presentation.log_trade.components
 
 import android.text.Layout
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,12 +33,13 @@ fun MistakesSection(
     onMistakeToggled: (String) -> Unit
 ) {
     Column(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             "MISTAKES IDENTIFIED",
             style = MaterialTheme.typography.labelMedium,
-            color = DarkTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
@@ -48,11 +51,17 @@ fun MistakesSection(
                 Surface(
                     onClick = { onMistakeToggled(mistake) },
                     shape = RoundedCornerShape(20.dp),
-                    color = if (isSelected) PrimaryBlue else Color.Transparent,
+                    color = if (isSelected)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surface,
+
                     border = if (!isSelected) {
-                        androidx.compose.foundation.BorderStroke(1.dp, DarkTextTertiary)
+                        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     } else null,
-                    modifier = Modifier.height(32.dp).wrapContentWidth()
+                    modifier = Modifier
+                        .height(32.dp)
+                        .wrapContentWidth()
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -61,7 +70,8 @@ fun MistakesSection(
                         Text(
                             text = mistake,
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isSelected) White else DarkTextSecondary
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                            else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

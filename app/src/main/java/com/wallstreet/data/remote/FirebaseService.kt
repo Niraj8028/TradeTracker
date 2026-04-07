@@ -10,6 +10,7 @@ object FirebaseService {
     object Collections {
         const val USERS = "users"
         const val TRADES = "trades"
+        const val STRATEGIES = "strategies"
     }
 
 }

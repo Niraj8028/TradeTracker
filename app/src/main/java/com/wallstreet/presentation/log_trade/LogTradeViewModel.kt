@@ -7,6 +7,7 @@ import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,21 +18,12 @@ import kotlinx.coroutines.launch
 class LogTradeViewModel(
     private val addTradeUseCase: AddTradeUseCase,
 
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository, private val getStrategyUseCase: GetStrategyUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogTradeUiState())
     val uiState: StateFlow<LogTradeUiState> = _uiState.asStateFlow()
 
-    // TODO fetch this from backend
-    val strategies = listOf(
-        "Bull Flag Breakout",
-        "Support/Resistance Bounce",
-        "Moving Average Crossover",
-        "VWAP Reversion",
-        "Gap Fill Strategy",
-        "Trend Following"
-    )
 
     val mistakes = listOf(
         "FOMO",
@@ -41,6 +33,20 @@ class LogTradeViewModel(
         "No Stop Loss",
         "No Setup",
     )
+
+    init {
+        observeStrategies()
+    }
+  
+    private fun observeStrategies() {
+        viewModelScope.launch {
+            getStrategyUseCase().collect { list ->
+                _uiState.value = _uiState.value.copy(
+                    strategies = list.map { it.name } // convert Strategy → String
+                )
+            }
+        }
+    }
 
     fun onImageSelected(uri: String) {
         _uiState.value = _uiState.value.copy(imageUri = uri);
@@ -208,6 +214,7 @@ class LogTradeViewModel(
             TradeType.SHORT -> (entryPrice - exitPrice) * quantity
         }
     }
+
     //TODO
     private fun calculateProfitLossPercentage(
         entryPrice: Double,

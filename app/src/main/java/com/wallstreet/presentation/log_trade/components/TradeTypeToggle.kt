@@ -28,15 +28,17 @@ fun TradeTypeToggle(
     onTypeSelected: (TradeType) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .background(DarkSurfaceVariant, RoundedCornerShape(12.dp))
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         TradeType.entries.forEach { type ->
             val isSelected = selectedType == type
             Box(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
                     .background(
                         if (isSelected) PrimaryBlue else Color.Transparent,
                         RoundedCornerShape(8.dp)
