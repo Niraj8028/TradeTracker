@@ -13,6 +13,7 @@ data class TradeDto(
     val exitPrice: Double? = null,
     val quantity: Double = 0.0,
     val tradeType: TradeType = TradeType.LONG,
+    val strategyId: String? = null,
     // TODO add date
     val tradeDate: Long = System.currentTimeMillis(),
     val profitLoss: Double? = null,

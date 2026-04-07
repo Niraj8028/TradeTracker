@@ -4,6 +4,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.domain.repository.AuthRepository
@@ -42,7 +43,7 @@ class LogTradeViewModel(
         viewModelScope.launch {
             getStrategyUseCase().collect { list ->
                 _uiState.value = _uiState.value.copy(
-                    strategies = list.map { it.name } // convert Strategy → String
+                    strategies = list.map { it } // convert Strategy → String
                 )
             }
         }
@@ -88,7 +89,7 @@ class LogTradeViewModel(
         }
     }
 
-    fun onStrategySelected(strategy: String) {
+    fun onStrategySelected(strategy: Strategy) {
         _uiState.value = _uiState.value.copy(selectedStrategy = strategy)
     }
 
@@ -142,7 +143,7 @@ class LogTradeViewModel(
                     state.exitPrice.toDoubleOrNull(),
                     state.tradeType
                 ),
-                strategy = state.selectedStrategy,
+                strategyId = state.selectedStrategy?.id,
                 notes = "",
                 imageUrl = state.imageUri,
                 tradeDate = state.tradeDate,

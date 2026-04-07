@@ -2,8 +2,10 @@ package com.wallstreet.domain.usecase.auth
 
 
 import com.wallstreet.core.result.Result
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.domain.repository.StrategyRepository
 
 class SignInUseCase(private val repo: AuthRepository) {
     suspend operator fun invoke(email: String, password: String): Result<User> {
@@ -20,7 +22,17 @@ class SignInWithGoogleUseCase(private val repo: AuthRepository) {
 }
 
 // domain/usecase/auth/SignUpUseCase.kt
-class SignUpUseCase(private val repo: AuthRepository) {
+class SignUpUseCase(
+    private val repo: AuthRepository,
+    private val strategyRepository: StrategyRepository
+) {
+    private val defaultStrategies = listOf(
+        Strategy(name = "Breakout", description = ""),
+        Strategy(name = "9 EMA Strategy", description = ""),
+        Strategy(name = "Double Top", description = ""),
+        Strategy(name = "Trend Following", description = "")
+    )
+
     suspend operator fun invoke(
         fullName: String, email: String,
         password: String, confirmPassword: String
@@ -29,7 +41,13 @@ class SignUpUseCase(private val repo: AuthRepository) {
         if (email.isBlank()) return Result.Error("Email cannot be empty")
         if (password.length < 6) return Result.Error("Password must be at least 6 characters")
         if (password != confirmPassword) return Result.Error("Passwords do not match")
-        return repo.signUp(fullName, email, password)
+        val result = repo.signUp(fullName, email, password)
+        if(result is Result.Error) return Result.Error("Error signing up")
+        runCatching {
+            defaultStrategies.forEach { strategyRepository.addStrategy(it) }
+        }
+
+        return result
     }
 }
 

@@ -1,5 +1,6 @@
 package com.wallstreet.presentation.log_trade
 
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.TradeType
 
 data class LogTradeUiState(
@@ -13,12 +14,12 @@ data class LogTradeUiState(
     val quantity: String = "",
     val entryPrice: String = "",
     val exitPrice: String = "",
-    val selectedStrategy: String = "",
+    val selectedStrategy: Strategy? = null,
     val comments: String = "",
     val selectedMistakes: Set<String> = emptySet(),
     val imageUri: String? = null,
     val tradeDate: Long = System.currentTimeMillis(),
-    val strategies: List<String> = emptyList(),
+    val strategies: List<Strategy> = emptyList(),
     // Validation
     val symbolError: String? = null,
     val quantityError: String? = null,
