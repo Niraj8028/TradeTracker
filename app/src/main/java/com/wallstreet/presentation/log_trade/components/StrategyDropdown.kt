@@ -32,7 +32,7 @@ fun StrategyDropdown(
     selectedStrategy: String,
     strategies: List<String>,
     onStrategySelected: (String) -> Unit
-    ) {
+) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -47,7 +47,7 @@ fun StrategyDropdown(
                 Text(
                     "SELECT STRATEGY",
                     style = MaterialTheme.typography.labelMedium,
-                    color = DarkTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -55,12 +55,19 @@ fun StrategyDropdown(
                 .fillMaxWidth()
                 .menuAnchor(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = DarkSurfaceVariant,
-                unfocusedContainerColor = DarkSurfaceVariant,
-                focusedBorderColor = PrimaryBlue,
-                unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = DarkTextPrimary,
-                unfocusedTextColor = DarkTextPrimary
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+
+                cursorColor = MaterialTheme.colorScheme.primary
             ),
             shape = RoundedCornerShape(12.dp)
         )
@@ -68,14 +75,14 @@ fun StrategyDropdown(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(DarkSurface)
+            Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             strategies.forEach { strategy ->
                 DropdownMenuItem(
                     text = {
                         Text(
                             strategy,
-                            color = DarkTextPrimary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     },
@@ -84,7 +91,7 @@ fun StrategyDropdown(
                         expanded = false
                     },
                     colors = MenuDefaults.itemColors(
-                        textColor = DarkTextPrimary
+                        textColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }

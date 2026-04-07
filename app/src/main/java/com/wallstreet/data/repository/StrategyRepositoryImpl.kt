@@ -13,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.channels.awaitClose
 
-class StrategyImpl(
+class StrategyRepositoryImpl(
     private val authRepository: AuthRepository,
     private val firestore: FirebaseFirestore
 ) :

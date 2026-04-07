@@ -1,5 +1,6 @@
 package com.wallstreet.presentation.log_trade.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,22 +28,25 @@ import com.wallstreet.ui.theme.PrimaryBlue
 fun ImageUploadSection(
     imageUri: String?,
     onImagePick: () -> Unit
-    ) {
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = "TRADE SCREENSHOT (OPTIONAL)",
             style = MaterialTheme.typography.labelMedium,
-            color = DarkTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Surface(
             onClick = onImagePick,
             shape = RoundedCornerShape(12.dp),
-            color = DarkSurfaceVariant,
-            border = androidx.compose.foundation.BorderStroke(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            border = BorderStroke(
                 1.dp,
-                if(imageUri != null ) PrimaryBlue else DarkTextTertiary
+                if (imageUri != null)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.outlineVariant
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -56,7 +60,7 @@ fun ImageUploadSection(
                     Text(
                         "Image Selected",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = PrimaryBlue
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
                     Column(
@@ -66,13 +70,13 @@ fun ImageUploadSection(
                         Icon(
                             imageVector = Icons.Default.Image,
                             contentDescription = "Upload Image",
-                            tint = DarkTextTertiary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(32.dp)
                         )
                         Text(
                             "Tap to upload screenshot",
                             style = MaterialTheme.typography.bodySmall,
-                            color = DarkTextTertiary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                     }

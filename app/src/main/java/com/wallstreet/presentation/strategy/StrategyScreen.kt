@@ -14,15 +14,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.domain.model.Strategy
 import org.koin.androidx.compose.koinViewModel
 import com.wallstreet.R
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StrategyScreen(
     viewModel: StrategyViewModel = koinViewModel()
+
+
 ) {
-    val strategies by viewModel.strategies.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val strategies = uiState.strategies
+    val isLoading = uiState.isLoading
+    val error = uiState.error
+
 
     var showDialog by remember { mutableStateOf(false) }
     var editStrategy by remember { mutableStateOf<Strategy?>(null) }

@@ -18,7 +18,7 @@ data class LogTradeUiState(
     val selectedMistakes: Set<String> = emptySet(),
     val imageUri: String? = null,
     val tradeDate: Long = System.currentTimeMillis(),
-
+    val strategies: List<String> = emptyList(),
     // Validation
     val symbolError: String? = null,
     val quantityError: String? = null,
