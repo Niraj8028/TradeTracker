@@ -2,7 +2,6 @@ package com.wallstreet.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +16,9 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.home.HomeScreen
 import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
+import com.wallstreet.presentation.profile.components.PrivacyPolicyScreen
+import com.wallstreet.presentation.profile.components.SecurityPrivacyScreen
+import com.wallstreet.presentation.profile.components.TermsOfServiceScreen
 import com.wallstreet.presentation.strategy.StrategyScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -68,6 +70,19 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                         AppRoute.Home.StrategyDetailRoute::class,
                         AppRoute.Home.StrategyDetailRoute.serializer()
                     )
+
+                    subclass(
+                        AppRoute.Home.SecurityPrivacyRoute::class,
+                        AppRoute.Home.SecurityPrivacyRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.PrivacyPolicyRoute::class,
+                        AppRoute.Home.PrivacyPolicyRoute.serializer()
+                    )
+                    subclass(
+                        AppRoute.Home.TermsOfServiceRoute::class,
+                        AppRoute.Home.TermsOfServiceRoute.serializer()
+                    )
                 }
             }
         },
@@ -116,7 +131,12 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.ProfileRoute> {
                 MainScaffold(homeBackStack) {
-                    ProfileScreen(onLogout = onLogout)
+                    ProfileScreen(
+                        onLogout = onLogout,
+                        onSecurityPrivacy = { homeBackStack.add(AppRoute.Home.SecurityPrivacyRoute) },
+                        onPrivacyPolicy = { homeBackStack.add(AppRoute.Home.PrivacyPolicyRoute) },
+                        onTermsOfService = { homeBackStack.add(AppRoute.Home.TermsOfServiceRoute) }
+                    )
                 }
             }
 
@@ -145,6 +165,18 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.StrategyDetailRoute> { key ->
                 Text("Strategy: ${key.strategyId}")
+            }
+
+            entry<AppRoute.Home.SecurityPrivacyRoute> {
+                SecurityPrivacyScreen(onBack = { homeBackStack.removeLastOrNull() })
+            }
+
+            entry<AppRoute.Home.PrivacyPolicyRoute> {
+                PrivacyPolicyScreen(onBack = { homeBackStack.removeLastOrNull() })
+            }
+
+            entry<AppRoute.Home.TermsOfServiceRoute> {
+                TermsOfServiceScreen(onBack = { homeBackStack.removeLastOrNull() })
             }
         }
     )
