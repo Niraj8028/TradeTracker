@@ -33,6 +33,7 @@ import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
 import com.wallstreet.R
 import com.wallstreet.presentation.profile.components.ConfirmationDialog
+import com.wallstreet.presentation.profile.components.ThemeToggle
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -42,6 +43,7 @@ fun ProfileScreen(
     onSecurityPrivacy: () -> Unit,
     onPrivacyPolicy: () -> Unit,
     onTermsOfService: () -> Unit,
+    onDeleteAccount: () -> Unit,
 ) {
     val user = viewModel.user
     val isLoggedOut by viewModel.isLoggedOut.collectAsStateWithLifecycle()
@@ -212,7 +214,8 @@ fun ProfileScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(16.dp)
+                .clickable { onDeleteAccount() },
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

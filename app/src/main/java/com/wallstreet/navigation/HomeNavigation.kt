@@ -16,9 +16,10 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.home.HomeScreen
 import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
-import com.wallstreet.presentation.profile.components.PrivacyPolicyScreen
-import com.wallstreet.presentation.profile.components.SecurityPrivacyScreen
-import com.wallstreet.presentation.profile.components.TermsOfServiceScreen
+import com.wallstreet.presentation.profile.screens.DeleteAccountScreen
+import com.wallstreet.presentation.profile.screens.PrivacyPolicyScreen
+import com.wallstreet.presentation.profile.screens.SecurityPrivacyScreen
+import com.wallstreet.presentation.profile.screens.TermsOfServiceScreen
 import com.wallstreet.presentation.strategy.StrategyScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -83,6 +84,10 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                         AppRoute.Home.TermsOfServiceRoute::class,
                         AppRoute.Home.TermsOfServiceRoute.serializer()
                     )
+                    subclass(
+                        AppRoute.Home.DeleteAccountRoute::class,
+                        AppRoute.Home.DeleteAccountRoute.serializer()
+                    )
                 }
             }
         },
@@ -135,7 +140,8 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                         onLogout = onLogout,
                         onSecurityPrivacy = { homeBackStack.add(AppRoute.Home.SecurityPrivacyRoute) },
                         onPrivacyPolicy = { homeBackStack.add(AppRoute.Home.PrivacyPolicyRoute) },
-                        onTermsOfService = { homeBackStack.add(AppRoute.Home.TermsOfServiceRoute) }
+                        onTermsOfService = { homeBackStack.add(AppRoute.Home.TermsOfServiceRoute) },
+                        onDeleteAccount = { homeBackStack.add(AppRoute.Home.DeleteAccountRoute) }
                     )
                 }
             }
@@ -177,6 +183,9 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.TermsOfServiceRoute> {
                 TermsOfServiceScreen(onBack = { homeBackStack.removeLastOrNull() })
+            }
+            entry<AppRoute.Home.DeleteAccountRoute> { key ->
+                DeleteAccountScreen(onBack = { homeBackStack.removeLastOrNull() })
             }
         }
     )

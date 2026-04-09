@@ -1,4 +1,4 @@
-package com.wallstreet.presentation.profile.components
+package com.wallstreet.presentation.profile.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

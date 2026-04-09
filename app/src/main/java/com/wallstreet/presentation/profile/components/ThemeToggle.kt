@@ -1,10 +1,9 @@
-package com.wallstreet.presentation.profile
+package com.wallstreet.presentation.profile.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
-import com.wallstreet.ui.theme.DarkTextSecondary
 import com.wallstreet.ui.theme.White
 import kotlinx.coroutines.launch
 
