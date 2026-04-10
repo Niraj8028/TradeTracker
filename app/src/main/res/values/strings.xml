@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">TradeCoach</string>
     <string name="nav_journal">Journal</string>
     <string name="nav_analytics">Analytics</string>
     <string name="nav_strategies">Strategies</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_log_trade">Log Trade</string>
- </resources>
+</resources>
