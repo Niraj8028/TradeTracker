@@ -37,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.wallstreet.R
 import com.wallstreet.presentation.profile.components.DeleteReasonOption
+import com.wallstreet.ui.theme.LocalBorderColors
 
 enum class DeleteReason(val title: String) {
     NOT_USING_ANYMORE("I don't use the app anymore"),
@@ -87,7 +88,7 @@ fun DeleteAccountScreen(onBack: () -> Unit) {
                         .clip(RoundedCornerShape(10.dp))
                         .border(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.outline,
                             shape = RoundedCornerShape(10.dp)
                         )
                         .padding(10.dp)
@@ -132,8 +133,8 @@ fun DeleteAccountScreen(onBack: () -> Unit) {
                     singleLine = false,
                     shape = MaterialTheme.shapes.medium,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.outline,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        focusedBorderColor = LocalBorderColors.current.primary,
+                        unfocusedBorderColor = LocalBorderColors.current.secondary
 
                     )
                 )
@@ -144,8 +145,7 @@ fun DeleteAccountScreen(onBack: () -> Unit) {
                     onClick = { showDeleteAccontDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp)
-                        .padding(horizontal = 16.dp),
+                        .height(52.dp),
 
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
