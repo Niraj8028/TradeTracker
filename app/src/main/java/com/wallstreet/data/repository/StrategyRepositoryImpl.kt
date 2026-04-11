@@ -12,7 +12,6 @@ import com.wallstreet.domain.repository.StrategyRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import strategyDto
 import kotlinx.coroutines.tasks.await
 
 class StrategyRepositoryImpl(
@@ -41,7 +40,7 @@ class StrategyRepositoryImpl(
         }
     }
 
-    override suspend fun getStrategy(): Flow<List<Strategy>> = callbackFlow {
+    override fun getStrategies(): Flow<List<Strategy>> = callbackFlow {
         val userId = authRepository.getCurrentUser()!!.id
 
         val listener = strategyCollection
