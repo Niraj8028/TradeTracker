@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.wallstreet.core.preferences.OnboardingPreferences
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
@@ -22,6 +23,9 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Enable Firestore debug logging
+        FirebaseFirestore.setLoggingEnabled(true)
+
         val splashScreen = installSplashScreen()
 
         splashScreen.setKeepOnScreenCondition {
