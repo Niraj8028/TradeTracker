@@ -3,7 +3,6 @@ package com.wallstreet.navigation
 import StrategiesScreen
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -134,10 +133,12 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             }
 
             entry<AppRoute.Home.CalendarRoute> {
-//                MainScaffold(homeBackStack) {
-                    StrategiesScreen()
-//                    )
-//                }
+                MainScaffold(homeBackStack) {
+                    StrategiesScreen(
+                        onStrategyClick = {},
+                        onAddStrategy = {  },
+                    )
+                }
             }
 
             entry<AppRoute.Home.JournalDetailRoute> { key ->
