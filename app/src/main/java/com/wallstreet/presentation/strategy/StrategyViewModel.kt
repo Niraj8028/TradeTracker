@@ -9,96 +9,105 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.wallstreet.core.result.Result
+import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.presentation.home.TimePeriod
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 
 class StrategyViewModel(
     private val updateStrategyUseCase: UpdateStrategyUseCase,
-    private val getStrategyUseCase: GetStrategyUseCase,
     private val deleteStrategyUseCase: DeleteStrategyUseCase,
-    private val addStrategyUseCase: AddStrategyUseCase
-) : ViewModel() {
-    private val _uiState = MutableStateFlow(StrategyUiState())
-    val uiState: StateFlow<StrategyUiState> = _uiState.asStateFlow()
+    private val addStrategyUseCase: AddStrategyUseCase,
+    private val getStrategyStatsUsecase: GetStrategyStatsUsecase,
+    private val authRepository: AuthRepository
+    ) : ViewModel() {
 
+    private val _selectedPeriod = MutableStateFlow(TimePeriod.ONE_MONTH)
+    val selectedPeriod: StateFlow<TimePeriod> = _selectedPeriod.asStateFlow()
 
-    init {
-        observeStrategies()
-    }
+    private val _actionState = MutableStateFlow<ActionState>(ActionState.Idle)
+    val actionState: StateFlow<ActionState> = _actionState.asStateFlow()
 
-    private fun observeStrategies() {
-        viewModelScope.launch {
-            getStrategyUseCase().collect { list ->
-                _uiState.value = _uiState.value.copy(
-                    strategies = list,
-                    isLoading = false
-                )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<StrategiesUiState> = _selectedPeriod.flatMapLatest { period ->
+        val userId = authRepository.getCurrentUser()!!.id;
+        getStrategyStatsUsecase(userId, period).map { stats ->
+            StrategiesUiState.Success(
+                strategyStats = stats,
+                selectedPeriod = period
+            ) as StrategiesUiState
+        }.onStart { emit(StrategiesUiState.Loading) }
+            .catch { e ->
+                emit(StrategiesUiState.Error(e.message ?: "Unknown error"))
             }
-        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = StrategiesUiState.Loading
+    )
+
+    fun onPeriodSelected(period: TimePeriod) {
+        _selectedPeriod.value = period
     }
 
-    fun addStrategy(strategy: Strategy) {
-        if (strategy.name.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                strategyNameError = "Name can not be empty"
-            )
+
+    fun addStrategy(name: String) {
+        if(name.isBlank()) {
+            _actionState.value = ActionState.ValidationError("Name cannot be empty")
             return
         }
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoading = true
+            _actionState.value = ActionState.Loading
+             val result = addStrategyUseCase(
+                Strategy(
+                    name = name,
+                    isCustom = true,
+                )
             )
-
-            when (val result = addStrategyUseCase(strategy)) {
-                is
-
-                Result.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        success = true,
-                        strategyNameError = null
-                    )
-                }
-
-                is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
-
-                        isLoading = false,
-                        error = result.message
-                    )
-                }
-
-                else -> {}
+            when(result) {
+                is Result.Error -> ActionState.Error(result.message ?: "Failed to add strategy")
+                Result.Loading -> ActionState.Loading
+                is Result.Success<*> -> ActionState.Success
             }
         }
     }
 
     fun deleteStrategy(strategy: Strategy) {
         if (strategy.id.isEmpty()) {
-            _uiState.value = _uiState.value.copy(
-                strategyIdError = "Invalid strategy id"
-            )
+            _actionState.value = ActionState.ValidationError("Invalid strategy id")
             return
         }
         viewModelScope.launch {
-            deleteStrategyUseCase(strategy)
+            _actionState.value = ActionState.Loading
+            _actionState.value = when (val result = deleteStrategyUseCase(strategy)) {
+                is Result.Success -> ActionState.Success
+                is Result.Error -> ActionState.Error(result.message ?: "Failed to delete")
+                else -> ActionState.Idle
+            }
         }
     }
 
     fun updateStrategy(strategy: Strategy) {
         if (strategy.id.isEmpty()) {
-            _uiState.value = _uiState.value.copy(
-                strategyIdError = "Invalid strategy id"
-            )
+            _actionState.value = ActionState.ValidationError("Invalid strategy id")
             return
         }
         viewModelScope.launch {
-            updateStrategyUseCase(strategy)
+            _actionState.value = ActionState.Loading
+            _actionState.value = when (val result = updateStrategyUseCase(strategy)) {
+                is Result.Success -> ActionState.Success
+                is Result.Error -> ActionState.Error(result.message ?: "Failed to update")
+                else -> ActionState.Idle
+            }
         }
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(
-            error = null
-        )
-
+    fun clearActionState() {
+        _actionState.value = ActionState.Idle
     }
 }
