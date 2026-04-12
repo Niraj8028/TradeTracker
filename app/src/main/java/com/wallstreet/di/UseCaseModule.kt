@@ -6,6 +6,7 @@ import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
 import com.wallstreet.domain.usecase.strategy.AddStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.DeleteStrategyUseCase
+import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.UpdateStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
@@ -29,5 +30,5 @@ val useCaseModule = module {
     factory { DeleteStrategyUseCase(get()) }
     factory { UpdateStrategyUseCase(get()) }
     factory { GetStrategyUseCase(get()) }
-
+    factory { GetStrategyStatsUsecase(get(), get())}
 }

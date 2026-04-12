@@ -1,238 +1,74 @@
-package com.wallstreet.presentation.strategy
-
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wallstreet.domain.model.Strategy
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import coil.size.Scale
+import com.wallstreet.presentation.strategy.StrategiesUiState
+import com.wallstreet.presentation.strategy.StrategyViewModel
 import org.koin.androidx.compose.koinViewModel
-import com.wallstreet.R
-import kotlinx.coroutines.flow.MutableStateFlow
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StrategyScreen(
+fun StrategiesScreen(
+//    onAddStrategy: () -> Unit,
     viewModel: StrategyViewModel = koinViewModel()
-
-
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    val strategies = uiState.strategies
-    val isLoading = uiState.isLoading
-    val error = uiState.error
-
-
-    var showDialog by remember { mutableStateOf(false) }
-    var editStrategy by remember { mutableStateOf<Strategy?>(null) }
-
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(error) {
-        error?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
-        }
-    }
+    val uiState by viewModel.uiState.collectAsState()
+    val selectedPeriod by viewModel.selectedPeriod.collectAsState()
 
     Scaffold(
-
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    editStrategy = null
-                    showDialog = true
-
-                },
-                shape = CircleShape
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.add_circle),
-                    contentDescription =
-                        "add strategy",
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
-
-                )
-            }
-        },
-        snackbarHost = {
-            SnackbarHost(snackbarHostState)
-        }
-    ) { padding ->
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-
-            when {
-                isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                strategies.isEmpty() -> {
+        topBar = {
+            TopAppBar(
+                title = {
                     Text(
-                        text = "No strategies yet",
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                else -> {
-                    LazyColumn {
-                        items(
-                            items = strategies,
-                            key = { it.id }
-                        ) { strategy ->
-                            StrategyItem(
-                                strategy = strategy,
-                                onDelete = { viewModel.deleteStrategy(strategy) },
-                                onEdit = {
-                                    editStrategy = strategy
-                                    showDialog = true
-                                }
-                            )
-                        }
+                        text = "Strategies",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ) },
+                actions = {
+                    IconButton(
+                        onClick = {}
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Strategy",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
-                }
-            }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        when(uiState) {
+            is StrategiesUiState.Error -> StrategyErrorView()
+            StrategiesUiState.Loading -> CircularProgressIndicator()
+            is StrategiesUiState.Success -> StrategySuccessView()
         }
-    }
-
-    // 🔥 Add / Edit Dialog (single source)
-    if (showDialog) {
-        StrategyDialog(
-            initialStrategy = editStrategy,
-            onDismiss = { showDialog = false },
-            onConfirm = { name, description ->
-
-                if (editStrategy == null) {
-                    // ➕ ADD
-                    viewModel.addStrategy(
-                        Strategy(
-                            id = "",
-                            name = name,
-                            description = description
-                        )
-                    )
-                } else {
-                    viewModel.updateStrategy(
-                        editStrategy!!.copy(
-                            name = name,
-                            description = description
-                        )
-                    )
-                }
-
-                showDialog = false
-            }
-        )
     }
 }
 
 @Composable
-fun StrategyDialog(
-    initialStrategy: Strategy? = null,
-    onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit
-) {
-    var name by remember { mutableStateOf(initialStrategy?.name ?: "") }
-    var description by remember { mutableStateOf(initialStrategy?.description ?: "") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = if (initialStrategy == null) "Add Strategy" else "Edit Strategy"
-            )
-        },
-        text = {
-            Column {
-
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Strategy Name") }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                TextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description") }
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isNotBlank()) {
-                        onConfirm(name.trim(), description.trim())
-                    }
-                }
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
+fun StrategyErrorView() {
+    Text("Error Not yet implemented")
 }
 
 @Composable
-fun StrategyItem(
-    strategy: Strategy,
-    onDelete: () -> Unit,
-    onEdit: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            Text(
-                text = strategy.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            if (strategy.description.isNotBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = strategy.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row {
-                Button(onClick = onEdit) {
-                    Text("Edit")
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Button(onClick = onDelete) {
-                    Text("Delete")
-                }
-            }
-        }
-    }
+fun StrategySuccessView() {
+    Text("Success Not yet implemented")
 }

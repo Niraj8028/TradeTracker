@@ -1,5 +1,6 @@
 package com.wallstreet.navigation
 
+import StrategiesScreen
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeOut
@@ -17,7 +18,6 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.home.HomeScreen
 import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
-import com.wallstreet.presentation.strategy.StrategyScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -134,9 +134,10 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             }
 
             entry<AppRoute.Home.CalendarRoute> {
-                MainScaffold(homeBackStack) {
-                    StrategyScreen()
-                }
+//                MainScaffold(homeBackStack) {
+                    StrategiesScreen()
+//                    )
+//                }
             }
 
             entry<AppRoute.Home.JournalDetailRoute> { key ->
