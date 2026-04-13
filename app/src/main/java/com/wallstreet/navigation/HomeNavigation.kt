@@ -185,7 +185,11 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                 TermsOfServiceScreen(onBack = { homeBackStack.removeLastOrNull() })
             }
             entry<AppRoute.Home.DeleteAccountRoute> { key ->
-                DeleteAccountScreen(onBack = { homeBackStack.removeLastOrNull() })
+                DeleteAccountScreen(
+                    onBack = { homeBackStack.removeLastOrNull() },
+                    onDelete = onLogout
+
+                )
             }
         }
     )

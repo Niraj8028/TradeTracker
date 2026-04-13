@@ -14,4 +14,5 @@ interface AuthRepository {
     suspend fun verifyEmail(): Result<Boolean>
     fun getCurrentUser(): User?
     fun observeAuthState(): Flow<AuthState>
+    suspend fun deleteAccount(): Result<Boolean>
 }

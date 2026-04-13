@@ -2,7 +2,6 @@ package com.wallstreet.presentation.profile.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,9 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.NavKey
 import com.wallstreet.R
+import com.wallstreet.presentation.profile.ProfileViewModel
+import com.wallstreet.presentation.profile.components.ConfirmationDialog
 import com.wallstreet.presentation.profile.components.DeleteReasonOption
 import com.wallstreet.ui.theme.LocalBorderColors
+import org.koin.androidx.compose.koinViewModel
 
 enum class DeleteReason(val title: String) {
     NOT_USING_ANYMORE("I don't use the app anymore"),
@@ -50,10 +55,21 @@ enum class DeleteReason(val title: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeleteAccountScreen(onBack: () -> Unit) {
+fun DeleteAccountScreen(
+    onBack: () -> Unit,
+    viewModel: ProfileViewModel = koinViewModel(),
+    onDelete: () -> Unit
+) {
     var selectedReason by remember { mutableStateOf<DeleteReason?>(null) }
     var text by remember { mutableStateOf<String>("") }
     var showDeleteAccontDialog by remember { mutableStateOf<Boolean>(false) }
+    val deleteState by viewModel.deleteState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(deleteState) {
+        if (deleteState is DeleteUiState.Success) {
+            onDelete()
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -151,6 +167,7 @@ fun DeleteAccountScreen(onBack: () -> Unit) {
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     ),
+                    enabled = deleteState !is DeleteUiState.Loading,
                     border = BorderStroke(
                         1.dp,
                         MaterialTheme.colorScheme.error
@@ -172,6 +189,25 @@ fun DeleteAccountScreen(onBack: () -> Unit) {
 
             }
 
+
+
+            ConfirmationDialog(
+                show = showDeleteAccontDialog,
+                title = "Delete Account",
+                message = "This will permanently delete your account. This cannot be undone.",
+                confirmText = "Delete",
+                isDestructive = true,
+                icon = painterResource(id = R.drawable.delete),
+
+                onConfirm = {
+                    showDeleteAccontDialog = false
+                    viewModel.deleteAccount()
+                },
+
+                onDismiss = {
+                    showDeleteAccontDialog = false
+                }
+            )
         }
 
     }
