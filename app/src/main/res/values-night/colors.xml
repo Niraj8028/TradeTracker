@@ -8,6 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="dark_surface">#FF161B22</color>
-    <color name="splash_background">#2970EB</color>
+    <color name="splash_background">#FF161B22</color>
+
     <color name="blue">#2970EB</color>
 </resources>

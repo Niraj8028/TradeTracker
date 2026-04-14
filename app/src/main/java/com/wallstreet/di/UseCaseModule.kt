@@ -29,5 +29,6 @@ val useCaseModule = module {
     factory { DeleteStrategyUseCase(get()) }
     factory { UpdateStrategyUseCase(get()) }
     factory { GetStrategyUseCase(get()) }
+    factory { DeleteAccountUseCase(get()) }
 
 }
