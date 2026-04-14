@@ -8,7 +8,7 @@ class GetStrategyUseCase(private val strategyRepository: StrategyRepository) {
 
     suspend operator fun invoke(): Flow<List<Strategy>> {
 
-        return strategyRepository.getStrategy()
+        return strategyRepository.getStrategies()
 
     }
 }

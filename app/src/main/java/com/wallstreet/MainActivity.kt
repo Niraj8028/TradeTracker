@@ -15,12 +15,16 @@ import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
 import com.wallstreet.core.splash.SplashGate
 import com.wallstreet.core.splash.StartDestination
+import com.wallstreet.data.store.TradeStore
 import com.wallstreet.navigation.AppNavigation
 import com.wallstreet.ui.theme.WallStreetAndroidTheme
 
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+
+    private val tradeStore: TradeStore by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enable Firestore debug logging
@@ -66,8 +70,11 @@ class MainActivity : ComponentActivity() {
         val destination = when {
             user == null && !onboardingDone -> StartDestination.Onboarding
             user == null && onboardingDone -> StartDestination.Auth
-            user != null && !user.isEmailVerified -> StartDestination.Otp
-            else -> StartDestination.Home
+//            user != null && !user.isEmailVerified -> StartDestination.Otp
+            else -> {
+                tradeStore.startObserving(user!!.uid)
+                StartDestination.Home
+            }
         }
 
         SplashGate.resolve(destination)

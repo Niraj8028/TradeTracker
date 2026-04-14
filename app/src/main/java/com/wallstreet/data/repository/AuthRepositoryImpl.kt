@@ -11,6 +11,7 @@ import com.wallstreet.core.result.Result
 import com.wallstreet.data.mapper.toDomain
 import com.wallstreet.data.model.UserDto
 import com.wallstreet.data.remote.FirebaseService
+import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
 import kotlinx.coroutines.channels.awaitClose
@@ -21,7 +22,8 @@ import timber.log.Timber
 
 class AuthRepositoryImpl(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val tradeStore: TradeStore
 ) : AuthRepository {
 
     override suspend fun signInWithEmail(email: String, password: String): Result<User> {
@@ -81,7 +83,12 @@ class AuthRepositoryImpl(
 
     }
 
-    override suspend fun signOut() = auth.signOut()
+    override suspend fun signOut() {
+        tradeStore.stopObserving()
+        auth.signOut()
+    }
+
+
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> = try {
         auth.sendPasswordResetEmail(email).await()
         Result.Success(Unit)
