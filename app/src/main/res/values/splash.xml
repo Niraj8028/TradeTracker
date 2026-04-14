@@ -2,11 +2,11 @@
 <resources>
 
     <style name="Theme.AnimatedSplash.MySplash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/dark_surface</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/avd_tradingapp</item>
-        <item name="windowSplashScreenAnimationDuration">1500</item>
+        <item name="windowSplashScreenAnimationDuration">3000</item>
 
-         <item name="postSplashScreenTheme">@style/Theme.WallStreet</item>
+        <item name="postSplashScreenTheme">@style/Theme.WallStreet</item>
     </style>
 
 </resources>

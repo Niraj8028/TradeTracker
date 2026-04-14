@@ -63,5 +63,19 @@ sealed interface AppRoute : NavKey {
 
         @Serializable
         data class StrategyDetailRoute(val strategyId: String) : NavKey
+
+        @Serializable
+        data object SecurityPrivacyRoute : NavKey
+
+        @Serializable
+        data object PrivacyPolicyRoute : NavKey
+
+        @Serializable
+        data object TermsOfServiceRoute : NavKey
+
+        @Serializable
+        data object DeleteAccountRoute : NavKey
+
+
     }
 }

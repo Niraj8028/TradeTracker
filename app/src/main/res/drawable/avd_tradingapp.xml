@@ -1,5 +1,12 @@
-<animated-vector
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SIMPLE CLEAN — Arrow → Body → Circle
+    ─────────────────────────────────────
+    [0   → 400ms]  Swoosh/arrow draws from left to right
+    [350 → 900ms]  Logo body fades in
+    [850 → 1150ms] Circle pops on the arrow tip with overshoot
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt">
 
     <aapt:attr name="android:drawable">
@@ -9,92 +16,101 @@
             android:viewportWidth="288"
             android:viewportHeight="288">
 
-            <!-- Bars -->
             <group
-                android:name="bars"
-                android:pivotX="144"
-                android:pivotY="144">
+                android:name="root"
+                android:pivotX="0"
+                android:pivotY="0"
+                android:scaleX="0.300000"
+                android:scaleY="0.300000"
+                android:translateX="69.6000"
+                android:translateY="80.2500">
 
+                <!-- ① Swoosh / arrow — draws on first -->
                 <path
-                    android:pathData="M 79 124.818 L 101.333 124.818 L 101.333 211 L 79 211 Z"
-                    android:fillColor="#4f9cf9"/>
+                    android:name="swoosh_path"
+                    android:fillColor="@android:color/transparent"
+                    android:pathData="M480.5,67.878 C448.5,75.878 425,52.378 424,29.378"
+                    android:strokeColor="#FFFFFF"
+                    android:strokeLineCap="round"
+                    android:strokeWidth="4"
+                    android:trimPathEnd="0"
+                    android:trimPathStart="0" />
 
+                <!-- ② Main logo body — fades in after arrow -->
                 <path
-                    android:pathData="M 158 124.818 L 180.333 124.818 L 180.333 196.636 L 158 196.636 Z"
-                    android:fillColor="#4f9cf9"/>
+                    android:name="body_path"
+                    android:fillAlpha="0"
+                    android:fillColor="#FFFFFF"
+                    android:pathData="M280.72,298.313 C285.46,314.088 290.43,325.411 298.18,334.246 C306.05,343.212 316.74,349.572 332.83,355.47 L332.88,355.489 L332.94,355.496 C350.49,357.645 363.22,356.582 374.52,351.587 C385.72,346.637 395.46,337.848 407.09,324.652 L459.8,358.644 C443.74,382.678 424.24,398.511 406.73,409.577 C398,415.099 379.99,421.035 358.63,423.111 C337.28,425.186 312.66,423.398 290.71,413.544 L290.68,413.533 L290.66,413.525 L289.37,413.088 C262.43,403.705 235.63,379.68 213.68,340.689 C241.31,325.222 256.26,315.888 280.72,298.313 Z M153,420.379 L73,420.379 L73,394.894 C109.1,386.283 126.94,380.207 153,367.305 L153,420.379 Z M424.09,29.738 C425.04,37.453 426.65,43.224 429.74,48.403 C432.91,53.729 437.62,58.389 444.69,63.895 L444.73,63.925 L444.78,63.947 C451.29,67.216 456.66,68.756 462.34,69.147 C467.86,69.526 473.65,68.813 481,67.588 L481,135.379 C480.27,136.868 479.67,137.4 479.13,137.554 C478.56,137.715 477.88,137.522 476.78,137.073 L446.85,107.644 L446.43,107.228 L446.09,107.716 C339.87,261.093 180.47,366.408 7.86,401.146 C200.79,333.431 319.49,224.642 401.93,79.247 L402.23,78.731 L401.67,78.529 L360.35,63.593 C359.65,62.367 359.38,61.543 359.39,60.875 C359.4,60.231 359.67,59.65 360.31,58.908 L424.09,29.738 Z M223.5,117 L223.5,164.327 C218.76,170.3 214.04,177.754 210.5,183.722 C208.72,186.731 207.23,189.367 206.19,191.25 C205.67,192.192 205.26,192.945 204.99,193.464 C204.87,193.687 204.77,193.868 204.7,194 L153.5,194 L153.5,323.217 C123.41,341.463 105.67,351.239 73,367.197 L73,194.225 L0.5,194.225 L0.5,117 L223.5,117 Z M244.73,161.727 C273.55,132.658 315.3,117.697 365.52,118.485 C312.5,190.162 276.72,228.058 201.47,289.962 C199.95,234.06 215.9,190.805 244.73,161.727 Z M433.95,180.74 C440.2,188.597 444.57,195.091 447.69,202.148 C450.81,209.202 452.69,216.842 453.93,227 L390.91,227 C390.61,225.636 390.3,224.674 389.6,223.117 L433.95,180.74 Z"
+                    android:strokeColor="#FFFFFF"
+                    android:strokeWidth="1" />
+
+                <!-- ③ Circle — sits on the arrow tip, pops in last -->
+                <!--    Arrow tip is at approx (424, 29.4) in original coords -->
+                <!--    Circle center is (465, 30.5) — very close, looks attached -->
+                <group
+                    android:name="circle_group"
+                    android:pivotX="465"
+                    android:pivotY="30.5"
+                    android:scaleX="0"
+                    android:scaleY="0">
+                    <path
+                        android:fillColor="#FFFFFF"
+                        android:pathData="M465,0 A30.5,30.5 0 1,1 464.9999,0 Z" />
+                </group>
+
             </group>
-
-            <!-- Center candle -->
-            <group
-                android:name="center"
-                android:pivotX="144"
-                android:pivotY="144">
-
-                <path
-                    android:pathData="M 118.5 67.364 L 140.833 67.364 L 140.833 182.273 L 118.5 182.273 Z"
-                    android:fillColor="#4f9cf9"/>
-
-                <path
-                    android:pathData="M 128.021 53 L 131.313 53 L 131.313 196.636 L 128.021 196.636 Z"
-                    android:fillColor="#4f9cf9"
-                    android:fillAlpha="0.4"/>
-            </group>
-
-            <!-- Baseline -->
-            <group
-                android:name="baseline"
-                android:pivotX="208"
-                android:pivotY="141">
-
-                <path
-                    android:pathData="M 182.333 140.9 L 235 140.9 L 235 141.1 L 182.333 141.1 Z"
-                    android:fillColor="#4f9cf9"
-                    android:fillAlpha="0.3"/>
-            </group>
-
         </vector>
     </aapt:attr>
 
-    <!-- Bars slide up -->
-    <target android:name="bars">
+    <!-- ① Arrow draws left→right [0 → 400ms] -->
+    <target android:name="swoosh_path">
         <aapt:attr name="android:animation">
             <objectAnimator
-                android:propertyName="translateY"
-                android:duration="520"
-                android:valueFrom="160"
-                android:valueTo="0"
-                android:interpolator="@android:interpolator/fast_out_slow_in"/>
-        </aapt:attr>
-    </target>
-
-    <!-- Center grows -->
-    <target android:name="center">
-        <aapt:attr name="android:animation">
-            <objectAnimator
-                android:propertyName="scaleY"
-                android:duration="520"
+                android:duration="400"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="trimPathEnd"
+                android:startOffset="0"
                 android:valueFrom="0"
                 android:valueTo="1"
-                android:interpolator="@android:interpolator/fast_out_slow_in"/>
+                android:valueType="floatType" />
         </aapt:attr>
     </target>
 
-    <!-- Baseline fade + slight scale -->
-    <target android:name="baseline">
+    <!-- ② Body fades in [350 → 900ms] -->
+    <target android:name="body_path">
         <aapt:attr name="android:animation">
-            <set>
-                <objectAnimator
-                    android:propertyName="scaleX"
-                    android:duration="420"
-                    android:valueFrom="0.7"
-                    android:valueTo="1"
-                    android:interpolator="@android:interpolator/fast_out_slow_in"/>
+            <objectAnimator
+                android:duration="550"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="fillAlpha"
+                android:startOffset="350"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
 
+    <!-- ③ Circle pops on arrow tip [850 → 1150ms] -->
+    <target android:name="circle_group">
+        <aapt:attr name="android:animation">
+            <set android:ordering="together">
                 <objectAnimator
-                    android:propertyName="alpha"
-                    android:duration="420"
+                    android:duration="300"
+                    android:interpolator="@android:interpolator/overshoot"
+                    android:propertyName="scaleX"
+                    android:startOffset="850"
                     android:valueFrom="0"
-                    android:valueTo="1"/>
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:interpolator/overshoot"
+                    android:propertyName="scaleY"
+                    android:startOffset="850"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
             </set>
         </aapt:attr>
     </target>

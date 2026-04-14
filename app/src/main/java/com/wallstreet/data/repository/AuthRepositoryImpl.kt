@@ -31,10 +31,10 @@ class AuthRepositoryImpl(
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user!!
 
-//            if (!firebaseUser.isEmailVerified) {
-//                auth.signOut() // kick them out immediately
-//                return Result.Error("Please verify your email before logging in.")
-//            }
+            //            if (!firebaseUser.isEmailVerified) {
+            //                auth.signOut() // kick them out immediately
+            //                return Result.Error("Please verify your email before logging in.")
+            //            }
 
             Result.Success(firebaseUser.toUserModel())
         } catch (e: Exception) {
@@ -60,7 +60,7 @@ class AuthRepositoryImpl(
             firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
             val user = User(id = firebaseUser.uid, name = fullName, email = email)
             //save User to fire store
-//            verifyEmail(firebaseUser)
+            //            verifyEmail(firebaseUser)
 
             saveUserToFirestore(user)
             Result.Success(user)
@@ -136,24 +136,23 @@ class AuthRepositoryImpl(
     }
 
 
-
     // TODO user this reactive method in navigation
     override fun observeAuthState(): Flow<AuthState> = callbackFlow {
         trySend(AuthState.Loading)
 
         val listener = FirebaseAuth.AuthStateListener { auth ->
             val firebaseUser = auth.currentUser;
-            if(firebaseUser != null){
+            if (firebaseUser != null) {
                 firestore.collection(FirebaseService.Collections.USERS)
                     .document(firebaseUser.uid)
                     .addSnapshotListener { snapshot, error ->
-                        if(error != null) {
+                        if (error != null) {
                             trySend(AuthState.UnAuthenticated)
                             return@addSnapshotListener
                         }
 
                         val user = snapshot?.toObject(UserDto::class.java)?.toDomain()
-                        if (user!=null) {
+                        if (user != null) {
                             trySend(AuthState.Authenticated(user))
                         } else {
                             trySend(AuthState.UnAuthenticated)
@@ -164,6 +163,21 @@ class AuthRepositoryImpl(
             }
         }
         auth.addAuthStateListener(listener)
-        awaitClose { auth.removeAuthStateListener(listener)}
+        awaitClose { auth.removeAuthStateListener(listener) }
+    }
+
+    override suspend fun deleteAccount(): Result<Boolean> {
+        return try {
+            val currentUser = auth.currentUser ?: return Result.Error("User not logged in ")
+
+            firestore.collection(AppConstants.COLLECTION_USERS).document(currentUser.uid).delete()
+                .await()
+            currentUser.delete().await()
+            Result.Success(true)
+
+        } catch (e: Exception) {
+            Result.Error(e.friendlyMessage(), e)
+
+        }
     }
 }
