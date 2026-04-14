@@ -37,7 +37,6 @@ class GetStrategyStatsUsecase(
             computeStatsForStrategy(strategy, tradesForStrategy, period);
         }
 
-        return@combine emptyList<StrategyStats>()
     }
 
     private fun computeStatsForStrategy(strategy: Strategy, trades: List<Trade>, period: TimePeriod): StrategyStats {
