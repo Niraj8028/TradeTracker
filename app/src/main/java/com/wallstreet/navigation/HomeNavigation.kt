@@ -21,7 +21,6 @@ import com.wallstreet.presentation.profile.screens.DeleteAccountScreen
 import com.wallstreet.presentation.profile.screens.PrivacyPolicyScreen
 import com.wallstreet.presentation.profile.screens.SecurityPrivacyScreen
 import com.wallstreet.presentation.profile.screens.TermsOfServiceScreen
-import com.wallstreet.presentation.strategy.StrategyScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 

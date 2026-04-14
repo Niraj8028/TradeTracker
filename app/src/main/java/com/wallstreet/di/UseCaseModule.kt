@@ -30,10 +30,6 @@ val useCaseModule = module {
     factory { DeleteStrategyUseCase(get()) }
     factory { UpdateStrategyUseCase(get()) }
     factory { GetStrategyUseCase(get()) }
-<<<<<<< feature/strategy_page
     factory { GetStrategyStatsUsecase(get(), get())}
-=======
     factory { DeleteAccountUseCase(get()) }
-
->>>>>>> develop
 }
