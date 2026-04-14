@@ -1,5 +1,6 @@
 package com.wallstreet.navigation
 
+import StrategiesScreen
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.togetherWith
@@ -20,7 +21,6 @@ import com.wallstreet.presentation.profile.screens.DeleteAccountScreen
 import com.wallstreet.presentation.profile.screens.PrivacyPolicyScreen
 import com.wallstreet.presentation.profile.screens.SecurityPrivacyScreen
 import com.wallstreet.presentation.profile.screens.TermsOfServiceScreen
-import com.wallstreet.presentation.strategy.StrategyScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -161,7 +161,10 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.CalendarRoute> {
                 MainScaffold(homeBackStack) {
-                    StrategyScreen()
+                    StrategiesScreen(
+                        onStrategyClick = {},
+                        onAddStrategy = {  },
+                    )
                 }
             }
 

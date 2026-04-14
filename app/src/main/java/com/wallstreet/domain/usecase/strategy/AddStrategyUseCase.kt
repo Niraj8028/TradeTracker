@@ -7,7 +7,6 @@ import com.wallstreet.core.result.Result
 class AddStrategyUseCase(private val strategyRepository: StrategyRepository) {
 
     suspend operator fun invoke(strategy: Strategy): Result<String> {
-       
         return strategyRepository.addStrategy(strategy)
     }
 }

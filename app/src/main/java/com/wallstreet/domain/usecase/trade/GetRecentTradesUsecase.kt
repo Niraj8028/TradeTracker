@@ -26,7 +26,7 @@ class GetTradesUsecase(private val tradeRepository: TradeRepository) {
 }
 
 
-private fun TimePeriod.toDuration(): Period =
+fun TimePeriod.toDuration(): Period =
     when(this) {
         TimePeriod.ONE_WEEk -> Period.ofDays(7)
         TimePeriod.THREE_MONTHS -> Period.ofMonths(3)
