@@ -1,5 +1,7 @@
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -11,6 +13,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,26 +37,49 @@ fun StrategiesScreen(
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     var showAddStrategyDialog by remember { mutableStateOf(false) }
     val actionState by viewModel.actionState.collectAsState()
+    var isSelectionMode by remember { mutableStateOf(false) }
+    val selectedStrategies = remember { mutableStateListOf<String>() }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Strategies",
+                        text =  if (isSelectionMode)
+                            "${selectedStrategies.size} selected"
+                        else "Strategies",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground
                     ) },
                 actions = {
-                    IconButton(
-                        onClick = { showAddStrategyDialog = true }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Strategy",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
+                    if(!isSelectionMode){
+                        IconButton(
+                            onClick = { showAddStrategyDialog = true }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AddCircle,
+                                contentDescription = "Add Strategy",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        IconButton(
+                            onClick = { isSelectionMode = true }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = {
+                            isSelectionMode = false
+                            selectedStrategies.clear()
+                        }) {
+                            Icon(Icons.Default.Close, contentDescription = "Cancel")
+                        }
                     }
+
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
@@ -74,7 +100,18 @@ fun StrategiesScreen(
                 padding = padding,
                 timePeriod = selectedPeriod,
                 onPeriodSelected = viewModel::onPeriodSelected,
-                onStrategyClick = onStrategyClick
+                onStrategyClick = onStrategyClick,
+                isSelectionMode = isSelectionMode,
+                selectedStrategies = selectedStrategies,
+                onSelectionChanged = { id, isSelected ->
+                    if (isSelected) {
+                        selectedStrategies.add(id)
+                    } else {
+                        selectedStrategies.remove(id)
+                    }
+
+                }
+
             )
         }
     }
@@ -85,8 +122,8 @@ fun StrategiesScreen(
                 showAddStrategyDialog = false
                 viewModel.clearActionState()
             },
-            onAddClick = { name ->
-                viewModel.addStrategy(name)
+            onAddClick = { name, description ->
+                viewModel.addStrategy(name, description)
             }
         )
     }

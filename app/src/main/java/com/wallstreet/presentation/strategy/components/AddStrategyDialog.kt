@@ -23,15 +23,17 @@ import com.wallstreet.presentation.strategy.ActionState
 fun AddStrategyDialog(
     actionState: ActionState,
     onDismiss: () -> Unit,
-    onAddClick: (String) -> Unit
+    onAddClick: (String, String) -> Unit
     ) {
     var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+
 
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(
-                onClick = { onAddClick(name) },
+                onClick = { onAddClick(name, description) },
                 enabled = actionState !is ActionState.Loading
             ) {
                 Text("Add")

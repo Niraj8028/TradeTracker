@@ -33,7 +33,13 @@ import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 
 @Composable
-fun StrategyCard(stats: StrategyStats, onStrategyClick: () -> Unit) {
+fun StrategyCard(
+    stats: StrategyStats,
+    onStrategyClick: () -> Unit,
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onSelectionChanged: (Boolean) -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth()
             .shadow(

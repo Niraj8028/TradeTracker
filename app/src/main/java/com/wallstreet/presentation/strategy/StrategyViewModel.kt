@@ -56,7 +56,7 @@ class StrategyViewModel(
     }
 
 
-    fun addStrategy(name: String) {
+    fun addStrategy(name: String, description: String?) {
         if(name.isBlank()) {
             _actionState.value = ActionState.ValidationError("Name cannot be empty")
             return
