@@ -11,9 +11,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.wallstreet.presentation.home.LoadingView
 import com.wallstreet.presentation.strategy.StrategiesUiState
 import com.wallstreet.presentation.strategy.StrategyViewModel
+import com.wallstreet.presentation.strategy.components.AddStrategyDialog
 import com.wallstreet.presentation.strategy.components.StrategyErrorView
 import com.wallstreet.presentation.strategy.components.StrategySuccessView
 import org.koin.androidx.compose.koinViewModel
@@ -28,6 +32,8 @@ fun StrategiesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
+    var showAddStrategyDialog by remember { mutableStateOf(false) }
+    val actionState by viewModel.actionState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -40,7 +46,7 @@ fun StrategiesScreen(
                     ) },
                 actions = {
                     IconButton(
-                        onClick = onAddStrategy
+                        onClick = { showAddStrategyDialog = true }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
@@ -72,6 +78,20 @@ fun StrategiesScreen(
             )
         }
     }
+    if (showAddStrategyDialog) {
+        AddStrategyDialog(
+            actionState = actionState,
+            onDismiss = {
+                showAddStrategyDialog = false
+                viewModel.clearActionState()
+            },
+            onAddClick = { name ->
+                viewModel.addStrategy(name)
+            }
+        )
+    }
+
 }
+
 
 

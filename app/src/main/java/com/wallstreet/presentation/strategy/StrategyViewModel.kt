@@ -69,7 +69,7 @@ class StrategyViewModel(
                     isCustom = true,
                 )
             )
-            when(result) {
+            _actionState.value = when(result) {
                 is Result.Error -> ActionState.Error(result.message ?: "Failed to add strategy")
                 Result.Loading -> ActionState.Loading
                 is Result.Success<*> -> ActionState.Success
