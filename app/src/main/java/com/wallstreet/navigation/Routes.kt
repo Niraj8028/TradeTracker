@@ -76,6 +76,8 @@ sealed interface AppRoute : NavKey {
         @Serializable
         data object DeleteAccountRoute : NavKey
 
+        @Serializable
+        data object AnalyticsRoute : NavKey
 
     }
 }

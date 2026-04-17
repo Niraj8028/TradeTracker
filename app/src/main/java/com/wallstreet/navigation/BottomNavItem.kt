@@ -21,7 +21,7 @@ sealed class BottomNavItem(
     )
 
     data object Analytics : BottomNavItem(
-        key = AppRoute.Home.StrategiesRoute,
+        key = AppRoute.Home.AnalyticsRoute,
         label = R.string.nav_analytics,
         icon = Icons.Filled.AutoGraph
     )

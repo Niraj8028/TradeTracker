@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.wallstreet.presentation.analytics.AnalyticsScreen
 import com.wallstreet.presentation.home.HomeScreen
 import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
@@ -88,6 +89,11 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                         AppRoute.Home.DeleteAccountRoute::class,
                         AppRoute.Home.DeleteAccountRoute.serializer()
                     )
+                    subclass(
+                        AppRoute.Home.AnalyticsRoute::class,
+                        AppRoute.Home.AnalyticsRoute.serializer()
+                    )
+
                 }
             }
         },
@@ -115,7 +121,11 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                     HomeScreen()
                 }
             }
-
+            entry<AppRoute.Home.AnalyticsRoute> {
+                MainScaffold(homeBackStack) {
+                    AnalyticsScreen()
+                }
+            }
             entry<AppRoute.Home.TradeHistoryRoute> {
                 MainScaffold(homeBackStack) {
                     Text("Trade History")
@@ -163,7 +173,7 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                 MainScaffold(homeBackStack) {
                     StrategiesScreen(
                         onStrategyClick = {},
-                        onAddStrategy = {  },
+                        onAddStrategy = { },
                     )
                 }
             }
@@ -194,6 +204,7 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
                 )
             }
+
         }
     )
 }
