@@ -12,7 +12,7 @@ import java.time.YearMonth
 
 data class CalenderDay(
     val date: LocalDate,
-//    val isCurrentMonth: Boolean,
+    val isCurrentMonth: Boolean,
     val isToday: Boolean,
     val isSelected: Boolean
 )
@@ -28,21 +28,15 @@ class AnalyticsViewModel : ViewModel() {
 
 
     val days = listOf(
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday"
+        "S", "M", "T", "W", "T", "F", "S"
     )
 
     fun nextMoth() {
-        currentMonth.plusMonths(1)
+        currentMonth = currentMonth.plusMonths(1)
     }
 
     fun prevMoth() {
-        currentMonth.minusMonths(1)
+        currentMonth = currentMonth.minusMonths(1)
 
     }
 
@@ -57,19 +51,19 @@ class AnalyticsViewModel : ViewModel() {
             when {
                 index < offset -> {
                     val date = firstDay.minusDays((offset - index).toLong())
-                    CalenderDay(date, date == today, false)
+                    CalenderDay(date, false, date == today, false)
                 }
 
                 index < offset + daysInMonth -> {
                     val day = index - offset + 1
                     val date = yearMonth.atDay(day)
-                    CalenderDay(date, date == today, false)
+                    CalenderDay(date, true, date == today, false)
                 }
 
                 else -> {
                     val nextDay = index - (offset + daysInMonth) + 1
                     val date = yearMonth.plusMonths(1).atDay(nextDay)
-                    CalenderDay(date, date == today, false)
+                    CalenderDay(date, false, date == today, false)
                 }
             }
 
