@@ -24,12 +24,13 @@ class AnalyticsViewModel : ViewModel() {
         private set
     var currentMonth by mutableStateOf(YearMonth.now())
         private set
-    val calendarDays: MutableList<CalenderDay> = generateMonth(currentMonth)
+    val calendarDays: List<CalenderDay> = generateMonth(currentMonth)
 
 
     val days = listOf(
-        "S", "M", "T", "W", "T", "F", "S"
+        "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"
     )
+
 
     fun nextMoth() {
         currentMonth = currentMonth.plusMonths(1)
@@ -40,7 +41,7 @@ class AnalyticsViewModel : ViewModel() {
 
     }
 
-    fun generateMonth(yearMonth: YearMonth): MutableList<CalenderDay> {
+    fun generateMonth(yearMonth: YearMonth): List<CalenderDay> {
 
         val firstDay = yearMonth.atDay(1)
         val offset = firstDay.dayOfWeek.value % 7

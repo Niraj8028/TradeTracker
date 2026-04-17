@@ -1,14 +1,18 @@
 package com.wallstreet.presentation.analytics.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,9 +29,19 @@ import com.wallstreet.presentation.analytics.CalenderDay
 import org.koin.androidx.compose.koinViewModel
 import java.time.YearMonth
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import com.patrykandpatrick.vico.compose.common.component.shadow
+import com.wallstreet.R
+import com.wallstreet.ui.theme.BorderColors
+import com.wallstreet.ui.theme.LocalBorderColors
 
 @Composable
 fun Calendar(
@@ -54,17 +68,13 @@ fun Calendar(
     }
 
     Column(
-        modifier = Modifier
-            .padding(19.dp)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(8.dp)
-            ),
+        modifier = Modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+//
+//        Text("${currentMonth.month} ${currentMonth.year}")
+//
 
-        Text("${currentMonth.month} ${currentMonth.year}")
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
@@ -76,8 +86,15 @@ fun Calendar(
                         .aspectRatio(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(day)
+                    Text(
+                        day, style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+
+
             }
         }
 
@@ -107,14 +124,33 @@ fun CalendarGrid(days: List<CalenderDay>) {
 
             Box(
                 modifier = Modifier
-                    .aspectRatio(1f)
-                    .padding(1.dp),
+                    .then(
+                        if (day.isToday)
+                            Modifier.border(
+                                1.dp,
+                                LocalBorderColors.current.secondary,
+                                CircleShape,
+
+                                )
+                        else Modifier
+                    )
+                    .aspectRatio(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    day.date.dayOfMonth.toString(),
-                    color = if (day.isCurrentMonth) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
-                )
+                Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        day.date.dayOfMonth.toString(),
+                        color = if (day.isCurrentMonth) MaterialTheme.colorScheme.onBackground else LocalBorderColors.current.secondary
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.dot),
+                        contentDescription = null,
+                        modifier = Modifier.size(8.dp),
+                        colorFilter = ColorFilter.tint(Color.Red)
+                    )
+                }
+
             }
         }
     }
