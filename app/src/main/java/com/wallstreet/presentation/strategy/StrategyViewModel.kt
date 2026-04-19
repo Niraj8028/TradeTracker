@@ -56,7 +56,7 @@ class StrategyViewModel(
     }
 
 
-    fun addStrategy(name: String) {
+    fun addStrategy(name: String, description: String?) {
         if(name.isBlank()) {
             _actionState.value = ActionState.ValidationError("Name cannot be empty")
             return
@@ -69,7 +69,7 @@ class StrategyViewModel(
                     isCustom = true,
                 )
             )
-            when(result) {
+            _actionState.value = when(result) {
                 is Result.Error -> ActionState.Error(result.message ?: "Failed to add strategy")
                 Result.Loading -> ActionState.Loading
                 is Result.Success<*> -> ActionState.Success
@@ -77,14 +77,14 @@ class StrategyViewModel(
         }
     }
 
-    fun deleteStrategy(strategy: Strategy) {
-        if (strategy.id.isEmpty()) {
-            _actionState.value = ActionState.ValidationError("Invalid strategy id")
+    fun deleteStrategies(strategies: List<Strategy>) {
+        if (strategies.isEmpty()) {
+            _actionState.value = ActionState.ValidationError("No strategies selected")
             return
         }
         viewModelScope.launch {
             _actionState.value = ActionState.Loading
-            _actionState.value = when (val result = deleteStrategyUseCase(strategy)) {
+            _actionState.value = when (val result = deleteStrategyUseCase(strategies)) {
                 is Result.Success -> ActionState.Success
                 is Result.Error -> ActionState.Error(result.message ?: "Failed to delete")
                 else -> ActionState.Idle
