@@ -39,8 +39,9 @@ class AnalyticsViewModel(
 ) : ViewModel() {
 
     val gridSize = 42
-    var selectedDate by mutableStateOf<LocalDate?>(LocalDate.now())
-        private set
+
+    //    var selectedDate by mutableStateOf<LocalDate?>(LocalDate.now())
+//        private set
     var currentMonth by mutableStateOf(YearMonth.now())
         private set
     var calendarDays by mutableStateOf<List<CalenderDay>>(emptyList())
@@ -68,10 +69,6 @@ class AnalyticsViewModel(
         updateCalendar()
     }
 
-    val tradesFlow =
-        authRepository.getCurrentUser()?.id?.let {
-            getAllTradesUsecase(it)
-        } ?: flowOf(emptyList())
 
     private fun updateCalendar() {
         calendarDays = generateMonth(currentMonth, trades)
@@ -102,8 +99,13 @@ class AnalyticsViewModel(
 
             when {
                 index < offset -> {
-//                    val date = firstDay.minusDays((offset - index).toLong())
-                    CalenderDay(date = null, false, false, false)
+//                    val date = firstDay.minusDays((offset - index).toLong())//TODOS for future if next offests needed
+                    CalenderDay(
+                        date = null,
+                        false,
+                        false,
+                        false
+                    )//lets keep previouse calendar state to null for now
                 }
 
                 index < offset + daysInMonth -> {
@@ -129,9 +131,14 @@ class AnalyticsViewModel(
                 }
 
                 else -> {
-//                    val nextDay = index - (offset + daysInMonth) + 1
+//                    val nextDay = index - (offset + daysInMonth) + 1 //TODOS for future if next offests needed
 //                    val date = yearMonth.plusMonths(1).atDay(nextDay)
-                    CalenderDay(date = null, false, false, false)
+                    CalenderDay(
+                        date = null,
+                        false,
+                        false,
+                        false
+                    )//lets keep next calendar state to null for now
                 }
             }
 
