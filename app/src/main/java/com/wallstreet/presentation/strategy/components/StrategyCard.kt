@@ -68,7 +68,58 @@ fun StrategyCard(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // Header row — checkbox + name + pnl
-        StrategyHeader(isSelectionMode, isSelected, onSelectionChanged, stats)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                if (isSelectionMode) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .border(
+                                width = 1.5.dp,
+                                color = if (isSelected) PrimaryBlue
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                shape = RoundedCornerShape(2.dp)
+                            )
+                            .background(
+                                if (isSelected) PrimaryBlue
+                                else Color.Transparent
+                            )
+                            .clickable { onSelectionChanged(!isSelected) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = stats.strategy.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Text(
+                text = stats.totalPnl.formatPnl(),
+                style = MaterialTheme.typography.titleMedium,
+                color = if (stats.totalPnl >= 0) SuccessGreen else DangerRed
+            )
+        }
 
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
@@ -80,66 +131,6 @@ fun StrategyCard(
     }
 }
 
-@Composable
-private fun StrategyHeader(
-    isSelectionMode: Boolean,
-    isSelected: Boolean,
-    onSelectionChanged: (Boolean) -> Unit,
-    stats: StrategyStats
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.weight(1f)
-        ) {
-            if (isSelectionMode) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .border(
-                            width = 1.5.dp,
-                            color = if (isSelected) PrimaryBlue
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                            shape = RoundedCornerShape(2.dp)
-                        )
-                        .background(
-                            if (isSelected) PrimaryBlue
-                            else Color.Transparent
-                        )
-                        .clickable { onSelectionChanged(!isSelected) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isSelected) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = White,
-                            modifier = Modifier.size(14.dp)
-                        )
-                    }
-                }
-            }
-
-            Text(
-                text = stats.strategy.name,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Text(
-            text = stats.totalPnl.formatPnl(),
-            style = MaterialTheme.typography.titleMedium,
-            color = if (stats.totalPnl >= 0) SuccessGreen else DangerRed
-        )
-    }
-}
 
 
 @Composable

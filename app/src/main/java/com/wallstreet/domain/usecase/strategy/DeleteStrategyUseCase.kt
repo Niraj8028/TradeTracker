@@ -6,10 +6,12 @@ import com.wallstreet.domain.repository.StrategyRepository
 
 class DeleteStrategyUseCase(private val strategyRepository: StrategyRepository) {
 
-    suspend operator fun invoke(strategy: Strategy): Result<String> {
-
-        return strategyRepository.deleteStrategy(strategy)
+    suspend operator fun invoke(strategies: List<Strategy>): Result<String> {
+        if (strategies.isEmpty()) return Result.Error("No strategies selected")
+        strategies.forEach { strategy ->
+            val result = strategyRepository.deleteStrategy(strategy)
+            if (result is Result.Error) return result
+        }
+        return Result.Success("Deleted successfully")
     }
-
-
 }

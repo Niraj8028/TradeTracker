@@ -1,6 +1,7 @@
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -17,10 +18,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.presentation.home.LoadingView
 import com.wallstreet.presentation.strategy.StrategiesUiState
 import com.wallstreet.presentation.strategy.StrategyViewModel
 import com.wallstreet.presentation.strategy.components.AddStrategyDialog
+import com.wallstreet.presentation.strategy.components.DeleteStrategyBottomSheet
 import com.wallstreet.presentation.strategy.components.StrategyErrorView
 import com.wallstreet.presentation.strategy.components.StrategySuccessView
 import org.koin.androidx.compose.koinViewModel
@@ -36,9 +39,10 @@ fun StrategiesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     var showAddStrategyDialog by remember { mutableStateOf(false) }
+    var showDeleteStrategyConfirmDialog by remember { mutableStateOf(false) }
     val actionState by viewModel.actionState.collectAsState()
     var isSelectionMode by remember { mutableStateOf(false) }
-    val selectedStrategies = remember { mutableStateListOf<String>() }
+    val selectedStrategies = remember { mutableStateListOf<Strategy>() }
 
     Scaffold(
         topBar = {
@@ -72,6 +76,17 @@ fun StrategiesScreen(
                             )
                         }
                     } else {
+                        if(selectedStrategies.size > 0) {
+                            IconButton(
+                                onClick = { showDeleteStrategyConfirmDialog = true }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteForever,
+                                    contentDescription = "Delete Strategy",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                         IconButton(onClick = {
                             isSelectionMode = false
                             selectedStrategies.clear()
@@ -103,11 +118,11 @@ fun StrategiesScreen(
                 onStrategyClick = onStrategyClick,
                 isSelectionMode = isSelectionMode,
                 selectedStrategies = selectedStrategies,
-                onSelectionChanged = { id, isSelected ->
+                onSelectionChanged = { strategy, isSelected ->
                     if (isSelected) {
-                        selectedStrategies.add(id)
+                        selectedStrategies.add(strategy)
                     } else {
-                        selectedStrategies.remove(id)
+                        selectedStrategies.remove(strategy)
                     }
 
                 }
@@ -125,6 +140,20 @@ fun StrategiesScreen(
             onAddClick = { name, description ->
                 viewModel.addStrategy(name, description)
             }
+        )
+    }
+    if(showDeleteStrategyConfirmDialog) {
+        DeleteStrategyBottomSheet(
+            onDismiss = {
+                showDeleteStrategyConfirmDialog = false
+            },
+            onConfirm = {
+                viewModel.deleteStrategies(selectedStrategies)
+                showDeleteStrategyConfirmDialog = false
+                isSelectionMode = false
+                selectedStrategies.clear()
+            },
+            selectedCount = selectedStrategies.size
         )
     }
 

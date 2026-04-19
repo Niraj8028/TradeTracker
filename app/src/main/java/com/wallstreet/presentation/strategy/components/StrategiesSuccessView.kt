@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.presentation.home.TimePeriod
 import com.wallstreet.presentation.home.components.PeriodSelector
 import com.wallstreet.presentation.strategy.StrategiesUiState
@@ -28,8 +29,8 @@ fun StrategySuccessView(
     onPeriodSelected: (TimePeriod) -> Unit,
     onStrategyClick: (String) -> Unit,
     isSelectionMode: Boolean,
-    selectedStrategies: SnapshotStateList<String>,
-    onSelectionChanged: (String, Boolean) -> Unit,
+    selectedStrategies: SnapshotStateList<Strategy>,
+    onSelectionChanged: (Strategy, Boolean) -> Unit,
     ) {
     LazyColumn(
         modifier = Modifier
@@ -54,13 +55,13 @@ fun StrategySuccessView(
                 items = uiState.strategyStats,
                 key = { it.strategy.id }
             ) { strategyStats ->
-                val isSelected = selectedStrategies.contains(strategyStats.strategy.id)
+                val isSelected = selectedStrategies.contains(strategyStats.strategy)
                 StrategyCard(
                     stats = strategyStats,
                     onStrategyClick = {
                         if(isSelectionMode){
                            onSelectionChanged(
-                               strategyStats.strategy.id,
+                               strategyStats.strategy,
                                !isSelected
                            )
                         } else {
@@ -70,7 +71,7 @@ fun StrategySuccessView(
                     isSelectionMode = isSelectionMode,
                     isSelected = isSelected,
                     onSelectionChanged = {
-                        onSelectionChanged(strategyStats.strategy.id, it)
+                        onSelectionChanged(strategyStats.strategy, it)
                     }
                 )
             }
