@@ -39,7 +39,7 @@ fun StrategySuccessView(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 16.dp, top = 8.dp)
     ) {
-        if (!isSelectionMode) {
+        if (true) {
             item {
                 PeriodSelector(
                     selectedPeriod = timePeriod,
