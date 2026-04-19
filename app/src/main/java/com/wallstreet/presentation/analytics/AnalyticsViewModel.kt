@@ -2,13 +2,25 @@ package com.wallstreet.presentation.analytics
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.wallstreet.domain.model.Trade
+import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.domain.usecase.trade.GetAllTradesUsecase
+import com.wallstreet.domain.usecase.trade.GetTradesUsecase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.forEach
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 
 import java.time.LocalDate
 import java.time.YearMonth
+import kotlin.collections.emptyList
 
 data class CalenderDay(
     val date: LocalDate,
@@ -17,7 +29,10 @@ data class CalenderDay(
     val isSelected: Boolean
 )
 
-class AnalyticsViewModel : ViewModel() {
+class AnalyticsViewModel(
+    private val getAllTradesUsecase: GetAllTradesUsecase,
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     val gridSize = 42
     var selectedDate by mutableStateOf<LocalDate?>(LocalDate.now())
@@ -38,6 +53,23 @@ class AnalyticsViewModel : ViewModel() {
 
     fun prevMoth() {
         currentMonth = currentMonth.minusMonths(1)
+
+    }
+
+    suspend fun allTrades() {
+        val userId = authRepository.getCurrentUser()?.id.toString()
+
+        if (userId?.isEmpty() == true) return
+
+
+        viewModelScope.launch { }
+        getAllTradesUsecase(
+            userId
+        ).collect { trades ->
+            trades.forEach {
+                Timber.d("Trade: $it")
+            }
+        }
 
     }
 
