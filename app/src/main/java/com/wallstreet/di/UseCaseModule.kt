@@ -10,6 +10,7 @@ import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.UpdateStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
+import com.wallstreet.domain.usecase.trade.GetAllTradesUsecase
 import com.wallstreet.domain.usecase.trade.GetTradesUsecase
 import org.koin.dsl.module
 
@@ -30,6 +31,7 @@ val useCaseModule = module {
     factory { DeleteStrategyUseCase(get()) }
     factory { UpdateStrategyUseCase(get()) }
     factory { GetStrategyUseCase(get()) }
-    factory { GetStrategyStatsUsecase(get(), get())}
+    factory { GetStrategyStatsUsecase(get(), get()) }
     factory { DeleteAccountUseCase(get()) }
+    factory { GetAllTradesUsecase(get()) }
 }

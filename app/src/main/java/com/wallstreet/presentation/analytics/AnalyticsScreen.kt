@@ -14,9 +14,12 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AnalyticsScreen(
 ) {
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(10.dp)) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
+    ) {
         Calendar()
     }
 

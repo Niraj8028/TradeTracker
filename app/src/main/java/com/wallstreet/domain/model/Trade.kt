@@ -25,7 +25,16 @@ data class Trade(
     // TODO work on mistakes model
     val mistakes: List<String> = emptyList(),
     val createAt: Long? = null,
-)
+) {
+    fun calculateProfitLoss(): Double? {
+        if (exitPrice == null) return null
+
+        return when (tradeType) {
+            TradeType.LONG -> (exitPrice - entryPrice) * quantity
+            TradeType.SHORT -> (entryPrice - exitPrice) * quantity
+        }
+    }
+}
 
 enum class TradeType {
     LONG, SHORT

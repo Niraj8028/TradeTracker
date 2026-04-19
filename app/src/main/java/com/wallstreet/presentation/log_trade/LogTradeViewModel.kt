@@ -38,7 +38,7 @@ class LogTradeViewModel(
     init {
         observeStrategies()
     }
-  
+
     private fun observeStrategies() {
         viewModelScope.launch {
             getStrategyUseCase().collect { list ->

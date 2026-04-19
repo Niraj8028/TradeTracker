@@ -1,7 +1,9 @@
 package com.wallstreet.presentation.analytics.components
 
+import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
@@ -33,7 +36,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -41,7 +46,9 @@ import androidx.compose.ui.text.font.FontWeight
 import com.patrykandpatrick.vico.compose.common.component.shadow
 import com.wallstreet.R
 import com.wallstreet.ui.theme.BorderColors
+import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.LocalBorderColors
+import com.wallstreet.ui.theme.SuccessGreen
 
 @Composable
 fun Calendar(
@@ -66,16 +73,44 @@ fun Calendar(
             pageToMonth(pagerState.currentPage)
         }
     }
-
+    LaunchedEffect(currentMonth) {
+        viewModel.setMonth(currentMonth)
+    }
     Column(
         modifier = Modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//
-//        Text("${currentMonth.month} ${currentMonth.year}")
-//
+        Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
 
+            Image(
+                painter = painterResource(id = R.drawable.scheveron_arrow),
 
+                contentDescription = null,
+                modifier = Modifier
+                    .size(16.dp)
+                    .rotate(180f)
+                    .clickable {
+                        viewModel.prevMoth()
+                    },
+
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+            )
+            Spacer(modifier = Modifier.width(24.dp))
+            Text("${currentMonth.month} ${currentMonth.year}")
+
+            Spacer(modifier = Modifier.width(24.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.scheveron_arrow),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable {
+                        viewModel.nextMoth()
+                    },
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+            )
+        }
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             userScrollEnabled = false
@@ -104,10 +139,10 @@ fun Calendar(
         ) { page ->
 
             val yearMonth = pageToMonth(page)
-
-            val days = remember(yearMonth) {
-                viewModel.generateMonth(yearMonth)
+            LaunchedEffect(yearMonth) {
+                viewModel.setMonth(yearMonth)
             }
+            val days = viewModel.calendarDays
 
             CalendarGrid(days = days)
         }
@@ -139,16 +174,28 @@ fun CalendarGrid(days: List<CalenderDay>) {
             ) {
                 Column(modifier = Modifier, horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        day.date.dayOfMonth.toString(),
+                        day.date?.dayOfMonth?.toString() ?: "",
                         color = if (day.isCurrentMonth) MaterialTheme.colorScheme.onBackground else LocalBorderColors.current.secondary
                     )
                     Spacer(modifier = Modifier.height(5.dp))
-                    Image(
-                        painter = painterResource(id = R.drawable.dot),
-                        contentDescription = null,
-                        modifier = Modifier.size(8.dp),
-                        colorFilter = ColorFilter.tint(Color.Red)
-                    )
+
+                    if (day.isCurrentMonth) {
+                        val pnl = day.pnl
+
+                        Text(
+                            text = when {
+                                pnl > 0 -> "+${pnl.toInt()}"
+                                pnl < 0 -> "${pnl.toInt()}" // minus comes automatically
+                                else -> "0"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = when {
+                                pnl > 0 -> SuccessGreen
+                                pnl < 0 -> DangerRed
+                                else -> Color.Gray
+                            }
+                        )
+                    }
                 }
 
             }
