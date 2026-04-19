@@ -2,6 +2,7 @@ package com.wallstreet.presentation.analytics.components
 
 import android.widget.Space
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,11 +39,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import com.patrykandpatrick.vico.compose.common.component.shadow
 import com.wallstreet.R
 import com.wallstreet.ui.theme.BorderColors
@@ -68,16 +71,16 @@ fun Calendar(
         return baseMonth.plusMonths((page - initialPage).toLong())
     }
 
-    val currentMonth by remember {
-        derivedStateOf {
-            pageToMonth(pagerState.currentPage)
-        }
-    }
+    val currentMonth = viewModel.currentMonth
     LaunchedEffect(currentMonth) {
         viewModel.setMonth(currentMonth)
     }
     Column(
-        modifier = Modifier,
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+
+            .background(color = MaterialTheme.colorScheme.outline)
+            .padding(top = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
@@ -96,7 +99,10 @@ fun Calendar(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
             )
             Spacer(modifier = Modifier.width(24.dp))
-            Text("${currentMonth.month} ${currentMonth.year}")
+            Text(
+                "${currentMonth.month} ${currentMonth.year}",
+
+                )
 
             Spacer(modifier = Modifier.width(24.dp))
 
