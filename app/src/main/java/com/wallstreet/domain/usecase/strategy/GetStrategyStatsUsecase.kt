@@ -30,10 +30,12 @@ class GetStrategyStatsUsecase(
             .toEpochMilli(),
             500)
     ) { strategies, trades ->
-        val tradesByStrategy = trades.groupBy { it.strategyId }
+        val tradesByStrategy = trades.filter { !it.strategyId.isNullOrBlank() }.groupBy { it.strategyId }
 
-        strategies.map { strategy ->
-            val tradesForStrategy = tradesByStrategy[strategy.id] ?: emptyList()
+        strategies.mapNotNull { strategy ->
+            val tradesForStrategy = tradesByStrategy[strategy.id] ?: return@mapNotNull null
+
+
             computeStatsForStrategy(strategy, tradesForStrategy, period);
         }
 
