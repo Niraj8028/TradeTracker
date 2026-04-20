@@ -30,7 +30,8 @@ data class CalenderDay(
     val isCurrentMonth: Boolean,
     val isToday: Boolean,
     val isSelected: Boolean,
-    val pnl: Double = 0.0
+    val pnl: Double = 0.0,
+    val tradeCount: Int = 0
 )
 
 class AnalyticsViewModel(
@@ -95,6 +96,12 @@ class AnalyticsViewModel(
         val offset = firstDay.dayOfWeek.value % 7
         val daysInMonth = yearMonth.lengthOfMonth()
         val today = LocalDate.now()
+        val tradesByDate = trades.groupBy {
+            Instant.ofEpochMilli(it.tradeDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        }
+
         return MutableList(gridSize) { index ->
 
             when {
@@ -111,11 +118,9 @@ class AnalyticsViewModel(
                 index < offset + daysInMonth -> {
                     val day = index - offset + 1
                     val date = yearMonth.atDay(day)
-                    val dayTrades = trades.filter {
-                        Instant.ofEpochMilli(it.tradeDate)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate() == date
-                    }
+                    val dayTrades = tradesByDate[date] ?: emptyList()
+
+                    val tradeCount = dayTrades.size
                     val pnl = dayTrades.sumOf {
                         it.profitLoss ?: it.calculateProfitLoss() ?: 0.0
                     }
@@ -126,7 +131,8 @@ class AnalyticsViewModel(
                         isCurrentMonth = true,
                         isToday = date == today,
                         isSelected = false,
-                        pnl = pnl
+                        pnl = pnl,
+                        tradeCount = tradeCount
                     )
                 }
 
@@ -137,8 +143,9 @@ class AnalyticsViewModel(
                         date = null,
                         false,
                         false,
-                        false
-                    )//lets keep next calendar state to null for now
+                        false,
+
+                        )//lets keep next calendar state to null for now
                 }
             }
 
