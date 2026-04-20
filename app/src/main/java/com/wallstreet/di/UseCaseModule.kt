@@ -2,6 +2,7 @@ package com.wallstreet.di
 
 import com.wallstreet.domain.usecase.auth.*
 import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
+import com.wallstreet.domain.usecase.home.GetEquityCurveDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
 import com.wallstreet.domain.usecase.strategy.AddStrategyUseCase
@@ -32,4 +33,5 @@ val useCaseModule = module {
     factory { GetStrategyUseCase(get()) }
     factory { GetStrategyStatsUsecase(get(), get()) }
     factory { DeleteAccountUseCase(get()) }
+    factory { GetEquityCurveDataUsecase() }
 }

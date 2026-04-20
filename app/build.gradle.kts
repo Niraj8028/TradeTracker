@@ -83,6 +83,7 @@ dependencies {
     // Room                                                  //  entire Room block
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.benchmark.traceprocessor.android)
     ksp(libs.androidx.room.compiler)
 
     // Koin
@@ -91,8 +92,9 @@ dependencies {
     implementation(libs.koin.core)
 
     // Charts
-    implementation(libs.vico.compose)
-    implementation(libs.vico.compose.m3)
+    implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.28")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
+    implementation("com.patrykandpatrick.vico:core:2.0.0-alpha.28")
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)

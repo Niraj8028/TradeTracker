@@ -6,6 +6,7 @@ import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.repository.TradeRepository
 import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
+import com.wallstreet.domain.usecase.home.GetEquityCurveDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
@@ -25,6 +26,7 @@ class HomeViewModel(
     private val getHomeStateUsecase: GetHomeStateUsecase,
     private val heatMapDataUsecase: ComputeHeatMapDataUsecase,
     private val recentTradesDataUsecase: RecentTradesDataUsecase,
+    private val equityCurveDataUsecase: GetEquityCurveDataUsecase,
     private val authRepository: AuthRepository
 ): ViewModel() {
 
@@ -33,13 +35,14 @@ class HomeViewModel(
     val homeUiState: StateFlow<HomeUiState> = selectedPeriod
         .flatMapLatest { period ->
             val userId = authRepository.getCurrentUser()!!.id
-            getTradesUsecase(userId, period, 100)
+            getTradesUsecase(userId, period, 500)
                 .map { trades ->
                     HomeUiState.Success(
                         stats = getHomeStateUsecase(trades),
                         recentTrades = getRecentTradeData(trades),
                         heatMapData = heatMapDataUsecase(trades, 4),
-                        selectedPeriod = period
+                        selectedPeriod = period,
+                        equityCurveData = equityCurveDataUsecase(trades)
                     ) as HomeUiState
             }
                 .onStart {
