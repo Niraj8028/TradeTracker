@@ -7,14 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.AuthRepository
-import com.wallstreet.domain.usecase.trade.GetAllTradesUsecase
-import com.wallstreet.domain.usecase.trade.GetTradesUsecase
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.forEach
+ 
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
@@ -35,8 +31,9 @@ data class CalenderDay(
 )
 
 class AnalyticsViewModel(
-    private val getAllTradesUsecase: GetAllTradesUsecase,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val tradeStore: TradeStore
+
 ) : ViewModel() {
 
     val gridSize = 42
@@ -78,9 +75,11 @@ class AnalyticsViewModel(
     private fun observeTrades() {
         val userId = authRepository.getCurrentUser()?.id ?: return
 
+        tradeStore.startObserving(userId)
+
         viewModelScope.launch {
-            getAllTradesUsecase(userId).collect {
-                trades = it
+            tradeStore.trades.collect { tradeList ->
+                trades = tradeList
                 updateCalendar()
             }
         }
@@ -88,6 +87,11 @@ class AnalyticsViewModel(
 
     init {
         observeTrades()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        tradeStore.stopObserving()
     }
 
     fun generateMonth(yearMonth: YearMonth, trades: List<Trade>): List<CalenderDay> {

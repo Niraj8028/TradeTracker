@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -52,6 +53,7 @@ import com.wallstreet.ui.theme.BorderColors
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.LocalBorderColors
 import com.wallstreet.ui.theme.SuccessGreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun Calendar(
@@ -64,17 +66,22 @@ fun Calendar(
         initialPage = initialPage,
         pageCount = { 1000 }
     )
+    val scope = rememberCoroutineScope()
 
     val baseMonth = remember { YearMonth.now() }
-
     fun pageToMonth(page: Int): YearMonth {
         return baseMonth.plusMonths((page - initialPage).toLong())
     }
 
     val currentMonth = viewModel.currentMonth
-    LaunchedEffect(currentMonth) {
-        viewModel.setMonth(currentMonth)
+
+    LaunchedEffect(pagerState.currentPage) {
+        val month = baseMonth.plusMonths((pagerState.currentPage - initialPage).toLong())
+        if (viewModel.currentMonth != month) {
+            viewModel.setMonth(month)
+        }
     }
+
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
@@ -93,7 +100,9 @@ fun Calendar(
                     .size(16.dp)
                     .rotate(180f)
                     .clickable {
-                        viewModel.prevMoth()
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                        }
                     },
 
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
@@ -112,7 +121,9 @@ fun Calendar(
                 modifier = Modifier
                     .size(16.dp)
                     .clickable {
-                        viewModel.nextMoth()
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                        }
                     },
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
             )
@@ -144,12 +155,7 @@ fun Calendar(
             state = pagerState,
         ) { page ->
 
-            val yearMonth = pageToMonth(page)
-            LaunchedEffect(yearMonth) {
-                viewModel.setMonth(yearMonth)
-            }
             val days = viewModel.calendarDays
-
             CalendarGrid(days = days)
         }
     }
