@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias (libs.plugins.ksp)
+    alias(libs.plugins.ksp)
     id("com.google.gms.google-services")
 }
 
@@ -22,7 +22,7 @@ android {
     }
 
     buildTypes {
-        debug {  isMinifyEnabled = false }
+        debug { isMinifyEnabled = false }
         release {
             isMinifyEnabled = true
             proguardFiles(
@@ -109,6 +109,7 @@ dependencies {
 
 
     implementation(libs.timber)
+    implementation(libs.androidx.compose.foundation)
 
     // Testing
     testImplementation(libs.junit)
@@ -120,6 +121,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     //splash
-    implementation (libs.androidx.core.splashscreen)
+    implementation(libs.androidx.core.splashscreen)
 
 }
