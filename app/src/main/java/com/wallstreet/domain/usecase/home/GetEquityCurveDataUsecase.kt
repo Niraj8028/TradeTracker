@@ -4,6 +4,7 @@ import com.wallstreet.domain.model.EquityCurveData
 import com.wallstreet.domain.model.EquityPoint
 import com.wallstreet.domain.model.Trade
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -26,35 +27,47 @@ class GetEquityCurveDataUsecase {
         val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
         val dailyPnL = trades
             .groupBy { dateFormat.format(Date(it.tradeDate)) }
-            .toSortedMap()
-            .map { (dateKey, dayTrades) ->
-                val date = dateFormat.parse(dateKey)!!.time
-                val dayTotal = dayTrades.sumOf { it.profitLoss ?: 0.0 }
-                date to dayTotal
-            }
+            .mapValues { (_, dayTrades) -> dayTrades.sumOf { it.profitLoss ?: 0.0 } }
+
+        val sortedDates = trades.map { it.tradeDate }.sorted()
+
+        val startCal = Calendar.getInstance().apply {
+            timeInMillis = sortedDates.first()
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val endCal = Calendar.getInstance().apply {
+            timeInMillis = sortedDates.last()
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
 
         var cumulativePnL = 0.0
         var peak = 0.0
         var maxDrawdown = 0.0
         var maxDrawdownDate: Long? = null
+        val points = mutableListOf<EquityPoint>()
 
-        val points = dailyPnL.map { (date, dayPnL) ->
+        while (!startCal.after(endCal)) {
+            val dateKey = dateFormat.format(startCal.time)
+            val dayPnL = dailyPnL[dateKey] ?: 0.0
             cumulativePnL += dayPnL
 
             if (cumulativePnL > peak) {
                 peak = cumulativePnL
             }
-
             val currentDrawdown = peak - cumulativePnL
             if (currentDrawdown > maxDrawdown) {
                 maxDrawdown = currentDrawdown
-                maxDrawdownDate = date
+                maxDrawdownDate = startCal.timeInMillis
             }
 
-            EquityPoint(
-                date = date,
-                cumulativePnL = cumulativePnL
-            )
+            points.add(EquityPoint(date = startCal.timeInMillis, cumulativePnL = cumulativePnL))
+            startCal.add(Calendar.DAY_OF_YEAR, 1)
         }
 
         return EquityCurveData(
