@@ -31,6 +31,8 @@ import com.wallstreet.domain.model.HeatMapCell
 import com.wallstreet.domain.model.HeatMapData
 import com.wallstreet.domain.model.HeatType
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.HeatmapEmpty
+import com.wallstreet.ui.theme.HeatmapEmptyDark
 import com.wallstreet.ui.theme.SuccessGreen
 
 private val DAY_LABELS = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
@@ -49,10 +51,10 @@ fun HeatMapCard(
                 spotColor = Color.Black.copy(alpha = 0.3f)
             )
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(16.dp),
@@ -113,7 +115,7 @@ fun HeatMapDay(
     val isDark = isSystemInDarkTheme()
     val cellColour = when {
         cell == null -> Color.Transparent
-        cell.type == HeatType.NEUTRAL -> MaterialTheme.colorScheme.surfaceVariant
+        cell.type == HeatType.NEUTRAL -> if (isDark) HeatmapEmptyDark else HeatmapEmpty
         cell.type == HeatType.PROFIT -> SuccessGreen.copy(alpha = cell.intensity)
         else -> DangerRed.copy(alpha = cell.intensity)
     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,11 +93,13 @@ fun EquityCurveChart(
 
     val isPositive = equityCurveData.totalPnL >= 0
     val lineColor = if (isPositive) Color(0xFF10B981) else Color(0xFFEF4444)
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val guidelineColor = MaterialTheme.colorScheme.outline
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1F2937)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -110,7 +113,7 @@ fun EquityCurveChart(
             ) {
                 Text(
                     text = "Equity Curve",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -172,20 +175,20 @@ fun EquityCurveChart(
                             ),
                             startAxis = VerticalAxis.rememberStart(
                                 label = rememberTextComponent(
-                                    color = Color(0xFF9CA3AF),
+                                    color = labelColor,
                                     textSize = 10.sp,
                                     padding = Insets(4.0f)
                                 ),
                                 tick = null,
                                 guideline = rememberLineComponent(
-                                    fill = fill(Color(0xFF374151)),
+                                    fill = fill(guidelineColor),
                                     thickness = 1.dp,
                                     shape = Shape.Rectangle
                                 ),
                             ),
                             bottomAxis = HorizontalAxis.rememberBottom(
                                 label = rememberTextComponent(
-                                    color = Color(0xFF9CA3AF),
+                                    color = labelColor,
                                     textSize = 10.sp,
                                     padding = Insets(topDp = 2f, bottomDp = 2f)
                                 ),
@@ -223,7 +226,7 @@ fun EquityCurveChart(
                 ) {
                     Text(
                         text = "No data available",
-                        color = Color(0xFF9CA3AF)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

@@ -3,9 +3,12 @@ package com.wallstreet.presentation.home.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -15,67 +18,113 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.wallstreet.core.util.formatPercent
-import com.wallstreet.core.util.formatPnl
+import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.HomeStats
+import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 
 @Composable
 fun StatsRow(stats: HomeStats) {
+    val winRateColor = when {
+        stats.winRate >= 60 -> SuccessGreen
+        stats.winRate < 40  -> DangerRed
+        else                -> PrimaryBlue
+    }
+    val rrColor = when {
+        stats.riskRewardRatio >= 2.0 -> SuccessGreen
+        stats.riskRewardRatio >= 1.0 -> PrimaryBlue
+        else                         -> DangerRed
+    }
+    val avgWinText = "+$${"%.0f".format(stats.avgProfit)}"
+    val avgLossText = "$${"%.0f".format(stats.avgLoss)}"
+    val rrText = "${"%.1f".format(stats.riskRewardRatio)}x"
+    val winRateText = "${"%.1f".format(stats.winRate)}%"
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        StatsCard(
-            title = "Total PnL",
-            value = stats.totalPnl.formatPnl(),
-            modifier = Modifier.weight(1f)
-        )
-        StatsCard(
-            title = "Total Trades",
-            value = stats.totalTrades.toString(),
+        Column(
             modifier = Modifier.weight(1f),
-        )
-        StatsCard(
-            title = "WinRate",
-            value = stats.winRate.formatPercent(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            StatCard(
+                label = "Win Rate",
+                value = winRateText,
+                valueColor = winRateColor,
+                accentColor = winRateColor
+            )
+            StatCard(
+                label = "Avg Loss",
+                value = avgLossText,
+                valueColor = DangerRed,
+                accentColor = DangerRed
+            )
+        }
+        Column(
             modifier = Modifier.weight(1f),
-        )
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            StatCard(
+                label = "Avg Win",
+                value = avgWinText,
+                valueColor = SuccessGreen,
+                accentColor = SuccessGreen
+            )
+            StatCard(
+                label = "Risk / Reward",
+                value = rrText,
+                valueColor = rrColor,
+                accentColor = rrColor
+            )
+        }
     }
 }
 
 @Composable
-fun StatsCard(title: String, value: String, modifier: Modifier) {
+private fun StatCard(
+    label: String,
+    value: String,
+    valueColor: Color,
+    accentColor: Color
+) {
     val shape = RoundedCornerShape(12.dp)
     Column(
-        modifier = modifier
+        modifier = Modifier
+            .fillMaxWidth()
             .shadow(
-                elevation = 4.dp,
+                elevation = 2.dp,
                 shape = shape,
-                ambientColor = Color.Black.copy(alpha = 0.3f),
-                spotColor = Color.Black.copy(alpha = 0.3f)
+                ambientColor = Color.Black.copy(alpha = 0.2f),
+                spotColor = Color.Black.copy(alpha = 0.2f)
             )
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = shape
-            )
-            .padding(vertical = 14.dp, horizontal = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f), shape)
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(3.dp)
+                .background(accentColor.copy(alpha = 0.7f))
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 10.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = valueColor
+            )
+        }
     }
 }

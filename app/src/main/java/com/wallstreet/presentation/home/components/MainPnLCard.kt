@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,13 +23,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.HomeStats
 import com.wallstreet.presentation.home.TimePeriod
-import com.wallstreet.ui.theme.BadgeLongBg
-import com.wallstreet.ui.theme.BadgeShortBg
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
@@ -42,10 +41,15 @@ fun MainPnLCard(
 ) {
     val isPnlPositive = stats.totalPnl >= 0
     val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
-    val pnlBadgeBg = if (isPnlPositive) BadgeLongBg else BadgeShortBg
+    val pnlText = if (isPnlPositive)
+        "+$${"%.2f".format(stats.totalPnl)}"
+    else
+        "-$${"%.2f".format(-stats.totalPnl)}"
+
     val shape = RoundedCornerShape(20.dp)
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .shadow(
                 elevation = 4.dp,
                 shape = shape,
@@ -54,51 +58,53 @@ fun MainPnLCard(
             )
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = shape
-            )
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), shape)
     ) {
-        Text(
-            text = "TOTAL P&L",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 1.sp
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = stats.totalPnl.formatPnl(),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(pnlBadgeBg)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
+        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stats.avgProfit.formatPnl(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = pnlColor
+                    text = "TOTAL P&L",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 1.sp
                 )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(pnlColor.copy(alpha = 0.12f))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "${stats.totalWinningTrades}W · ${stats.totalLosingTrades}L",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = pnlColor,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = pnlText,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = pnlColor
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${stats.totalTrades} trades this period",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-        Text(
-            text = "UPDATED JUST NOW",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 0.8.sp
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
+
         PeriodSelector(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             selectedPeriod = selectedPeriod,
             onPeriodSelected = onPeriodSelected
         )
@@ -108,12 +114,14 @@ fun MainPnLCard(
 @Composable
 fun PeriodSelector(
     selectedPeriod: TimePeriod,
-    onPeriodSelected: (TimePeriod) -> Unit
-){
+    onPeriodSelected: (TimePeriod) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         TimePeriod.entries.forEach { period ->
             PeriodChip(
@@ -128,18 +136,17 @@ fun PeriodSelector(
 @Composable
 fun PeriodChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
-        modifier = Modifier.clip(
-            RoundedCornerShape(20.dp)
-        ).background(
-            if (isSelected) PrimaryBlue
-            else MaterialTheme.colorScheme.surface
-        ).clickable { onClick() }
-            .padding(horizontal = 20.dp, vertical = 10.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (isSelected) PrimaryBlue else MaterialTheme.colorScheme.surface)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             color = if (isSelected) White else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

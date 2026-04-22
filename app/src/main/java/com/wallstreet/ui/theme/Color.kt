@@ -29,9 +29,9 @@ val DarkTextSecondary = Color(0xFFB1BAC4) // light gray
 val DarkTextTertiary = Color(0xFF8B949E)
 
 // ============ Light Mode ============
-val LightBackground = Color(0xFFF5F5F5)
-val LightSurface = Color(0xFFFFFFFF)
-val LightSurfaceVariant = Color(0xFFF8F9FA)
+val LightBackground = Color(0xFFE8EEF4)    // blue-gray screen — cards pop against this
+val LightSurface = Color(0xFFF0F4F8)       // subtle tint for chips & inner elements
+val LightSurfaceVariant = Color(0xFFFFFFFF) // white cards
 
 val LightTextPrimary = Color(0xFF1F2937)
 val LightTextSecondary = Color(0xFF6B7280)
