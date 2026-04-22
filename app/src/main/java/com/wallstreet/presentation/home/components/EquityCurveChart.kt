@@ -19,47 +19,78 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
+import com.patrykandpatrick.vico.compose.cartesian.layer.continuous
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.compose.common.shader.verticalGradient
+import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
+import com.patrykandpatrick.vico.core.common.Insets
+import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
+import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.wallstreet.domain.model.EquityCurveData
+import com.wallstreet.domain.model.EquityPoint
+import com.wallstreet.presentation.home.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
-import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
-import com.patrykandpatrick.vico.core.common.Dimensions
-import com.patrykandpatrick.vico.core.common.Fill
-import com.patrykandpatrick.vico.core.common.shader.DynamicShader
 
 
 @Composable
 fun EquityCurveChart(
     equityCurveData: EquityCurveData,
+    selectedPeriod: TimePeriod,
     modifier: Modifier = Modifier
-    ) {
+) {
+    fun reduceEquityPoints(
+        points: List<EquityPoint>,
+        maxPoints: Int = 10
+    ): List<EquityPoint> {
+        if (points.size <= maxPoints) return points
+        val step = points.size.toFloat() / maxPoints
+        val sampled = (0 until maxPoints).map { i ->
+            points[(i * step).toInt().coerceAtMost(points.lastIndex)]
+        }
+        // Add last point only if not already included
+        return if (sampled.last().date == points.last().date) {
+            sampled
+        } else {
+            sampled + points.last()
+        }
+    }
+
+    val reducedPoints = remember(equityCurveData, selectedPeriod) {
+        reduceEquityPoints(equityCurveData.points, 9)
+    }
+
     val modelProducer = remember { CartesianChartModelProducer() }
     LaunchedEffect(equityCurveData) {
-        equityCurveData?.let { data ->
+        equityCurveData.let { data ->
             modelProducer.runTransaction {
                 lineSeries {
-                    series(data.points.map { it.cumulativePnL })
+                    series(reducedPoints.map { it.cumulativePnL })
                 }
             }
         }
     }
-    val isPositive = (equityCurveData?.totalPnL ?: 0.0) >= 0
+
+
+    val isPositive = equityCurveData.totalPnL >= 0
     val lineColor = if (isPositive) Color(0xFF10B981) else Color(0xFFEF4444)
 
     Card(
@@ -77,14 +108,13 @@ fun EquityCurveChart(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                    Text(
-                        text = "Equity Curve",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                val totalPnL = equityCurveData?.totalPnL ?: 0.0
-                val isPositive = totalPnL >= 0
+                Text(
+                    text = "Equity Curve",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                val totalPnL = equityCurveData.totalPnL
 
                 Box(
                     modifier = Modifier
@@ -110,70 +140,78 @@ fun EquityCurveChart(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp)
+                        .height(210.dp)
+                        .padding(bottom = 8.dp)
                 ) {
-                    // See next section for chart implementation
                     CartesianChartHost(
                         chart = rememberCartesianChart(
                             rememberLineCartesianLayer(
                                 lineProvider = LineCartesianLayer.LineProvider.series(
-                                    rememberLine(
-                                        fill = remember {
-                                            LineCartesianLayer.LineFill.single(
-                                                fill(lineColor)
-                                            )
-                                        },
-                                        areaFill = remember {
-                                            LineCartesianLayer.AreaFill.single(
-                                                fill = Fill(
-                                                    shader = DynamicShader.verticalGradient(
-                                                        colors = intArrayOf(
-                                                            lineColor.copy(alpha = 0.4f).toArgb(),
-                                                            lineColor.copy(alpha = 0.1f).toArgb(),
-                                                            Color.Transparent.toArgb()
-                                                        )
+                                    LineCartesianLayer.rememberLine(
+                                        fill = LineCartesianLayer.LineFill.single(
+                                            fill(lineColor)
+                                        ),
+                                        areaFill = LineCartesianLayer.AreaFill.single(
+                                            fill(
+                                                ShaderProvider.verticalGradient(
+                                                    arrayOf(
+                                                        lineColor.copy(alpha = 0.4f),
+                                                        lineColor.copy(alpha = 0.1f),
+                                                        Color.Transparent
                                                     )
                                                 )
                                             )
-                                        },
-                                        thickness = 1.dp,
+                                        ),
+                                        stroke = LineCartesianLayer.LineStroke.continuous(
+                                            thickness = 1.dp
+                                        ),
+                                        pointConnector = remember { LineCartesianLayer.PointConnector.cubic(curvature = 0.4f) },
                                         pointProvider = null
                                     )
-                                )
+                                ),
                             ),
-                            startAxis = rememberStartAxis(
+                            startAxis = VerticalAxis.rememberStart(
                                 label = rememberTextComponent(
                                     color = Color(0xFF9CA3AF),
                                     textSize = 10.sp,
-                                    padding = Dimensions(4.0F)
+                                    padding = Insets(4.0f)
                                 ),
                                 tick = null,
                                 guideline = rememberLineComponent(
-                                    color = Color(0xFF374151),
+                                    fill = fill(Color(0xFF374151)),
                                     thickness = 1.dp,
-                                    shape = com.patrykandpatrick.vico.core.common.shape.Shape.Rectangle
-                                )
+                                    shape = Shape.Rectangle
+                                ),
                             ),
-                            bottomAxis = rememberBottomAxis(
+                            bottomAxis = HorizontalAxis.rememberBottom(
                                 label = rememberTextComponent(
                                     color = Color(0xFF9CA3AF),
-                                    textSize = 10.sp
+                                    textSize = 10.sp,
+                                    padding = Insets(topDp = 2f, bottomDp = 2f)
                                 ),
                                 tick = null,
                                 guideline = null,
-                                valueFormatter = { value, _, _ ->
+                                valueFormatter = CartesianValueFormatter { _, value, _ ->
                                     val index = value.toInt()
-                                    if (index in equityCurveData.points.indices) {
-                                        val date = equityCurveData.points[index].date
-                                        SimpleDateFormat(
-                                            "d",
-                                            Locale.getDefault()
-                                        ).format(Date(date))
-                                    } else ""
-                                }
+                                    if (index in reducedPoints.indices) {
+                                        val date = reducedPoints[index].date
+                                        val cal = java.util.Calendar.getInstance().apply { timeInMillis = date }
+                                        val day = cal.get(java.util.Calendar.DAY_OF_MONTH)
+
+                                        // Show "MMM d" for 1st of month or first/last point, otherwise just "d"
+                                        val format = if (day == 1 || index == reducedPoints.lastIndex) {
+                                            "dMMM "
+                                        } else {
+                                            "d"
+                                        }
+                                        SimpleDateFormat(format, Locale.getDefault()).format(Date(date))
+                                    } else value.toInt().toString()
+                                },
                             )
                         ),
-                        modelProducer = modelProducer
+                        modelProducer = modelProducer,
+                        zoomState = rememberVicoZoomState(zoomEnabled = false ),
+                        modifier = Modifier.padding(bottom = 0.dp)
                     )
                 }
             } else {

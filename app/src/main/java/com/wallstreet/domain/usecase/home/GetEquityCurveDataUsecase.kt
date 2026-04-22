@@ -3,6 +3,9 @@ package com.wallstreet.domain.usecase.home
 import com.wallstreet.domain.model.EquityCurveData
 import com.wallstreet.domain.model.EquityPoint
 import com.wallstreet.domain.model.Trade
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class GetEquityCurveDataUsecase {
     operator fun invoke(trades: List<Trade>): EquityCurveData {
@@ -18,29 +21,38 @@ class GetEquityCurveDataUsecase {
                 maxDrawdownDate = null
             )
         }
-        val sortedTrades = trades.sortedBy { it.tradeDate }
+
+        // Group trades by date (strip time, keep only date)
+        val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val dailyPnL = trades
+            .groupBy { dateFormat.format(Date(it.tradeDate)) }
+            .toSortedMap()
+            .map { (dateKey, dayTrades) ->
+                val date = dateFormat.parse(dateKey)!!.time
+                val dayTotal = dayTrades.sumOf { it.profitLoss ?: 0.0 }
+                date to dayTotal
+            }
+
         var cumulativePnL = 0.0
         var peak = 0.0
         var maxDrawdown = 0.0
         var maxDrawdownDate: Long? = null
 
-        val points = sortedTrades.map { trade ->
-            cumulativePnL += trade.profitLoss ?: 0.0
+        val points = dailyPnL.map { (date, dayPnL) ->
+            cumulativePnL += dayPnL
 
-            // Track peak for drawdown
             if (cumulativePnL > peak) {
                 peak = cumulativePnL
             }
 
-            // Calculate drawdown from peak
             val currentDrawdown = peak - cumulativePnL
             if (currentDrawdown > maxDrawdown) {
                 maxDrawdown = currentDrawdown
-                maxDrawdownDate = trade.tradeDate
+                maxDrawdownDate = date
             }
 
             EquityPoint(
-                date = trade.tradeDate,
+                date = date,
                 cumulativePnL = cumulativePnL
             )
         }
