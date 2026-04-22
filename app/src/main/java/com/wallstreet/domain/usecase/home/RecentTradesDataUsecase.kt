@@ -11,8 +11,7 @@ class RecentTradesDataUsecase {
 
 fun getRecentTradeData(trades: List<Trade>): List<RecentTradeItem> {
     return trades.sortedByDescending { it.tradeDate }
-        .take(15)
-//        TODO decide trade limit
+        .take(10)
         .map { trade ->
             RecentTradeItem(
                 exitPrice = trade.exitPrice,
@@ -21,8 +20,8 @@ fun getRecentTradeData(trades: List<Trade>): List<RecentTradeItem> {
                 tradeType = trade.tradeType,
                 profitLoss = trade.profitLoss ?: 0.0,
                 symbol = trade.symbol,
-                id = trade.id
+                id = trade.id,
+                tradeDate = trade.tradeDate
             )
         }
-
 }

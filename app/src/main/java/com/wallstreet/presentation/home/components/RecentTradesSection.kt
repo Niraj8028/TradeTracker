@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,12 +31,39 @@ import com.wallstreet.ui.theme.BadgeShortText
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun RecentTradesSection(
     trades: List<RecentTradeItem>,
     onViewAll: () -> Unit
 ) {
+    val grouped = remember(trades) {
+        val today = LocalDate.now()
+        val yesterday = today.minusDays(1)
+        val formatter = DateTimeFormatter.ofPattern("MMM d")
+
+        trades
+            .groupBy {
+                Instant.ofEpochMilli(it.tradeDate)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }
+            .entries
+            .sortedByDescending { it.key }
+            .map { (date, items) ->
+                val label = when (date) {
+                    today -> "Today"
+                    yesterday -> "Yesterday"
+                    else -> date.format(formatter)
+                }
+                label to items
+            }
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -56,20 +84,30 @@ fun RecentTradesSection(
                 )
             }
         }
-        trades.forEach { trade ->
-            TradeRow(trade)
+
+        grouped.forEach { (label, dayTrades) ->
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                dayTrades.forEach { trade ->
+                    TradeRow(trade)
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun TradeRow(trade: RecentTradeItem) {
-    val pnl = trade.profitLoss ?: 0.0
+    val pnl = trade.profitLoss
     val isPnlPositive = pnl >= 0
     val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
-    val pnlBg = pnlColor.copy(alpha = 0.12f)
     val pnlText = if (isPnlPositive) "+$${"%.0f".format(pnl)}" else "-$${"%.0f".format(-pnl)}"
-
     val accentColor = if (trade.tradeType == TradeType.LONG) SuccessGreen else DangerRed
 
     val shape = RoundedCornerShape(12.dp)
@@ -126,7 +164,7 @@ private fun TradeRow(trade: RecentTradeItem) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
-                .background(pnlBg)
+                .background(pnlColor.copy(alpha = 0.12f))
                 .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             Text(
