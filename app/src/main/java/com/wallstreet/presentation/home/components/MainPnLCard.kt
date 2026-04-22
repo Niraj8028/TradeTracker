@@ -43,20 +43,21 @@ fun MainPnLCard(
     val isPnlPositive = stats.totalPnl >= 0
     val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
     val pnlBadgeBg = if (isPnlPositive) BadgeLongBg else BadgeShortBg
+    val shape = RoundedCornerShape(20.dp)
     Column(
         modifier = Modifier.fillMaxWidth()
             .shadow(
                 elevation = 4.dp,
-                shape = RoundedCornerShape(4.dp),
+                shape = shape,
                 ambientColor = Color.Black.copy(0.3f),
                 spotColor = Color.Black.copy(0.3f)
             )
-            .clip(RoundedCornerShape(20.dp))
+            .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(20.dp)
+                shape = shape
             )
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)

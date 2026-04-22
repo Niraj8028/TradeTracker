@@ -46,38 +46,36 @@ fun StatsRow(stats: HomeStats) {
 }
 
 @Composable
-fun StatsCard(title: String, value: String, modifier: Modifier ) {
+fun StatsCard(title: String, value: String, modifier: Modifier) {
+    val shape = RoundedCornerShape(12.dp)
     Column(
         modifier = modifier
             .shadow(
                 elevation = 4.dp,
-                shape = RoundedCornerShape(4.dp),
+                shape = shape,
                 ambientColor = Color.Black.copy(alpha = 0.3f),
                 spotColor = Color.Black.copy(alpha = 0.3f)
             )
-            .clip(
-                RoundedCornerShape(8.dp)
-            )
+            .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(14.dp)
+                shape = shape
             )
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(vertical = 14.dp, horizontal = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
     ) {
-
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
         Text(
             text = title,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
