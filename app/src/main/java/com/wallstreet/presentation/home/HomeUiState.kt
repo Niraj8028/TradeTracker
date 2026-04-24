@@ -4,7 +4,9 @@ import com.google.android.gms.common.internal.Objects
 import com.wallstreet.domain.model.EquityCurveData
 import com.wallstreet.domain.model.HeatMapData
 import com.wallstreet.domain.model.HomeStats
+import com.wallstreet.domain.model.MistakesAnalysisData
 import com.wallstreet.domain.model.RecentTradeItem
+import com.wallstreet.domain.model.SymbolStat
 import com.wallstreet.domain.model.Trade
 
 sealed class HomeUiState {
@@ -16,6 +18,8 @@ sealed class HomeUiState {
         val heatMapData: HeatMapData,
         val selectedPeriod: TimePeriod,
         val equityCurveData: EquityCurveData,
+        val mistakesAnalysisData: MistakesAnalysisData,
+        val symbolPerformance: List<SymbolStat>
     ): HomeUiState()
 }
 

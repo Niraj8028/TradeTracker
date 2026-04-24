@@ -12,12 +12,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -38,7 +38,7 @@ import com.wallstreet.presentation.log_trade.components.MistakesSection
 import com.wallstreet.presentation.log_trade.components.PnlPreviewCard
 import com.wallstreet.presentation.log_trade.components.StrategyDropdown
 import com.wallstreet.presentation.log_trade.components.TradeTypeToggle
-import com.wallstreet.ui.theme.*
+import com.wallstreet.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,32 +48,52 @@ fun LogTradeScreen(
     viewModel: LogTradeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = uiState.tradeDate
-    )
     val scrollState = rememberScrollState()
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = uiState.tradeDate)
+    var showDatePicker by remember { mutableStateOf(false) }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.onImageSelected(it.toString()) }
     }
 
-    // Live P&L calculation
-    val pnl = remember(uiState.entryPrice, uiState.exitPrice, uiState.quantity) {
+    val pnl = remember(uiState.entryPrice, uiState.exitPrice, uiState.quantity, uiState.tradeType) {
         val entry = uiState.entryPrice.toDoubleOrNull()
         val exit = uiState.exitPrice.toDoubleOrNull()
         val qty = uiState.quantity.toDoubleOrNull()
-        if (entry != null && exit != null && qty != null) {
+        if (entry != null && exit != null && qty != null && entry > 0 && exit > 0 && qty > 0) {
             val raw = (exit - entry) * qty
-            val isLong = uiState.tradeType == TradeType.LONG
-            if (isLong) raw else -raw
+            if (uiState.tradeType == TradeType.LONG) raw else -raw
         } else null
     }
-    var showDatePicker by remember { mutableStateOf(false) }
-
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Log Trade",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -84,27 +104,23 @@ fun LogTradeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 16.dp)
                     .padding(bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            )
-            {
-
-                // ── Trade Type Toggle ──────────────────────────────
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // Trade type toggle
                 TradeTypeToggle(
                     selectedType = uiState.tradeType,
                     onTypeSelected = { viewModel.onTradeTypeChanged(it) }
                 )
 
-                // ── P&L Preview Card (shows when calculable) ───────
+                // Live P&L preview
                 if (pnl != null) {
                     PnlPreviewCard(pnl = pnl)
                 }
 
-
-                // ── Section: Trade Details ─────────────────────────
-                SectionCard() {
-                    // Ticker
+                // Trade Details
+                SectionCard(label = "Trade Details") {
                     AppTextField(
                         value = uiState.symbol,
                         onValueChange = { viewModel.onSymbolChanged(it) },
@@ -124,7 +140,6 @@ fun LogTradeScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Quantity
                     AppTextField(
                         value = uiState.quantity,
                         onValueChange = { viewModel.onQuantityChanged(it) },
@@ -139,7 +154,6 @@ fun LogTradeScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Entry / Exit row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -147,7 +161,7 @@ fun LogTradeScreen(
                         AppTextField(
                             value = uiState.entryPrice,
                             onValueChange = { viewModel.onEntryPriceChanged(it) },
-                            label = "ENTRY",
+                            label = "ENTRY PRICE",
                             placeholder = "189.45",
                             prefix = "$",
                             isError = uiState.entryPriceError != null,
@@ -161,7 +175,7 @@ fun LogTradeScreen(
                         AppTextField(
                             value = uiState.exitPrice,
                             onValueChange = { viewModel.onExitPriceChanged(it) },
-                            label = "EXIT",
+                            label = "EXIT PRICE",
                             placeholder = "192.10",
                             prefix = "$",
                             isError = uiState.exitPriceError != null,
@@ -174,7 +188,6 @@ fun LogTradeScreen(
                         )
                     }
 
-                    // Stop Loss (optional)
                     AppTextField(
                         value = uiState.stopLoss ?: "",
                         onValueChange = { viewModel.onStopLossChanged(it) },
@@ -183,45 +196,47 @@ fun LogTradeScreen(
                         prefix = "$",
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Next
+                            imeAction = ImeAction.Done
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
 
-
-                // ── Section: Strategy ──────────────────────────────
-                SectionCard() {
+                // Strategy
+                SectionCard(label = "Strategy") {
                     StrategyDropdown(
                         selectedStrategy = uiState.selectedStrategy,
                         strategies = uiState.strategies,
                         onStrategySelected = { viewModel.onStrategySelected(it) }
                     )
                 }
-//-- Section : Trade date
-                SectionCard {
-                    Text(
-                        text = "TRADE DATE",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
 
-                    Text(
-                        text = formatDate(uiState.tradeDate),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                // Trade Date
+                SectionCard(label = "Trade Date") {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .background(MaterialTheme.colorScheme.background)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant,
+                                RoundedCornerShape(12.dp)
+                            )
                             .clickable { showDatePicker = true }
-                            .padding(16.dp)
-                    )
+                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                    ) {
+                        Text(
+                            text = formatDate(uiState.tradeDate),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
 
-                // ── Section: Mistakes ──────────────────────────────
+                // Mistakes
                 if (viewModel.mistakes.isNotEmpty()) {
-                    SectionCard() {
+                    SectionCard(label = "Mistakes Identified") {
                         MistakesSection(
                             selectedMistakes = uiState.selectedMistakes,
                             mistakes = viewModel.mistakes,
@@ -230,8 +245,8 @@ fun LogTradeScreen(
                     }
                 }
 
-                // ── Section: Notes & Screenshot ────────────────────
-                SectionCard() {
+                // Notes & Screenshot
+                SectionCard(label = "Notes & Screenshot") {
                     OutlinedTextField(
                         value = uiState.comments,
                         onValueChange = { viewModel.onCommentsAdded(it) },
@@ -247,21 +262,15 @@ fun LogTradeScreen(
                             .fillMaxWidth()
                             .height(100.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-
+                            focusedContainerColor = MaterialTheme.colorScheme.background,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.background,
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-
                             focusedTextColor = MaterialTheme.colorScheme.onSurface,
                             unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
                             cursorColor = MaterialTheme.colorScheme.primary,
                             errorBorderColor = MaterialTheme.colorScheme.error,
-                            errorContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                            errorContainerColor = MaterialTheme.colorScheme.background
                         ),
                         shape = RoundedCornerShape(12.dp),
                         maxLines = 5
@@ -273,33 +282,42 @@ fun LogTradeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Error banner
+                if (uiState.error != null) {
+                    Text(
+                        text = uiState.error!!,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                    )
+                }
             }
+
+            // Date picker dialog
             if (showDatePicker) {
                 DatePickerDialog(
                     onDismissRequest = { showDatePicker = false },
                     confirmButton = {
                         TextButton(onClick = {
-                            datePickerState.selectedDateMillis?.let {
-                                viewModel.onDateChange(it)
-                            }
+                            datePickerState.selectedDateMillis?.let { viewModel.onDateChange(it) }
                             showDatePicker = false
-                        }) {
-                            Text("OK")
-                        }
+                        }) { Text("OK") }
                     }
                 ) {
-                    DatePicker(
-                        state = datePickerState,
-                    )
+                    DatePicker(state = datePickerState)
                 }
             }
-            // ── Save Button ────────────────────────────────────────
+
+            // Save button — pinned at the bottom
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.background,
-
-                ) {
+                shadowElevation = 8.dp
+            ) {
                 Button(
                     onClick = { viewModel.onSaveTrade() },
                     modifier = Modifier
@@ -323,6 +341,7 @@ fun LogTradeScreen(
                         Text(
                             text = "Save Trade",
                             style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
                             color = White
                         )
                     }
@@ -332,27 +351,32 @@ fun LogTradeScreen(
     }
 }
 
-// ── Reusable Section Card ──────────────────────────────────────────────────────
-
 @Composable
 private fun SectionCard(
+    label: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val shape = RoundedCornerShape(16.dp)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(1.dp, shape, ambientColor = Color.Black.copy(alpha = 0.15f), spotColor = Color.Black.copy(alpha = 0.15f))
+            .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 12.dp, vertical = 0.dp),
-
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f), shape)
+            .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            letterSpacing = 0.8.sp,
+            fontWeight = FontWeight.Medium
+        )
         content()
     }
 }
-
-// ── Reusable Text Field ────────────────────────────────────────────────────────
 
 @Composable
 private fun AppTextField(
@@ -371,7 +395,8 @@ private fun AppTextField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 0.8.sp
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            letterSpacing = 0.8.sp
         )
         OutlinedTextField(
             value = value,
@@ -380,7 +405,7 @@ private fun AppTextField(
             placeholder = {
                 Text(
                     placeholder,
-                    color = DarkTextTertiary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
@@ -388,7 +413,7 @@ private fun AppTextField(
                 {
                     Text(
                         prefix,
-                        color = DarkTextTertiary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -402,26 +427,19 @@ private fun AppTextField(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-
+                focusedContainerColor = MaterialTheme.colorScheme.background,
+                unfocusedContainerColor = MaterialTheme.colorScheme.background,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-
                 focusedLabelColor = MaterialTheme.colorScheme.primary,
                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-
                 cursorColor = MaterialTheme.colorScheme.primary,
                 errorBorderColor = MaterialTheme.colorScheme.error,
-                errorContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                errorContainerColor = MaterialTheme.colorScheme.background
             ),
             shape = RoundedCornerShape(12.dp)
         )
     }
 }
-
-// ── P&L Preview Card ───────────────────────────────────────────────────────────
-

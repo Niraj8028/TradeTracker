@@ -25,6 +25,8 @@ import com.wallstreet.presentation.home.components.HeatMapCard
 import com.wallstreet.presentation.home.components.RecentTradesSection
 import com.wallstreet.presentation.home.components.StatsRow
 import com.wallstreet.presentation.home.components.MainPnLCard
+import com.wallstreet.presentation.home.components.SymbolPerformanceCard
+import com.wallstreet.presentation.home.components.TopMistakesCard
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -90,6 +92,8 @@ fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState, selected
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         HeatMapCard(heatMapData = uiState.heatMapData)
+        TopMistakesCard(data = uiState.mistakesAnalysisData)
+        SymbolPerformanceCard(symbols = uiState.symbolPerformance)
         RecentTradesSection(
             trades = uiState.recentTrades,
             onViewAll = { /*TODO*/ }
