@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -72,35 +73,42 @@ fun Calendar(viewModel: AnalyticsViewModel = koinViewModel()) {
             tradingDays.count { it.pnl < 0 }
         )
     }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            MonthHeader(
-                currentMonth = currentMonth,
-                onPrev = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
-                onNext = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
-            )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                MonthHeader(
+                    currentMonth = currentMonth,
+                    onPrev = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
+                    onNext = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            DayOfWeekHeader(days = viewModel.days)
+                DayOfWeekHeader(days = viewModel.days)
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-            HorizontalPager(state = pagerState) {
-                CalendarGrid(days = viewModel.calendarDays)
+                HorizontalPager(state = pagerState) {
+                    CalendarGrid(days = viewModel.calendarDays)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                MonthSummary(monthlyStats)
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            Spacer(modifier = Modifier.height(12.dp))
-
-            MonthSummary(monthlyStats)
         }
     }
 }
