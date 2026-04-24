@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.wallstreet.domain.model.EquityPoint
 import com.wallstreet.presentation.home.components.EquityCurveChart
 import com.wallstreet.presentation.home.components.HeatMapCard
 import com.wallstreet.presentation.home.components.RecentTradesSection
@@ -85,6 +86,7 @@ fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState, selected
         StatsRow(stats = uiState.stats)
         EquityCurveChart(
             equityCurveData = uiState.equityCurveData,
+            selectedPeriod = selectedPeriod,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         HeatMapCard(heatMapData = uiState.heatMapData)

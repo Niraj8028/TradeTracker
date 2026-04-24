@@ -7,5 +7,6 @@ data class RecentTradeItem(
     val quanity: Double,
     val tradeType: TradeType,
     val profitLoss: Double,
-    val symbol: String
+    val symbol: String,
+    val tradeDate: Long
 )

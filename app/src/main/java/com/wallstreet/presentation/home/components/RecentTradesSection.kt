@@ -15,12 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,89 +30,117 @@ import com.wallstreet.ui.theme.BadgeShortBg
 import com.wallstreet.ui.theme.BadgeShortText
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.PrimaryBlue
-import com.wallstreet.ui.theme.PrimaryBlueLight
 import com.wallstreet.ui.theme.SuccessGreen
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun RecentTradesSection(
     trades: List<RecentTradeItem>,
     onViewAll: () -> Unit
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    val grouped = remember(trades) {
+        val today = LocalDate.now()
+        val yesterday = today.minusDays(1)
+        val formatter = DateTimeFormatter.ofPattern("MMM d")
+
+        trades
+            .groupBy {
+                Instant.ofEpochMilli(it.tradeDate)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }
+            .entries
+            .sortedByDescending { it.key }
+            .map { (date, items) ->
+                val label = when (date) {
+                    today -> "Today"
+                    yesterday -> "Yesterday"
+                    else -> date.format(formatter)
+                }
+                label to items
+            }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Recent Trades",
+                text = "Recent Trades",
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            TextButton(
-                onClick = onViewAll,
-                contentPadding = PaddingValues(0.dp)) {
-                Text("See All",
+            TextButton(onClick = onViewAll, contentPadding = PaddingValues(0.dp)) {
+                Text(
+                    text = "See All",
                     color = PrimaryBlue,
                     style = MaterialTheme.typography.labelLarge
                 )
             }
         }
-        trades.forEach { trade ->
-            TradeRow(trade)
-        }
 
+        grouped.forEach { (label, dayTrades) ->
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                dayTrades.forEach { trade ->
+                    TradeRow(trade)
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun TradeRow(trade: RecentTradeItem) {
-    val isPnlPositive = (trade.profitLoss ?: 0.0) >= 0
+    val pnl = trade.profitLoss
+    val isPnlPositive = pnl >= 0
     val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
-    val pnlSign = if (isPnlPositive) "+" else ""
+    val pnlText = if (isPnlPositive) "+$${"%.0f".format(pnl)}" else "-$${"%.0f".format(-pnl)}"
+    val accentColor = if (trade.tradeType == TradeType.LONG) SuccessGreen else DangerRed
 
+    val shape = RoundedCornerShape(12.dp)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 1.dp,
-                shape = RoundedCornerShape(4.dp),
-                ambientColor = Color.Black.copy(alpha = 0.3f),
-                spotColor = Color.Black.copy(alpha = 0.3f)
-            )
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(4.dp)
-            )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), shape)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-//            Box(
-//                modifier = Modifier
-//                    .size(42.dp)
-//                    .clip(RoundedCornerShape(10.dp))
-//                    .background(MaterialTheme.colorScheme.surfaceVariant),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Text(
-//                    text = trade.symbol.take(3).uppercase(),
-//                    style = MaterialTheme.typography.labelMedium,
-//                    color = PrimaryBlueLight,
-//                    fontWeight = FontWeight.Bold
-//                )
-//            }
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(accentColor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = trade.symbol.take(2).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = accentColor,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // Symbol + badge
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -122,32 +148,30 @@ private fun TradeRow(trade: RecentTradeItem) {
                     Text(
                         text = trade.symbol.uppercase(),
                         style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     TradeBadge(tradeType = trade.tradeType)
                 }
-                // Quantity • Entry price
                 Text(
-                    text = "${trade.quanity.toInt()} qty  •  ${"%.2f".format(trade.entryPrice)}",
+                    text = "${trade.quanity.toInt()} qty  •  ${"%.2f".format(trade.entryPrice)} → ${"%.2f".format(trade.exitPrice ?: 0.0)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        Column(
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(pnlColor.copy(alpha = 0.12f))
+                .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             Text(
-                text = "$pnlSign$${"%.2f".format(trade.profitLoss ?: 0.0)}",
-                style = MaterialTheme.typography.titleSmall,
-                color = pnlColor
-            )
-            Text(
-                text = "exit at ${"%.2f".format(trade.exitPrice ?: 0.0)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = pnlText,
+                style = MaterialTheme.typography.labelLarge,
+                color = pnlColor,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -156,19 +180,16 @@ private fun TradeRow(trade: RecentTradeItem) {
 @Composable
 private fun TradeBadge(tradeType: TradeType) {
     val isLong = tradeType == TradeType.LONG
-    val bgColor = if (isLong) BadgeLongBg else BadgeShortBg
-    val textColor = if (isLong) BadgeLongText else BadgeShortText
-
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(bgColor)
+            .background(if (isLong) BadgeLongBg else BadgeShortBg)
             .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
         Text(
             text = if (isLong) "LONG" else "SHORT",
             style = MaterialTheme.typography.labelSmall,
-            color = textColor,
+            color = if (isLong) BadgeLongText else BadgeShortText,
             letterSpacing = 0.5.sp
         )
     }

@@ -31,8 +31,8 @@ import com.wallstreet.domain.model.HeatMapCell
 import com.wallstreet.domain.model.HeatMapData
 import com.wallstreet.domain.model.HeatType
 import com.wallstreet.ui.theme.DangerRed
-import com.wallstreet.ui.theme.DarkSurface
-import com.wallstreet.ui.theme.DarkTextTertiary
+import com.wallstreet.ui.theme.HeatmapEmpty
+import com.wallstreet.ui.theme.HeatmapEmptyDark
 import com.wallstreet.ui.theme.SuccessGreen
 
 private val DAY_LABELS = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
@@ -51,10 +51,10 @@ fun HeatMapCard(
                 spotColor = Color.Black.copy(alpha = 0.3f)
             )
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(16.dp),
@@ -75,7 +75,7 @@ fun DayLabelRow() {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = DarkTextTertiary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp,
                 modifier = Modifier.weight(1f),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -115,7 +115,7 @@ fun HeatMapDay(
     val isDark = isSystemInDarkTheme()
     val cellColour = when {
         cell == null -> Color.Transparent
-        cell.type == HeatType.NEUTRAL -> MaterialTheme.colorScheme.surfaceVariant
+        cell.type == HeatType.NEUTRAL -> if (isDark) HeatmapEmptyDark else HeatmapEmpty
         cell.type == HeatType.PROFIT -> SuccessGreen.copy(alpha = cell.intensity)
         else -> DangerRed.copy(alpha = cell.intensity)
     }
@@ -130,7 +130,51 @@ fun HeatMapDay(
 
 @Composable
 fun HeatMapHeader(onViewCalender: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = "Heatmap",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = "Daily win / loss",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LegendDot(color = SuccessGreen, label = "Profit")
+            LegendDot(color = DangerRed, label = "Loss")
+        }
+    }
+}
 
+@Composable
+private fun LegendDot(color: Color, label: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 

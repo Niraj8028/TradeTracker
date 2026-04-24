@@ -3,6 +3,10 @@ package com.wallstreet.domain.usecase.home
 import com.wallstreet.domain.model.EquityCurveData
 import com.wallstreet.domain.model.EquityPoint
 import com.wallstreet.domain.model.Trade
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class GetEquityCurveDataUsecase {
     operator fun invoke(trades: List<Trade>): EquityCurveData {
@@ -18,31 +22,52 @@ class GetEquityCurveDataUsecase {
                 maxDrawdownDate = null
             )
         }
-        val sortedTrades = trades.sortedBy { it.tradeDate }
+
+        // Group trades by date (strip time, keep only date)
+        val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val dailyPnL = trades
+            .groupBy { dateFormat.format(Date(it.tradeDate)) }
+            .mapValues { (_, dayTrades) -> dayTrades.sumOf { it.profitLoss ?: 0.0 } }
+
+        val sortedDates = trades.map { it.tradeDate }.sorted()
+
+        val startCal = Calendar.getInstance().apply {
+            timeInMillis = sortedDates.first()
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val endCal = Calendar.getInstance().apply {
+            timeInMillis = sortedDates.last()
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
         var cumulativePnL = 0.0
         var peak = 0.0
         var maxDrawdown = 0.0
         var maxDrawdownDate: Long? = null
+        val points = mutableListOf<EquityPoint>()
 
-        val points = sortedTrades.map { trade ->
-            cumulativePnL += trade.profitLoss ?: 0.0
+        while (!startCal.after(endCal)) {
+            val dateKey = dateFormat.format(startCal.time)
+            val dayPnL = dailyPnL[dateKey] ?: 0.0
+            cumulativePnL += dayPnL
 
-            // Track peak for drawdown
             if (cumulativePnL > peak) {
                 peak = cumulativePnL
             }
-
-            // Calculate drawdown from peak
             val currentDrawdown = peak - cumulativePnL
             if (currentDrawdown > maxDrawdown) {
                 maxDrawdown = currentDrawdown
-                maxDrawdownDate = trade.tradeDate
+                maxDrawdownDate = startCal.timeInMillis
             }
 
-            EquityPoint(
-                date = trade.tradeDate,
-                cumulativePnL = cumulativePnL
-            )
+            points.add(EquityPoint(date = startCal.timeInMillis, cumulativePnL = cumulativePnL))
+            startCal.add(Calendar.DAY_OF_YEAR, 1)
         }
 
         return EquityCurveData(

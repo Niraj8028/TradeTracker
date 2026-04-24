@@ -39,7 +39,7 @@ class TradeRepositoryImpl(
 
     override fun getRecentTrades(userId: String, fromMilis: Long, limit: Int): Flow<List<Trade>> =
         tradeStore.trades.map { trades ->
-            trades.filter { ( it.createAt ?: 0L ) >= fromMilis }
+            trades.filter { it.tradeDate >= fromMilis }
                 .take(limit)
         }
 }
