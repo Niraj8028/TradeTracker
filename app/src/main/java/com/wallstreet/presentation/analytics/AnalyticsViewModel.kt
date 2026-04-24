@@ -10,7 +10,9 @@ import androidx.lifecycle.viewModelScope
 import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.AuthRepository
- 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
@@ -35,6 +37,13 @@ class AnalyticsViewModel(
     private val tradeStore: TradeStore
 
 ) : ViewModel() {
+
+    private val _selectedTabIndex = MutableStateFlow(0)
+    val selectedTabIndex = _selectedTabIndex.asStateFlow()
+
+    fun onTabSelect(index: Int) {
+        _selectedTabIndex.value = index
+    }
 
     val gridSize = 42
 
