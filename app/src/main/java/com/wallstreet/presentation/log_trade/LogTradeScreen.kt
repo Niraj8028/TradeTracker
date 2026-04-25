@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,13 @@ fun LogTradeScreen(
         uri?.let { viewModel.onImageSelected(it.toString()) }
     }
 
+    LaunchedEffect(uiState.success) {
+        if(uiState.success) {
+            onNavigateBack()
+            viewModel.resetSuccess()
+        }
+    }
+
     val pnl = remember(uiState.entryPrice, uiState.exitPrice, uiState.quantity, uiState.tradeType) {
         val entry = uiState.entryPrice.toDoubleOrNull()
         val exit = uiState.exitPrice.toDoubleOrNull()
@@ -68,31 +76,33 @@ fun LogTradeScreen(
         } else null
     }
 
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+//        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Log Trade",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
+//            TopAppBar(
+//                title = {
+//                    Text(
+//                        text = "Log Trade",
+//                        style = MaterialTheme.typography.titleMedium,
+//                        fontWeight = FontWeight.SemiBold,
+//                        color = MaterialTheme.colorScheme.onBackground
+//                    )
+//                },
+//                navigationIcon = {
+//                    IconButton(onClick = onNavigateBack) {
+//                        Icon(
+//                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+//                            contentDescription = "Back",
+//                            tint = MaterialTheme.colorScheme.onBackground
+//                        )
+//                    }
+//                },
+//                colors = TopAppBarDefaults.topAppBarColors(
+//                    containerColor = MaterialTheme.colorScheme.background
+//                )
+//            )
         }
     ) { padding ->
         Column(

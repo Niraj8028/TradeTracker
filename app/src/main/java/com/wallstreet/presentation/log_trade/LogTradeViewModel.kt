@@ -137,10 +137,13 @@ class LogTradeViewModel(
                 createAt = System.currentTimeMillis(),
                 mistakes = state.selectedMistakes.toList()
             )
-
-            when (val result = addTradeUseCase.invoke(trade)) {
+            val result = addTradeUseCase(trade)
+            when (result) {
                 is Result.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
-                is Result.Success -> _uiState.update { it.copy(success = true, isLoading = false) }
+                is Result.Success -> {
+                    _uiState.value = LogTradeUiState()
+                    _uiState.value = _uiState.value.copy(success = true, isLoading = false)
+                }
                 Result.Loading -> Unit
             }
         }
@@ -200,5 +203,11 @@ class LogTradeViewModel(
     private fun isValidDecimalInput(input: String): Boolean {
         if (input.isEmpty()) return true
         return input.matches(Regex("^\\d*\\.?\\d{0,4}\$"))
+    }
+
+    fun resetSuccess() {
+        _uiState.update {
+            it.copy(success = false)
+        }
     }
 }

@@ -160,7 +160,9 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
 
             entry<AppRoute.Home.LogTradeRoute> {
                 MainScaffold(homeBackStack) {
-                    LogTradeScreen()
+                    LogTradeScreen(
+                        onNavigateBack = { homeBackStack.removeLastOrNull() }
+                    )
                 }
 
             }
