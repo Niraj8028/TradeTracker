@@ -2,12 +2,15 @@ package com.wallstreet.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.domain.model.MistakesAnalysisData
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.repository.TradeRepository
 import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
 import com.wallstreet.domain.usecase.home.GetEquityCurveDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
+import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
+import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUsecase
@@ -27,6 +30,8 @@ class HomeViewModel(
     private val heatMapDataUsecase: ComputeHeatMapDataUsecase,
     private val recentTradesDataUsecase: RecentTradesDataUsecase,
     private val equityCurveDataUsecase: GetEquityCurveDataUsecase,
+    private val mistakesAnalysisUsecase: GetMistakesAnalysisUsecase,
+    private val symbolPerformanceUsecase: GetSymbolPerformanceUsecase,
     private val authRepository: AuthRepository
 ): ViewModel() {
 
@@ -42,7 +47,9 @@ class HomeViewModel(
                         recentTrades = getRecentTradeData(trades),
                         heatMapData = heatMapDataUsecase(trades, 4),
                         selectedPeriod = period,
-                        equityCurveData = equityCurveDataUsecase(trades)
+                        equityCurveData = equityCurveDataUsecase(trades),
+                        mistakesAnalysisData = mistakesAnalysisUsecase(trades),
+                        symbolPerformance = symbolPerformanceUsecase(trades)
                     ) as HomeUiState
             }
                 .onStart {

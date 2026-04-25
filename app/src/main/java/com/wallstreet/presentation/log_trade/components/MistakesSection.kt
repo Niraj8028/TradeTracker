@@ -1,11 +1,8 @@
 package com.wallstreet.presentation.log_trade.components
 
-import android.text.Layout
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,14 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.wallstreet.ui.theme.DarkTextSecondary
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
-import com.wallstreet.ui.theme.DarkTextTertiary
-import com.wallstreet.ui.theme.PrimaryBlue
-import com.wallstreet.ui.theme.White
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun MistakesSection(
@@ -32,52 +24,37 @@ fun MistakesSection(
     mistakes: List<String>,
     onMistakeToggled: (String) -> Unit
 ) {
-    Column(
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            "MISTAKES IDENTIFIED",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            mistakes.forEach { mistake ->
-                val isSelected = selectedMistakes.contains(mistake)
-                Surface(
-                    onClick = { onMistakeToggled(mistake) },
-                    shape = RoundedCornerShape(20.dp),
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.surface,
-
-                    border = if (!isSelected) {
-                        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                    } else null,
-                    modifier = Modifier
-                        .height(32.dp)
-                        .wrapContentWidth()
+        mistakes.forEach { mistake ->
+            val isSelected = selectedMistakes.contains(mistake)
+            Surface(
+                onClick = { onMistakeToggled(mistake) },
+                shape = RoundedCornerShape(20.dp),
+                color = if (isSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.background,
+                border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                else null,
+                modifier = Modifier
+                    .height(34.dp)
+                    .wrapContentWidth()
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.padding(horizontal = 14.dp)
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = mistake,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = mistake,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
-
     }
 }
 
@@ -96,40 +73,39 @@ fun FlowRow(
         val currentSequence = mutableListOf<Placeable>()
         var currentWidth = 0
         var currentHeight = 0
-        var maxHeight = 0
+        var totalHeight = 0
+        val gap = 8.dp.roundToPx()
 
         measurables.forEach { measurable ->
             val placeable = measurable.measure(constraints.copy(minWidth = 0))
-
             if (currentWidth + placeable.width > constraints.maxWidth && currentSequence.isNotEmpty()) {
                 sequences.add(currentSequence.toList())
                 currentSequence.clear()
-                maxHeight += currentHeight + 8.dp.roundToPx()
+                totalHeight += currentHeight + gap
                 currentHeight = 0
                 currentWidth = 0
             }
-
             currentSequence.add(placeable)
-            currentWidth += placeable.width + 8.dp.roundToPx()
+            currentWidth += placeable.width + gap
             currentHeight = maxOf(currentHeight, placeable.height)
         }
 
         if (currentSequence.isNotEmpty()) {
             sequences.add(currentSequence)
-            maxHeight += currentHeight
+            totalHeight += currentHeight
         }
 
-        layout(constraints.maxWidth, maxHeight) {
-            var yPosition = 0
-            sequences.forEach { sequence ->
-                var xPosition = 0
+        layout(constraints.maxWidth, totalHeight) {
+            var y = 0
+            sequences.forEach { row ->
+                var x = 0
                 var rowHeight = 0
-                sequence.forEach { placeable ->
-                    placeable.place(xPosition, yPosition)
-                    xPosition += placeable.width + 8.dp.roundToPx()
+                row.forEach { placeable ->
+                    placeable.place(x, y)
+                    x += placeable.width + gap
                     rowHeight = maxOf(rowHeight, placeable.height)
                 }
-                yPosition += rowHeight + 8.dp.roundToPx()
+                y += rowHeight + gap
             }
         }
     }

@@ -13,12 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wallstreet.domain.model.TradeType
-import com.wallstreet.ui.theme.DarkSurfaceVariant
-import com.wallstreet.ui.theme.DarkTextSecondary
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.White
 
@@ -30,7 +28,8 @@ fun TradeTypeToggle(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -39,10 +38,8 @@ fun TradeTypeToggle(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .background(
-                        if (isSelected) PrimaryBlue else Color.Transparent,
-                        RoundedCornerShape(8.dp)
-                    )
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(if (isSelected) PrimaryBlue else MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onTypeSelected(type) }
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
@@ -50,11 +47,10 @@ fun TradeTypeToggle(
                 Text(
                     text = if (type == TradeType.LONG) "Buy / Long" else "Sell / Short",
                     style = MaterialTheme.typography.titleSmall,
-                    color = if (isSelected) White else DarkTextSecondary,
+                    color = if (isSelected) White else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                 )
             }
         }
     }
-
 }
