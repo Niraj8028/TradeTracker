@@ -23,8 +23,8 @@ sealed class FilterOption(val label: String) {
     data object OneYear : FilterOption("1Y")
     data object All : FilterOption("All")
     companion object {
-        val all
-            get() = listOf<FilterOption>(
+        val all by lazy {
+            listOf<FilterOption>(
                 OneWeek,
                 OneMonth,
                 ThreeMonths,
@@ -32,6 +32,9 @@ sealed class FilterOption(val label: String) {
                 OneYear,
                 All
             )
+        }
+
+            
     }
 }
 
