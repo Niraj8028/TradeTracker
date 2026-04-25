@@ -11,11 +11,13 @@ import androidx.compose.material3.Scaffold
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.presentation.analytics.components.AppTabRow
 import com.wallstreet.presentation.analytics.components.Calendar
+import com.wallstreet.presentation.analytics.components.FilterOption
+import com.wallstreet.presentation.analytics.components.FilterTab
 import com.wallstreet.presentation.analytics.components.OverView
 import com.wallstreet.presentation.analytics.components.TabItem
 import org.koin.androidx.compose.koinViewModel
@@ -25,7 +27,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
     val tabList = listOf<TabItem>(TabItem("OverView"), TabItem("Calender"))
-    val selectedTabIndex by viewModel.selectedTabIndex.collectAsState()
+    val selectedTabIndex by viewModel.selectedTabIndex.collectAsStateWithLifecycle()
+    val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState() { tabList.size }
     LaunchedEffect(pagerState.currentPage) {
         viewModel.onTabSelect(pagerState.currentPage)
@@ -43,6 +46,12 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
 
         ) {
 
+            FilterTab(
+                filters = FilterOption.all,
+                selected = selectedFilter,
+                onSelectFilter = { filter -> viewModel.onSelectFilter(filter) },
+                modifier = Modifier
+            )
             AppTabRow(
                 tabs = tabList,
                 selectedIndex = selectedTabIndex,

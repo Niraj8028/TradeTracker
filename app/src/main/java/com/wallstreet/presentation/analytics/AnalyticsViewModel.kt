@@ -1,8 +1,6 @@
 package com.wallstreet.presentation.analytics
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -10,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.presentation.analytics.components.FilterOption
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -40,9 +39,17 @@ class AnalyticsViewModel(
 
     private val _selectedTabIndex = MutableStateFlow(0)
     val selectedTabIndex = _selectedTabIndex.asStateFlow()
+    private val _selectedFilter = MutableStateFlow<FilterOption>(FilterOption.OneWeek)
+
+    val selectedFilter = _selectedFilter.asStateFlow()
+
 
     fun onTabSelect(index: Int) {
         _selectedTabIndex.value = index
+    }
+
+    fun onSelectFilter(filter: FilterOption) {
+        _selectedFilter.value = filter
     }
 
     val gridSize = 42
