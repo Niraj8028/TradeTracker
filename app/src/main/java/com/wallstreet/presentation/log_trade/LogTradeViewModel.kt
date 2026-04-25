@@ -1,8 +1,8 @@
 package com.wallstreet.presentation.log_trade
 
-import androidx.compose.material3.rememberDatePickerState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.constants.AppConstants
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.Trade
@@ -18,22 +18,14 @@ import kotlinx.coroutines.launch
 
 class LogTradeViewModel(
     private val addTradeUseCase: AddTradeUseCase,
-
-    private val authRepository: AuthRepository, private val getStrategyUseCase: GetStrategyUseCase
+    private val authRepository: AuthRepository,
+    private val getStrategyUseCase: GetStrategyUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogTradeUiState())
     val uiState: StateFlow<LogTradeUiState> = _uiState.asStateFlow()
 
-
-    val mistakes = listOf(
-        "FOMO",
-        "Early Exit",
-        "Large Size",
-        "Revenge Trade",
-        "No Stop Loss",
-        "No Setup",
-    )
+    val mistakes = AppConstants.mistakes
 
     init {
         observeStrategies()
@@ -42,78 +34,72 @@ class LogTradeViewModel(
     private fun observeStrategies() {
         viewModelScope.launch {
             getStrategyUseCase().collect { list ->
-                _uiState.value = _uiState.value.copy(
-                    strategies = list.map { it } // convert Strategy → String
-                )
+                _uiState.update { it.copy(strategies = list) }
             }
         }
     }
 
     fun onImageSelected(uri: String) {
-        _uiState.value = _uiState.value.copy(imageUri = uri);
+        _uiState.update { it.copy(imageUri = uri) }
     }
 
     fun onTradeTypeChanged(tradeType: TradeType) {
-        clearError()
-        _uiState.value = _uiState.value.copy(tradeType = tradeType)
+        _uiState.update { it.copy(tradeType = tradeType, exitPriceError = null, entryPriceError = null) }
     }
 
     fun onSymbolChanged(symbol: String) {
-        _uiState.value = _uiState.value.copy(symbol = symbol)
+        _uiState.update { it.copy(symbol = symbol.uppercase(), symbolError = null) }
     }
 
     fun onQuantityChanged(quantity: String) {
         if (isValidDecimalInput(quantity)) {
-            _uiState.value = _uiState.value.copy(
-                quantity = quantity,
-                quantityError = null
-            )
+            _uiState.update { it.copy(quantity = quantity, quantityError = null) }
         }
     }
 
     fun onEntryPriceChanged(price: String) {
         if (isValidDecimalInput(price)) {
-            _uiState.value = _uiState.value.copy(
-                entryPrice = price,
-                entryPriceError = null
-            )
+            _uiState.update { it.copy(entryPrice = price, entryPriceError = null) }
         }
     }
 
     fun onExitPriceChanged(price: String) {
         if (isValidDecimalInput(price)) {
-            _uiState.value = _uiState.value.copy(
-                exitPrice = price,
-                exitPriceError = null
-            )
+            _uiState.update { it.copy(exitPrice = price, exitPriceError = null) }
         }
     }
 
     fun onStrategySelected(strategy: Strategy) {
-        _uiState.value = _uiState.value.copy(selectedStrategy = strategy)
+        _uiState.update { it.copy(selectedStrategy = strategy) }
     }
 
     fun onMistakeToggled(mistake: String) {
-        val currentMistakes = _uiState.value.selectedMistakes;
-        val newMistakes = if (currentMistakes.contains(mistake)) {
-            currentMistakes - mistake
-        } else {
-            currentMistakes + mistake
+        _uiState.update { state ->
+            val updated = if (state.selectedMistakes.contains(mistake)) {
+                state.selectedMistakes - mistake
+            } else {
+                state.selectedMistakes + mistake
+            }
+            state.copy(selectedMistakes = updated)
         }
-        _uiState.value = _uiState.value.copy(selectedMistakes = newMistakes)
     }
 
     fun onStopLossChanged(value: String) {
-        _uiState.update { it.copy(stopLoss = value) }
+        if (isValidDecimalInput(value)) {
+            _uiState.update { it.copy(stopLoss = value) }
+        }
     }
 
-    fun onDateChange(tileStamp: Long) {
-        _uiState.update { it.copy(tradeDate = tileStamp) }
+    fun onDateChange(timestamp: Long) {
+        _uiState.update { it.copy(tradeDate = timestamp) }
+    }
+
+    fun onCommentsAdded(comment: String) {
+        _uiState.update { it.copy(comments = comment) }
     }
 
     fun onSaveTrade() {
         val user = authRepository.getCurrentUser()
-
         if (user == null) {
             _uiState.update { it.copy(error = "User not logged in") }
             return
@@ -121,13 +107,12 @@ class LogTradeViewModel(
         if (!validateForm()) return
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true);
-            val state = _uiState.value;
-            val currentTime = System.currentTimeMillis()
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            val state = _uiState.value
             val trade = Trade(
                 id = "",
                 userId = user.id,
-                symbol = state.symbol,
+                symbol = state.symbol.uppercase(),
                 entryPrice = state.entryPrice.toDouble(),
                 exitPrice = state.exitPrice.toDoubleOrNull(),
                 quantity = state.quantity.toDouble(),
@@ -144,62 +129,49 @@ class LogTradeViewModel(
                     state.tradeType
                 ),
                 strategyId = state.selectedStrategy?.id,
-                notes = "",
+                strategy = state.selectedStrategy?.name ?: "",
+                notes = state.comments,
+                comments = state.comments,
                 imageUrl = state.imageUri,
                 tradeDate = state.tradeDate,
-                createAt = currentTime,
-                mistakes = state.selectedMistakes.toList(),
-                comments = "",
+                createAt = System.currentTimeMillis(),
+                mistakes = state.selectedMistakes.toList()
             )
-            when (val result = addTradeUseCase.invoke(trade)) {
-                is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        error = result.message,
-                        isLoading = false,
-                    )
-
-                }
-
-                Result.Loading -> TODO()
+            val result = addTradeUseCase(trade)
+            when (result) {
+                is Result.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Result.Success -> {
                     _uiState.value = LogTradeUiState()
-                    _uiState.value = _uiState.value.copy(
-                        success = true,
-                        isLoading = false
-                    )
+                    _uiState.value = _uiState.value.copy(success = true, isLoading = false)
                 }
+                Result.Loading -> Unit
             }
         }
-//        clearError()
     }
 
     private fun validateForm(): Boolean {
         val state = _uiState.value
         var isValid = true
+
         if (state.symbol.isBlank()) {
-            _uiState.value = _uiState.value.copy(
-                symbolError = "Symbol is required"
-            )
+            _uiState.update { it.copy(symbolError = "Symbol is required") }
             isValid = false
         }
-        if (state.quantity.isBlank() || state.quantity.toDoubleOrNull() == null || state.quantity.toDouble() < 0.01) {
-            _uiState.value = _uiState.value.copy(quantityError = "Quantity must be at least 0.01")
+        if (state.quantity.isBlank() || state.quantity.toDoubleOrNull()?.let { it < 0.01 } != false) {
+            _uiState.update { it.copy(quantityError = "Quantity must be at least 0.01") }
             isValid = false
         }
-        if (state.entryPrice.isBlank() || state.entryPrice.toDoubleOrNull() == null || state.entryPrice.toDouble() <= 0) {
-            _uiState.value =
-                _uiState.value.copy(entryPriceError = "Entry price must be greater than 0")
+        if (state.entryPrice.isBlank() || state.entryPrice.toDoubleOrNull()?.let { it <= 0 } != false) {
+            _uiState.update { it.copy(entryPriceError = "Entry price must be greater than 0") }
             isValid = false
         }
         if (state.exitPrice.isNotEmpty()) {
-            val exitPriceValue = state.exitPrice.toDoubleOrNull()
-            if (exitPriceValue == null || exitPriceValue <= 0) {
-                _uiState.value =
-                    _uiState.value.copy(exitPriceError = "Exit price must be greater than 0")
+            val exitVal = state.exitPrice.toDoubleOrNull()
+            if (exitVal == null || exitVal <= 0) {
+                _uiState.update { it.copy(exitPriceError = "Exit price must be greater than 0") }
                 isValid = false
             }
         }
-
         return isValid
     }
 
@@ -216,46 +188,26 @@ class LogTradeViewModel(
         }
     }
 
-    //TODO
     private fun calculateProfitLossPercentage(
         entryPrice: Double,
         exitPrice: Double?,
         tradeType: TradeType
     ): Double? {
         if (exitPrice == null) return null
-
         return when (tradeType) {
             TradeType.LONG -> ((exitPrice - entryPrice) / entryPrice) * 100
             TradeType.SHORT -> ((entryPrice - exitPrice) / entryPrice) * 100
         }
     }
 
-    fun onCommentsAdded(comment: String) {
-        _uiState.value = _uiState.value.copy(
-            comments = comment
-        )
-    }
-
-    private fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
-        _uiState.value = _uiState.value.copy(
-            exitPriceError = null,
-            entryPriceError = null,
-            error = null,
-            symbolError = null,
-            quantityError = null
-        )
-    }
-
     private fun isValidDecimalInput(input: String): Boolean {
         if (input.isEmpty()) return true
-
-        // Regex explanation:
-        // ^\d* - starts with zero or more digits
-        // \.? - optionally followed by a decimal point
-        // \d{0,2}$ - ends with 0 to 2 digits (for 2 decimal places)
-        val regex = Regex("^\\d*\\.?\\d{0,2}\$")
-        return input.matches(regex)
+        return input.matches(Regex("^\\d*\\.?\\d{0,4}\$"))
     }
 
+    fun resetSuccess() {
+        _uiState.update {
+            it.copy(success = false)
+        }
+    }
 }
