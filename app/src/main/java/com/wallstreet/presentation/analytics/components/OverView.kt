@@ -7,9 +7,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.wallstreet.domain.model.Trade
+import timber.log.Timber
 
 @Composable
-fun OverView() {
+fun OverView(trades: List<Trade>) {
+
+    trades.forEach {
+        Timber.d("profitLoss = ${it}")
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

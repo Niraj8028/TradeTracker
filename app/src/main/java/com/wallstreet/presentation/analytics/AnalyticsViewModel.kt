@@ -10,7 +10,10 @@ import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.presentation.analytics.components.FilterOption
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -43,6 +46,26 @@ class AnalyticsViewModel(
 
     val selectedFilter = _selectedFilter.asStateFlow()
 
+    val filteredTrades = combine(
+        tradeStore.trades,
+        _selectedFilter
+    ) { allTrades, filter ->
+        val cutoffDate = when (filter) {
+            FilterOption.OneWeek -> LocalDate.now().minusWeeks(1)
+            FilterOption.OneMonth -> LocalDate.now().minusMonths(1)
+            FilterOption.ThreeMonths -> LocalDate.now().minusMonths(3)
+            FilterOption.SixMonths -> LocalDate.now().minusMonths(6)
+            FilterOption.OneYear -> LocalDate.now().minusYears(1)
+            FilterOption.All -> null
+        }
+        if (cutoffDate == null) {
+            allTrades
+        } else {
+            val cutoffMillis =
+                cutoffDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            allTrades.filter { it.tradeDate >= cutoffMillis }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun onTabSelect(index: Int) {
         _selectedTabIndex.value = index
