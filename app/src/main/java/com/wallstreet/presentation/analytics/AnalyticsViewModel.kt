@@ -2,9 +2,13 @@ package com.wallstreet.presentation.analytics
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.util.TradeStats
+import com.wallstreet.core.util.TradeSummary
+import com.wallstreet.core.util.getTradeSummary
 import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.AuthRepository
@@ -13,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 import kotlinx.coroutines.launch
@@ -85,7 +90,16 @@ class AnalyticsViewModel(
         private set
     var trades by mutableStateOf<List<Trade>>(emptyList())
         private set
-
+    val tradeSummary = filteredTrades.map { trades ->
+        getTradeSummary(trades)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        TradeSummary(
+            long = TradeStats(count = 0, pnl = 0.0, winRate = 0.0, percentage = 0.0),
+            short = TradeStats(count = 0, pnl = 0.0, winRate = 0.0, percentage = 0.0)
+        )
+    )
     val days = listOf(
         "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"
     )
