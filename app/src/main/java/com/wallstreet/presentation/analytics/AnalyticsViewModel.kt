@@ -97,7 +97,8 @@ class AnalyticsViewModel(
         SharingStarted.WhileSubscribed(5000),
         TradeSummary(
             long = TradeStats(count = 0, pnl = 0.0, winRate = 0.0, percentage = 0.0),
-            short = TradeStats(count = 0, pnl = 0.0, winRate = 0.0, percentage = 0.0)
+            short = TradeStats(count = 0, pnl = 0.0, winRate = 0.0, percentage = 0.0),
+            totalTrades = 0
         )
     )
     val days = listOf(

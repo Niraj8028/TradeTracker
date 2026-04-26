@@ -13,7 +13,8 @@ data class TradeStats(
 
 data class TradeSummary(
     val long: TradeStats,
-    val short: TradeStats
+    val short: TradeStats,
+    val totalTrades: Int
 )
 
 data class RawStats(
@@ -87,6 +88,8 @@ fun getTradeSummary(trades: List<Trade>): TradeSummary {
 
     return TradeSummary(
         long = longStats,
-        short = shortStats
+        short = shortStats,
+        totalTrades = trades.size
+
     )
 }
