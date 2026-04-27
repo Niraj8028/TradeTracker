@@ -6,8 +6,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.util.DayPerformance
 import com.wallstreet.core.util.TradeStats
 import com.wallstreet.core.util.TradeSummary
+import com.wallstreet.core.util.getDayPerformance
 import com.wallstreet.core.util.getTradeSummary
 import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.Trade
@@ -100,6 +102,14 @@ class AnalyticsViewModel(
             short = TradeStats(count = 0, pnl = 0.0, winRate = 0.0, percentage = 0.0),
             totalTrades = 0
         )
+    )
+
+    val dayPerformance = filteredTrades.map { trades ->
+        getDayPerformance(trades)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        DayPerformance(emptyList(), null)
     )
     val days = listOf(
         "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"

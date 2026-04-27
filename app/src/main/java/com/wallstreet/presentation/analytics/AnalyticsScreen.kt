@@ -32,6 +32,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
     val pagerState = rememberPagerState() { tabList.size }
     val trades by viewModel.filteredTrades.collectAsStateWithLifecycle()
     val summary by viewModel.tradeSummary.collectAsStateWithLifecycle()
+    val dayPerformance by viewModel.dayPerformance.collectAsStateWithLifecycle()
     LaunchedEffect(pagerState.currentPage) {
         viewModel.onTabSelect(pagerState.currentPage)
     }
@@ -62,7 +63,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
             )
             HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
                 when (page) {
-                    0 -> OverView(summary = summary)
+                    0 -> OverView(summary = summary, dayPerformance = dayPerformance)
                     1 -> Calendar()
                 }
             }
