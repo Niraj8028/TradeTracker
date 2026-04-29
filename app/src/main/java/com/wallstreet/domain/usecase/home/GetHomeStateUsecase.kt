@@ -2,15 +2,10 @@ package com.wallstreet.domain.usecase.home
 
 import com.wallstreet.domain.model.HomeStats
 import com.wallstreet.domain.model.Trade
-import com.wallstreet.domain.repository.TradeRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
-class GetHomeStateUsecase(
-    private val repository: TradeRepository
-) {
-    suspend operator fun invoke(trades: List<Trade>): HomeStats {
-           return computeHomeDate(trades);
+class GetHomeStateUsecase {
+    operator fun invoke(trades: List<Trade>): HomeStats {
+        return computeHomeDate(trades)
     }
 
     private fun computeHomeDate(trades: List<Trade>): HomeStats {

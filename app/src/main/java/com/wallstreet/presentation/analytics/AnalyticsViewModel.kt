@@ -9,8 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.Trade
-import com.wallstreet.domain.repository.AuthRepository
- 
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.time.Instant
@@ -31,9 +29,7 @@ data class CalenderDay(
 )
 
 class AnalyticsViewModel(
-    private val authRepository: AuthRepository,
     private val tradeStore: TradeStore
-
 ) : ViewModel() {
 
     val gridSize = 42
@@ -73,10 +69,6 @@ class AnalyticsViewModel(
     }
 
     private fun observeTrades() {
-        val userId = authRepository.getCurrentUser()?.id ?: return
-
-        tradeStore.startObserving(userId)
-
         viewModelScope.launch {
             tradeStore.trades.collect { tradeList ->
                 trades = tradeList
@@ -87,11 +79,6 @@ class AnalyticsViewModel(
 
     init {
         observeTrades()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        tradeStore.stopObserving()
     }
 
     fun generateMonth(yearMonth: YearMonth, trades: List<Trade>): List<CalenderDay> {

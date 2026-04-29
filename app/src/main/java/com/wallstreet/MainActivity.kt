@@ -56,7 +56,16 @@ class MainActivity : ComponentActivity() {
                 val destination by SplashGate.startDestination.collectAsState()
 
                 destination?.let {
-                    AppNavigation(startDestination = it)
+                    AppNavigation(
+                        startDestination = it,
+                        onLogin = {
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@AppNavigation
+                            tradeStore.startObserving(uid)
+                        },
+                        onLogout = {
+                            tradeStore.stopObserving()
+                        }
+                    )
                 }
             }
         }

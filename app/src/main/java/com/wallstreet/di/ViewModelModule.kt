@@ -9,6 +9,7 @@ import com.wallstreet.presentation.splash.SplashViewModel
 import com.wallstreet.presentation.log_trade.LogTradeViewModel
 import com.wallstreet.presentation.home.HomeViewModel
 import com.wallstreet.presentation.strategy.StrategyViewModel
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -21,7 +22,7 @@ val viewModelModule = module {
     viewModelOf(::HomeViewModel)
     viewModelOf(::EmailVerifyViewModel)
     viewModelOf(::StrategyViewModel)
-    viewModelOf(::AnalyticsViewModel)
+    viewModel { AnalyticsViewModel(get()) }
 
 
 }
