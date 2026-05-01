@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.R
 import com.wallstreet.domain.model.CalendarDay
+import com.wallstreet.core.util.formatPnl
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
@@ -202,10 +203,10 @@ private fun DayCell(day: CalendarDay, modifier: Modifier = Modifier) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (day.date != null) {
+        day.date?.let { date ->
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = day.date.dayOfMonth.toString(),
+                    text = date.dayOfMonth.toString(),
                     fontSize = 11.sp,
                     color = when {
                         !day.isCurrentMonth -> onSurface.copy(alpha = 0.2f)
@@ -227,6 +228,7 @@ private fun DayCell(day: CalendarDay, modifier: Modifier = Modifier) {
     }
 }
 
+
 @Composable
 private fun MonthSummary(stats: Triple<Double, Int, Int>) {
     val (totalPnl, winDays, lossDays) = stats
@@ -237,7 +239,7 @@ private fun MonthSummary(stats: Triple<Double, Int, Int>) {
     ) {
         SummaryItem(
             label = "Monthly P&L",
-            value = if (totalPnl >= 0) "+$${totalPnl.toInt()}" else "-$${(-totalPnl).toInt()}",
+            value = totalPnl.formatPnl(),
             color = if (totalPnl >= 0) SuccessGreen else DangerRed
         )
         Box(

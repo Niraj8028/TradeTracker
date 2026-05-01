@@ -18,7 +18,7 @@ fun getRecentTradeData(trades: List<Trade>): List<RecentTradeItem> {
                 entryPrice = trade.entryPrice,
                 quanity = trade.quantity,
                 tradeType = trade.tradeType,
-                profitLoss = trade.profitLoss ?: 0.0,
+                profitLoss = trade.profitLoss ?: trade.calculateProfitLoss() ?: 0.0,
                 symbol = trade.symbol,
                 id = trade.id,
                 tradeDate = trade.tradeDate

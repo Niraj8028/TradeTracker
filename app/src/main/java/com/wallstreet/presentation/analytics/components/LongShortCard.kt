@@ -26,6 +26,7 @@ import com.wallstreet.ui.theme.DarkSurfaceVariant
 import com.wallstreet.ui.theme.LocalBorderColors
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.domain.model.TradeSummary
+import com.wallstreet.core.util.formatPnl
 
 @Composable
 fun LongShortCard(summary: TradeSummary) {
@@ -186,7 +187,7 @@ private fun DirectionDetail(
     accentColor: Color,
     paddingEnd: Boolean
 ) {
-    val pnlFormatted = formatPnl(pnl)
+    val pnlFormatted = pnl.formatPnl()
     val pnlColor = if (pnl >= 0) SuccessGreen else DangerRed
 
     Column(
@@ -263,25 +264,5 @@ private fun DirectionDetail(
                     .background(MaterialTheme.colorScheme.background)
             )
         }
-    }
-}
-
-private fun formatPnl(value: Double): String {
-    val prefix = if (value >= 0) "+" else "-"
-    val abs = Math.abs(value)
-    return when {
-        abs >= 1_000_000 -> "$prefix\$${String.format("%.2f", abs / 1_000_000)}M"
-        abs >= 1_000 -> {
-            val formatted = String.format("%.0f", abs)
-            val withCommas = buildString {
-                formatted.reversed().forEachIndexed { i, c ->
-                    if (i > 0 && i % 3 == 0) append(',')
-                    append(c)
-                }
-            }.reversed()
-            "$prefix\$$withCommas"
-        }
-
-        else -> "$prefix\$${String.format("%.0f", abs)}"
     }
 }
