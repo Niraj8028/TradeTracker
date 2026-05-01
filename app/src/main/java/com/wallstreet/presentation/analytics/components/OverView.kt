@@ -23,23 +23,6 @@ fun OverView(
     recentTrades: List<RecentTradeItem>
 ) {
 
-    Timber.d(
-        """
-    Trade Summary:
-
-    LONG:
-      Count       = ${summary.long.count}
-      PnL         = ${summary.long.pnl}
-      Win Rate    = ${summary.long.winRate}%
-      Percentage  = ${summary.long.percentage}%
-
-    SHORT:
-      Count       = ${summary.short.count}
-      PnL         = ${summary.short.pnl}
-      Win Rate    = ${summary.short.winRate}%
-      Percentage  = ${summary.short.percentage}%
-    """.trimIndent()
-    )
 
     Column(
         modifier = Modifier

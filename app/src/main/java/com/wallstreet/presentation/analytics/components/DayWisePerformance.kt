@@ -146,7 +146,7 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
                             text = "Best: ${bestDay.day.name.take(3).uppercase()}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF60A5FA),           // BadgeStockText
+                            color = Color.White,           // BadgeStockText
                         )
                     }
                 }

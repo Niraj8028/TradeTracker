@@ -260,7 +260,7 @@ private fun DirectionDetail(
                     .weight((1f - winFraction).coerceAtLeast(0.01f))
                     .fillMaxHeight()
                     // DarkSurfaceVariant = 0xFF1F2630 — the subtle empty-track color
-                    .background(DarkSurfaceVariant)
+                    .background(MaterialTheme.colorScheme.background)
             )
         }
     }
