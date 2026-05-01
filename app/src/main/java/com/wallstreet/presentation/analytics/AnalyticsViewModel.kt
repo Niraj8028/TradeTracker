@@ -28,7 +28,7 @@ class AnalyticsViewModel(
     private val getTradeSummaryUseCase: GetTradeSummaryUseCase,
     private val getDayPerformanceUseCase: GetDayPerformanceUseCase,
     private val getCalendarDataUseCase: GetCalendarDataUseCase,
-    private val getTradesUsecase: GetTradesUseCase
+    private val getTradesUseCase: GetTradesUseCase
 ) : ViewModel() {
 
     private val _selectedTabIndex = MutableStateFlow(0)
@@ -38,7 +38,7 @@ class AnalyticsViewModel(
     val uiState: StateFlow<AnalyticsUiState> = _selectedFilter.flatMapLatest { filter ->
         val userId = authRepository.getCurrentUser()?.id ?: ""
         combine(
-            getTradesUsecase(userId, filter, 500),
+            getTradesUseCase(userId, filter, 500),
             tradeStore.trades,
             _currentMonth,
             _selectedTabIndex

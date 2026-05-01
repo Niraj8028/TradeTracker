@@ -4,20 +4,21 @@ import com.wallstreet.domain.model.Trade
 import java.time.DayOfWeek
 import java.time.ZoneId
 import java.time.Instant
+import java.time.LocalDate
 
-data class TradeStats(
-    val count: Int,
-    val pnl: Double,
-    val winRate: Double,
-    val percentage: Double
-)
+fun List<Trade>.calculateTotalPnL(): Double =
+    sumOf { it.profitLoss ?: it.calculateProfitLoss() ?: 0.0 }
 
-data class TradeSummary(
-    val long: TradeStats,
-    val short: TradeStats,
-    val totalTrades: Int
-)
+fun List<Trade>.calculateWinRate(): Double {
+    if (isEmpty()) return 0.0
+    val wins = count { (it.profitLoss ?: it.calculateProfitLoss() ?: 0.0) > 0 }
+    return (wins.toDouble() / size) * 100
+}
 
-data class DayStats(val day: DayOfWeek, val pnl: Double, val fraction: Float, val isProfit: Boolean)
-data class DayPerformance(val days: List<DayStats>, val bestDay: DayOfWeek?)
+fun Trade.toLocalDate(): LocalDate {
+    return Instant.ofEpochMilli(this.tradeDate)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+}
 
+fun Trade.toDayOfWeek(): DayOfWeek = toLocalDate().dayOfWeek

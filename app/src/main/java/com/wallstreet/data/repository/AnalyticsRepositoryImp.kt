@@ -1,5 +1,8 @@
 package com.wallstreet.data.repository
 
+import com.wallstreet.core.util.calculateTotalPnL
+import com.wallstreet.core.util.calculateWinRate
+import com.wallstreet.core.util.toDayOfWeek
 import com.wallstreet.domain.model.DayPerformance
 import com.wallstreet.domain.model.DayStats
 import com.wallstreet.domain.model.TradeStats
@@ -24,9 +27,8 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
 
         fun calculateStats(filteredTrades: List<Trade>): TradeStats {
             val count = filteredTrades.size
-            val pnl = filteredTrades.sumOf { it.profitLoss ?: it.calculateProfitLoss() ?: 0.0 }
-            val wins = filteredTrades.count { (it.profitLoss ?: it.calculateProfitLoss() ?: 0.0) > 0 }
-            val winRate = if (count > 0) (wins.toDouble() / count) * 100 else 0.0
+            val pnl = filteredTrades.calculateTotalPnL()
+            val winRate = filteredTrades.calculateWinRate()
             val percentage = if (totalCount > 0) (count.toDouble() / totalCount) * 100 else 0.0
             return TradeStats(count, pnl, winRate, percentage)
         }
@@ -41,7 +43,7 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
     override fun getDayPerformance(trades: List<Trade>): DayPerformance {
         val pnlByDay = trades.groupBy { it.toDayOfWeek() }
             .mapValues { (_, dayTrades) ->
-                dayTrades.sumOf { it.profitLoss ?: it.calculateProfitLoss() ?: 0.0 }
+                dayTrades.calculateTotalPnL()
             }
 
         val orderedDays = listOf(
@@ -85,7 +87,7 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
                     val day = index - offset + 1
                     val date = yearMonth.atDay(day)
                     val dayTrades = tradesByDate[date] ?: emptyList()
-                    val pnl = dayTrades.sumOf { it.profitLoss ?: it.calculateProfitLoss() ?: 0.0 }
+                    val pnl = dayTrades.calculateTotalPnL()
                     CalendarDay(
                         date = date,
                         isCurrentMonth = true,
@@ -98,12 +100,5 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
                 else -> CalendarDay(null, false, false, false)
             }
         }
-    }
-
-    private fun Trade.toDayOfWeek(): DayOfWeek {
-        return Instant.ofEpochMilli(this.tradeDate)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-            .dayOfWeek
     }
 }
