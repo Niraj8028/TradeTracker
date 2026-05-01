@@ -2,7 +2,9 @@ package com.wallstreet.presentation.analytics
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
@@ -14,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.presentation.analytics.components.AppTabRow
 import com.wallstreet.presentation.analytics.components.Calendar
@@ -84,6 +87,7 @@ private fun AnalyticsContent(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        Spacer(modifier = Modifier.height(10.dp))
         FilterTab(
             filters = FilterOption.all,
             selected = FilterOption.fromTimePeriod(state.selectedFilter),
