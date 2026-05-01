@@ -48,7 +48,7 @@ fun AppTabRow(tabs: List<TabItem>, selectedIndex: Int, onTabChange: (Int) -> Uni
             Tab(
                 selected = index == selectedIndex,
                 onClick = { onTabChange(index) },
-                text = { Text(tab.name) },
+                text = { Text(tab.name, color = MaterialTheme.colorScheme.primary) },
             )
         }
 
