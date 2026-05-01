@@ -41,7 +41,9 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
     }
 
     override fun getDayPerformance(trades: List<Trade>): DayPerformance {
-        val pnlByDay = trades.groupBy { it.toDayOfWeek() }
+        val validTrades = trades.filter { it.tradeDate > 0 }
+
+        val pnlByDay = validTrades.groupBy { it.toDayOfWeek() }
             .mapValues { (_, dayTrades) ->
                 dayTrades.calculateTotalPnL()
             }
@@ -63,7 +65,10 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
             )
         }
 
-        val bestDay = orderedDays.maxByOrNull { pnlByDay[it] ?: Double.NEGATIVE_INFINITY }
+
+        val bestDay: DayOfWeek? = orderedDays.maxByOrNull {
+            pnlByDay[it] ?: Double.NEGATIVE_INFINITY
+        }
 
         return DayPerformance(dayStatsList, bestDay)
     }
@@ -74,15 +79,27 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
         val offset = firstDay.dayOfWeek.value % 7
         val daysInMonth = yearMonth.lengthOfMonth()
         val today = LocalDate.now()
-        val tradesByDate = trades.groupBy {
-            Instant.ofEpochMilli(it.tradeDate)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-        }
+
+        val tradesByDate = trades
+            .filter { it.tradeDate > 0 }
+            .groupBy {
+                Instant.ofEpochMilli(it.tradeDate)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+            }
 
         return List(gridSize) { index ->
             when {
-                index < offset -> CalendarDay(null, false, false, false)
+             
+                index < offset -> CalendarDay(
+                    date = null,
+                    isCurrentMonth = false,
+                    isToday = false,
+                    isSelected = false,
+                    pnl = 0.0,
+                    tradeCount = 0
+                )
+
                 index < offset + daysInMonth -> {
                     val day = index - offset + 1
                     val date = yearMonth.atDay(day)
@@ -97,7 +114,15 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
                         tradeCount = dayTrades.size
                     )
                 }
-                else -> CalendarDay(null, false, false, false)
+
+                else -> CalendarDay(
+                    date = null,
+                    isCurrentMonth = false,
+                    isToday = false,
+                    isSelected = false,
+                    pnl = 0.0,
+                    tradeCount = 0
+                )
             }
         }
     }
