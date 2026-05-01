@@ -3,7 +3,6 @@ package com.wallstreet.domain.usecase.strategy
 import com.wallstreet.domain.model.strategy.StrategyDetail
 import com.wallstreet.domain.repository.StrategyRepository
 import com.wallstreet.domain.repository.TradeRepository
-import com.wallstreet.presentation.home.TimePeriod
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 

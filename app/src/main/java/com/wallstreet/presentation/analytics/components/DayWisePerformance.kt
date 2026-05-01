@@ -37,11 +37,11 @@ import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
-import com.wallstreet.core.util.DayPerformance
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import  com.wallstreet.domain.model.DayPerformance
 
 // Flat gray bar for zero/no-trade days — matches the "Sat" dash in the screenshot
 private val NoTradeColor = Color(0xFF3A4555)

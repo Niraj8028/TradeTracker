@@ -1,6 +1,5 @@
 package com.wallstreet.domain.model
 
-import com.wallstreet.presentation.home.TimePeriod
 
 data class HomeStats(
     val totalPnl: Double,
@@ -13,4 +12,4 @@ data class HomeStats(
     val riskRewardRatio: Double,
     val profitPercentage: Double,
     val selectedPeriod: TimePeriod = TimePeriod.ONE_MONTH
-    )
+)

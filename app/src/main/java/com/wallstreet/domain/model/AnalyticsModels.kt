@@ -1,9 +1,6 @@
-package com.wallstreet.core.util
+package com.wallstreet.domain.model
 
-import com.wallstreet.domain.model.Trade
 import java.time.DayOfWeek
-import java.time.ZoneId
-import java.time.Instant
 
 data class TradeStats(
     val count: Int,
@@ -20,4 +17,3 @@ data class TradeSummary(
 
 data class DayStats(val day: DayOfWeek, val pnl: Double, val fraction: Float, val isProfit: Boolean)
 data class DayPerformance(val days: List<DayStats>, val bestDay: DayOfWeek?)
-

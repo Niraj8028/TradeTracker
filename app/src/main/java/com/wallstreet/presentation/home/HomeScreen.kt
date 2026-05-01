@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.wallstreet.domain.model.EquityPoint
+import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.presentation.home.components.EquityCurveChart
 import com.wallstreet.presentation.home.components.HeatMapCard
 import com.wallstreet.presentation.home.components.RecentTradesSection
@@ -36,7 +37,12 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     val scrollState = rememberScrollState()
 
-    HomeContent(uiState, scrollState, selectedPeriod = selectedPeriod, onPeriodSelected = viewModel::onPeriodSelected)
+    HomeContent(
+        uiState,
+        scrollState,
+        selectedPeriod = selectedPeriod,
+        onPeriodSelected = viewModel::onPeriodSelected
+    )
 }
 
 @Composable
@@ -46,15 +52,17 @@ fun HomeContent(
     onPeriodSelected: (TimePeriod) -> Unit,
     selectedPeriod: TimePeriod
 ) {
-    when(uiState) {
+    when (uiState) {
         is HomeUiState.Error -> {
             Text("ErrorView ${uiState.error}", style = MaterialTheme.typography.bodyMedium)
         }
+
         HomeUiState.Loading -> {
             LoadingView()
         }
+
         is HomeUiState.Success -> {
-            SuccessView(uiState, scrollState, selectedPeriod,  onPeriodSelected = onPeriodSelected)
+            SuccessView(uiState, scrollState, selectedPeriod, onPeriodSelected = onPeriodSelected)
         }
     }
 }
@@ -70,7 +78,12 @@ fun LoadingView() {
 }
 
 @Composable
-fun SuccessView(uiState: HomeUiState.Success, scrollState: ScrollState, selectedPeriod: TimePeriod, onPeriodSelected: (TimePeriod) -> Unit) {
+fun SuccessView(
+    uiState: HomeUiState.Success,
+    scrollState: ScrollState,
+    selectedPeriod: TimePeriod,
+    onPeriodSelected: (TimePeriod) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()

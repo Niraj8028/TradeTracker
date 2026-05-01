@@ -1,9 +1,11 @@
 package com.wallstreet.di
 
+import com.wallstreet.data.repository.AnalyticsRepositoryImp
 import com.wallstreet.data.repository.AuthRepositoryImpl
 import com.wallstreet.data.repository.TradeRepositoryImpl
 import com.wallstreet.data.repository.StrategyRepositoryImpl
 import com.wallstreet.data.store.TradeStore
+import com.wallstreet.domain.repository.AnalyticsRepository
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.repository.TradeRepository
 import com.wallstreet.domain.repository.StrategyRepository
@@ -22,4 +24,5 @@ val repositoryModule = module {
             get(), get()
         )
     }
+    single<AnalyticsRepository> { AnalyticsRepositoryImp() }
 }

@@ -1,7 +1,7 @@
 package com.wallstreet.presentation.strategy
 
 import com.wallstreet.domain.model.strategy.StrategyStats
-import com.wallstreet.presentation.home.TimePeriod
+import com.wallstreet.domain.model.TimePeriod
 
 sealed interface StrategiesUiState {
     data object Loading : StrategiesUiState

@@ -1,5 +1,8 @@
 package com.wallstreet.di
 
+import com.wallstreet.domain.usecase.analytics.GetCalendarDataUseCase
+import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
+import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
 import com.wallstreet.domain.usecase.auth.*
 import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
 import com.wallstreet.domain.usecase.home.GetEquityCurveDataUsecase
@@ -13,7 +16,7 @@ import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.UpdateStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
-import com.wallstreet.domain.usecase.trade.GetTradesUsecase
+import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import org.koin.dsl.module
 
 val useCaseModule = module {
@@ -25,7 +28,7 @@ val useCaseModule = module {
     factory { VerifyOtpUseCase(get()) }
     factory { SendPasswordResetEmailUseCase(get()) }
     factory { AddTradeUseCase(get()) }
-    factory { GetTradesUsecase(get()) }
+    factory { GetTradesUseCase(get()) }
     factory { GetHomeStateUsecase(get()) }
     factory { ComputeHeatMapDataUsecase() }
     factory { RecentTradesDataUsecase() }
@@ -38,4 +41,7 @@ val useCaseModule = module {
     factory { GetEquityCurveDataUsecase() }
     factory { GetMistakesAnalysisUsecase() }
     factory { GetSymbolPerformanceUsecase() }
+    factory { GetCalendarDataUseCase(get()) }
+    factory { GetDayPerformanceUseCase(get()) }
+    factory { GetTradeSummaryUseCase(get()) }
 }

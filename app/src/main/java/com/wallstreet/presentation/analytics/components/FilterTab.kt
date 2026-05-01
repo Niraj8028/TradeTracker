@@ -1,7 +1,6 @@
 package com.wallstreet.presentation.analytics.components
 
 import androidx.compose.foundation.layout.Arrangement
-
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.wallstreet.domain.model.TimePeriod
 
 sealed class FilterOption(val label: String) {
     data object OneWeek : FilterOption("1W")
@@ -22,6 +22,16 @@ sealed class FilterOption(val label: String) {
     data object SixMonths : FilterOption("6M")
     data object OneYear : FilterOption("1Y")
     data object All : FilterOption("All")
+
+    fun toTimePeriod(): TimePeriod = when (this) {
+        OneWeek -> TimePeriod.ONE_WEEK
+        OneMonth -> TimePeriod.ONE_MONTH
+        ThreeMonths -> TimePeriod.THREE_MONTHS
+        SixMonths -> TimePeriod.SIX_MONTHS
+        OneYear -> TimePeriod.ONE_YEAR
+        All -> TimePeriod.ALL
+    }
+
     companion object {
         val all by lazy {
             listOf<FilterOption>(
@@ -34,7 +44,14 @@ sealed class FilterOption(val label: String) {
             )
         }
 
-            
+        fun fromTimePeriod(period: TimePeriod): FilterOption = when (period) {
+            TimePeriod.ONE_WEEK -> OneWeek
+            TimePeriod.ONE_MONTH -> OneMonth
+            TimePeriod.THREE_MONTHS -> ThreeMonths
+            TimePeriod.SIX_MONTHS -> SixMonths
+            TimePeriod.ONE_YEAR -> OneYear
+            TimePeriod.ALL -> All
+        }
     }
 }
 
@@ -51,12 +68,8 @@ fun FilterTab(
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
-
-
-        ) {
+    ) {
         items(filters, key = { it.label }) { filter ->
-
-
             FilterChip(
                 selected = filter == selected,
                 onClick = { onSelectFilter(filter) },

@@ -4,31 +4,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,38 +23,44 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.R
-import com.wallstreet.presentation.analytics.AnalyticsViewModel
-import com.wallstreet.presentation.analytics.CalenderDay
+import com.wallstreet.domain.model.CalendarDay
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-fun Calendar(viewModel: AnalyticsViewModel = koinViewModel()) {
+fun Calendar(
+    calendarDays: List<CalendarDay>,
+    currentMonth: YearMonth,
+    onNextMonth: () -> Unit,
+    onPrevMonth: () -> Unit,
+    onSetMonth: (YearMonth) -> Unit
+) {
     val initialPage = 500
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 1000 })
     val scope = rememberCoroutineScope()
     val baseMonth = remember { YearMonth.now() }
-    val currentMonth = viewModel.currentMonth
 
     LaunchedEffect(pagerState.currentPage) {
         val month = baseMonth.plusMonths((pagerState.currentPage - initialPage).toLong())
-        if (viewModel.currentMonth != month) viewModel.setMonth(month)
+        if (currentMonth != month) onSetMonth(month)
     }
 
-    val monthlyStats = remember(viewModel.calendarDays) {
-        val tradingDays = viewModel.calendarDays.filter { it.isCurrentMonth && it.tradeCount > 0 }
+    val monthlyStats = remember(calendarDays) {
+        val tradingDays = calendarDays.filter { it.isCurrentMonth && it.tradeCount > 0 }
         Triple(
             tradingDays.sumOf { it.pnl },
             tradingDays.count { it.pnl > 0 },
             tradingDays.count { it.pnl < 0 }
         )
     }
+
+    val daysOfWeek = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -95,12 +83,12 @@ fun Calendar(viewModel: AnalyticsViewModel = koinViewModel()) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                DayOfWeekHeader(days = viewModel.days)
+                DayOfWeekHeader(days = daysOfWeek)
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 HorizontalPager(state = pagerState) {
-                    CalendarGrid(days = viewModel.calendarDays)
+                    CalendarGrid(days = calendarDays)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -180,7 +168,7 @@ private fun DayOfWeekHeader(days: List<String>) {
 }
 
 @Composable
-fun CalendarGrid(days: List<CalenderDay>) {
+fun CalendarGrid(days: List<CalendarDay>) {
     Column(modifier = Modifier.fillMaxWidth()) {
         days.chunked(7).forEach { week ->
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -193,7 +181,7 @@ fun CalendarGrid(days: List<CalenderDay>) {
 }
 
 @Composable
-private fun DayCell(day: CalenderDay, modifier: Modifier = Modifier) {
+private fun DayCell(day: CalendarDay, modifier: Modifier = Modifier) {
     val bgColor = when {
         day.isCurrentMonth && day.pnl > 0 -> SuccessGreen.copy(alpha = 0.15f)
         day.isCurrentMonth && day.pnl < 0 -> DangerRed.copy(alpha = 0.15f)

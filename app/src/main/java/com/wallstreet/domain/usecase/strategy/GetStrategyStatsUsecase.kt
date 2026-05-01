@@ -1,12 +1,13 @@
 package com.wallstreet.domain.usecase.strategy
 
 import com.wallstreet.domain.model.Strategy
+import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.strategy.StrategyStats
+import com.wallstreet.domain.model.toDuration
 import com.wallstreet.domain.repository.StrategyRepository
 import com.wallstreet.domain.repository.TradeRepository
-import com.wallstreet.domain.usecase.trade.toDuration
-import com.wallstreet.presentation.home.TimePeriod
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
@@ -15,7 +16,7 @@ import java.time.ZoneId
 class GetStrategyStatsUsecase(
     private val strategyRepository: StrategyRepository,
     private val tradeRepository: TradeRepository
-    ) {
+) {
     operator fun invoke(
         userId: String,
         period: TimePeriod
@@ -24,13 +25,15 @@ class GetStrategyStatsUsecase(
         tradeRepository.getRecentTrades(
             userId,
             LocalDate.now()
-            .minus(period.toDuration())
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli(),
-            500)
+                .minus(period.toDuration())
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli(),
+            500
+        )
     ) { strategies, trades ->
-        val tradesByStrategy = trades.filter { !it.strategyId.isNullOrBlank() }.groupBy { it.strategyId }
+        val tradesByStrategy =
+            trades.filter { !it.strategyId.isNullOrBlank() }.groupBy { it.strategyId }
 
         strategies.mapNotNull { strategy ->
             val tradesForStrategy = tradesByStrategy[strategy.id] ?: return@mapNotNull null
@@ -41,8 +44,12 @@ class GetStrategyStatsUsecase(
 
     }
 
-    private fun computeStatsForStrategy(strategy: Strategy, trades: List<Trade>, period: TimePeriod): StrategyStats {
-        if(trades.isEmpty()){
+    private fun computeStatsForStrategy(
+        strategy: Strategy,
+        trades: List<Trade>,
+        period: TimePeriod
+    ): StrategyStats {
+        if (trades.isEmpty()) {
             return StrategyStats(
                 strategy = strategy,
                 totalTrades = 0,
@@ -58,7 +65,8 @@ class GetStrategyStatsUsecase(
         val losses = trades.filter { (it.profitLoss ?: 0.0) < 0 }
         val winRate = wins.size.toDouble() / trades.size * 100
         val avgWin = if (wins.isEmpty()) 0.0 else wins.sumOf { it.profitLoss ?: 0.0 } / wins.size
-        val avgLoss = if (losses.isEmpty()) 0.0 else losses.sumOf { -(it.profitLoss ?: 0.0) } / losses.size
+        val avgLoss =
+            if (losses.isEmpty()) 0.0 else losses.sumOf { -(it.profitLoss ?: 0.0) } / losses.size
         val rrRatio = if (avgLoss > 0) avgWin / avgLoss else 0.0
 
         return StrategyStats(

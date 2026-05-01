@@ -21,12 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.wallstreet.core.util.TradeSummary
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.DarkSurfaceVariant
 import com.wallstreet.ui.theme.LocalBorderColors
 import com.wallstreet.ui.theme.SuccessGreen
-
+import com.wallstreet.domain.model.TradeSummary
 
 @Composable
 fun LongShortCard(summary: TradeSummary) {
