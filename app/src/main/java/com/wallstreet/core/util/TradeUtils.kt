@@ -22,3 +22,9 @@ fun Trade.toLocalDate(): LocalDate {
 }
 
 fun Trade.toDayOfWeek(): DayOfWeek = toLocalDate().dayOfWeek
+
+/** Formats a raw dollar amount: 1380 → "1380", 23992 → "23992" etc. */
+fun formatAmount(value: Double): String {
+    val absValue = kotlin.math.abs(value).toInt()
+    return absValue.toString()
+}

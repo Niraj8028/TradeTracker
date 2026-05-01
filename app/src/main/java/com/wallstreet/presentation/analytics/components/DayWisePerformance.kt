@@ -41,7 +41,8 @@ import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import  com.wallstreet.domain.model.DayPerformance
+import com.wallstreet.domain.model.DayPerformance
+import com.wallstreet.core.util.formatAmount
 
 // Flat gray bar for zero/no-trade days — matches the "Sat" dash in the screenshot
 private val NoTradeColor = Color(0xFF3A4555)
@@ -206,10 +207,4 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
             )
         }
     }
-}
-
-/** Formats a raw dollar amount: 1380 → "1380", 23992 → "23992" etc. */
-private fun formatAmount(value: Double): String {
-    val abs = abs(value).toInt()
-    return abs.toString()
 }
