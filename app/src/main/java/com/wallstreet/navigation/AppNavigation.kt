@@ -21,7 +21,8 @@ import kotlinx.serialization.modules.polymorphic
 @Composable
 fun AppNavigation(
     startDestination: StartDestination,
-
+    onLogin: () -> Unit = {},
+    onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val initialRoute = when (startDestination) {
@@ -63,6 +64,7 @@ fun AppNavigation(
                     skipToLogin = { skipToLogin },
                     goToOtp = { goToOtp },
                     onLogin = {
+                        onLogin()
                         backStack.remove(AppRoute.OnBoarding)
                         backStack.add(AppRoute.Home)
                     }
@@ -71,6 +73,7 @@ fun AppNavigation(
             entry<AppRoute.Home> {
                 HomeNavigation(
                     onLogout = {
+                        onLogout()
                         backStack.remove(AppRoute.Home)
                         backStack.add(AppRoute.OnBoarding)
                     })

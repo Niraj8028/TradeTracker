@@ -28,8 +28,8 @@ val useCaseModule = module {
     factory { VerifyOtpUseCase(get()) }
     factory { SendPasswordResetEmailUseCase(get()) }
     factory { AddTradeUseCase(get()) }
-    factory { GetTradesUseCase(get()) }
-    factory { GetHomeStateUsecase(get()) }
+    factory { GetTradesUsecase(get()) }
+    factory { GetHomeStateUsecase() }
     factory { ComputeHeatMapDataUsecase() }
     factory { RecentTradesDataUsecase() }
     factory { AddStrategyUseCase(get()) }

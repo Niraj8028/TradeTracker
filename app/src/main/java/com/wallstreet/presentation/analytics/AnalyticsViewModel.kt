@@ -3,32 +3,18 @@ package com.wallstreet.presentation.analytics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.data.store.TradeStore
-import com.wallstreet.domain.model.TimePeriod
-import com.wallstreet.domain.repository.AuthRepository
-import com.wallstreet.domain.usecase.analytics.GetCalendarDataUseCase
-import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
-import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
-import com.wallstreet.domain.usecase.home.getRecentTradeData
-import com.wallstreet.domain.usecase.trade.GetTradesUseCase
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
+import com.wallstreet.domain.model.Trade
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.time.Instant
+
+
+import java.time.LocalDate
 import java.time.YearMonth
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AnalyticsViewModel(
-    private val authRepository: AuthRepository,
-    private val tradeStore: TradeStore,
-    private val getTradeSummaryUseCase: GetTradeSummaryUseCase,
-    private val getDayPerformanceUseCase: GetDayPerformanceUseCase,
-    private val getCalendarDataUseCase: GetCalendarDataUseCase,
-    private val getTradesUseCase: GetTradesUseCase
+    private val tradeStore: TradeStore
 ) : ViewModel() {
 
     private val _selectedTabIndex = MutableStateFlow(0)
@@ -87,16 +73,79 @@ class AnalyticsViewModel(
         _currentMonth.value = _currentMonth.value.plusMonths(1)
     }
 
-    fun prevMonth() {
-        _currentMonth.value = _currentMonth.value.minusMonths(1)
+    private fun observeTrades() {
+        viewModelScope.launch {
+            tradeStore.trades.collect { tradeList ->
+                trades = tradeList
+                updateCalendar()
+            }
+        }
     }
 
     fun setMonth(month: YearMonth) {
         _currentMonth.value = month
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        tradeStore.stopObserving()
+    fun generateMonth(yearMonth: YearMonth, trades: List<Trade>): List<CalenderDay> {
+
+        val firstDay = yearMonth.atDay(1)
+        val offset = firstDay.dayOfWeek.value % 7
+        val daysInMonth = yearMonth.lengthOfMonth()
+        val today = LocalDate.now()
+        val tradesByDate = trades.groupBy {
+            Instant.ofEpochMilli(it.tradeDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        }
+
+        return MutableList(gridSize) { index ->
+
+            when {
+                index < offset -> {
+//                    val date = firstDay.minusDays((offset - index).toLong())//TODOS for future if next offests needed
+                    CalenderDay(
+                        date = null,
+                        false,
+                        false,
+                        false
+                    )//lets keep previouse calendar state to null for now
+                }
+
+                index < offset + daysInMonth -> {
+                    val day = index - offset + 1
+                    val date = yearMonth.atDay(day)
+                    val dayTrades = tradesByDate[date] ?: emptyList()
+
+                    val tradeCount = dayTrades.size
+                    val pnl = dayTrades.sumOf {
+                        it.profitLoss ?: it.calculateProfitLoss() ?: 0.0
+                    }
+                    Timber.d("Date: $date -> PnL: $pnl")
+
+                    CalenderDay(
+                        date = date,
+                        isCurrentMonth = true,
+                        isToday = date == today,
+                        isSelected = false,
+                        pnl = pnl,
+                        tradeCount = tradeCount
+                    )
+                }
+
+                else -> {
+//                    val nextDay = index - (offset + daysInMonth) + 1 //TODOS for future if next offests needed
+//                    val date = yearMonth.plusMonths(1).atDay(nextDay)
+                    CalenderDay(
+                        date = null,
+                        false,
+                        false,
+                        false,
+
+                        )//lets keep next calendar state to null for now
+                }
+            }
+
+        }
     }
+
 }

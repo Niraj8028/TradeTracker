@@ -1,3 +1,5 @@
+package com.wallstreet.presentation.strategy
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Close
@@ -20,8 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.wallstreet.domain.model.Strategy
 import com.wallstreet.presentation.home.LoadingView
-import com.wallstreet.presentation.strategy.StrategiesUiState
-import com.wallstreet.presentation.strategy.StrategyViewModel
 import com.wallstreet.presentation.strategy.components.AddStrategyDialog
 import com.wallstreet.presentation.strategy.components.DeleteStrategyBottomSheet
 import com.wallstreet.presentation.strategy.components.StrategyErrorView
