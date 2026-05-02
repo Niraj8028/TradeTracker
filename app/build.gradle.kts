@@ -92,10 +92,9 @@ dependencies {
     implementation(libs.koin.core)
 
     // Charts
-    implementation("com.patrykandpatrick.vico:compose:2.0.1")
-    implementation("com.patrykandpatrick.vico:compose-m3:2.0.1")
-    implementation("com.patrykandpatrick.vico:core:2.0.1")
-
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+    implementation(libs.core)
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 

@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wallstreet.domain.model.Strategy
-import com.wallstreet.presentation.home.TimePeriod
+import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.presentation.home.components.PeriodSelector
 import com.wallstreet.presentation.strategy.StrategiesUiState
 

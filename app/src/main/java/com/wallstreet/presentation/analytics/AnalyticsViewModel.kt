@@ -1,10 +1,5 @@
 package com.wallstreet.presentation.analytics
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.data.store.TradeStore
@@ -16,56 +11,66 @@ import java.time.Instant
 
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
-import kotlin.collections.emptyList
 
-data class CalenderDay(
-    val date: LocalDate?,
-    val isCurrentMonth: Boolean,
-    val isToday: Boolean,
-    val isSelected: Boolean,
-    val pnl: Double = 0.0,
-    val tradeCount: Int = 0
-)
-
+@OptIn(ExperimentalCoroutinesApi::class)
 class AnalyticsViewModel(
     private val tradeStore: TradeStore
 ) : ViewModel() {
 
-    val gridSize = 42
+    private val _selectedTabIndex = MutableStateFlow(0)
+    private val _selectedFilter = MutableStateFlow(TimePeriod.ONE_MONTH)
+    private val _currentMonth = MutableStateFlow(YearMonth.now())
 
-    //    var selectedDate by mutableStateOf<LocalDate?>(LocalDate.now())
-//        private set
-    var currentMonth by mutableStateOf(YearMonth.now())
-        private set
-    var calendarDays by mutableStateOf<List<CalenderDay>>(emptyList())
-        private set
-    var trades by mutableStateOf<List<Trade>>(emptyList())
-        private set
+    val uiState: StateFlow<AnalyticsUiState> = _selectedFilter.flatMapLatest { filter ->
+        val userId = authRepository.getCurrentUser()?.id ?: ""
+        combine(
+            getTradesUseCase(userId, filter, 500),
+            tradeStore.trades,
+            _currentMonth,
+            _selectedTabIndex
+        ) { filteredTrades, allTrades, month, tabIndex ->
 
-    val days = listOf(
-        "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"
+            val summary = getTradeSummaryUseCase(filteredTrades)
+            val performance = getDayPerformanceUseCase(filteredTrades)
+            val calendarDays = getCalendarDataUseCase(month, allTrades)
+
+            AnalyticsUiState.Success(
+                selectedFilter = filter,
+                tradeSummary = summary,
+                dayPerformance = performance,
+                calendarDays = calendarDays,
+                currentMonth = month,
+                selectedTabIndex = tabIndex,
+                recentTrades = getRecentTradeData(filteredTrades)
+            ) as AnalyticsUiState
+        }
+    }.onStart {
+        emit(AnalyticsUiState.Loading)
+    }.catch { e ->
+        emit(AnalyticsUiState.Error(e.message ?: "Unknown error"))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = AnalyticsUiState.Loading
     )
 
-
-    fun nextMoth() {
-        currentMonth = currentMonth.plusMonths(1)
-        updateCalendar()
+    init {
+        val userId = authRepository.getCurrentUser()?.id
+        if (userId != null) {
+            tradeStore.startObserving(userId)
+        }
     }
 
-    fun prevMoth() {
-        currentMonth = currentMonth.minusMonths(1)
-        updateCalendar()
+    fun onTabSelect(index: Int) {
+        _selectedTabIndex.value = index
     }
 
-    fun setMonth(month: YearMonth) {
-        currentMonth = month
-        updateCalendar()
+    fun onSelectFilter(filter: TimePeriod) {
+        _selectedFilter.value = filter
     }
 
-
-    private fun updateCalendar() {
-        calendarDays = generateMonth(currentMonth, trades)
+    fun nextMonth() {
+        _currentMonth.value = _currentMonth.value.plusMonths(1)
     }
 
     private fun observeTrades() {
@@ -77,8 +82,8 @@ class AnalyticsViewModel(
         }
     }
 
-    init {
-        observeTrades()
+    fun setMonth(month: YearMonth) {
+        _currentMonth.value = month
     }
 
     fun generateMonth(yearMonth: YearMonth, trades: List<Trade>): List<CalenderDay> {
@@ -144,5 +149,3 @@ class AnalyticsViewModel(
     }
 
 }
-
-

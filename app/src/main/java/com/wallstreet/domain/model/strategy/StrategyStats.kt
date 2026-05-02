@@ -1,7 +1,7 @@
 package com.wallstreet.domain.model.strategy
 
 import com.wallstreet.domain.model.Strategy
-import com.wallstreet.presentation.home.TimePeriod
+import com.wallstreet.domain.model.TimePeriod
 
 data class StrategyStats(
     val strategy: Strategy,

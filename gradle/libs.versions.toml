@@ -20,7 +20,7 @@ lottie = "6.7.1"
 navigationCompose = "2.8.5"
 lifecycleViewmodelCompose = "2.8.7"
 materialIconsExtended = "1.7.6"
-vico = "2.0.0-alpha.28"
+vico = "2.0.1"
 datastorePreferences = "1.1.1"
 coil = "2.7.0"
 accompanist = "0.36.0"
@@ -38,6 +38,10 @@ benchmarkTraceprocessorAndroid = "1.4.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 core = { module = "com.patrykandpatrick.vico:core", version.ref = "vico" }
+
+vico-compose = { module = "com.patrykandpatrick.vico:compose", version.ref = "vico" }
+vico-compose-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
+
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

@@ -46,7 +46,7 @@ import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.wallstreet.domain.model.EquityCurveData
 import com.wallstreet.domain.model.EquityPoint
-import com.wallstreet.presentation.home.TimePeriod
+import com.wallstreet.domain.model.TimePeriod
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
