@@ -28,7 +28,6 @@ import com.wallstreet.presentation.strategy.components.StrategyErrorView
 import com.wallstreet.presentation.strategy.components.StrategySuccessView
 import org.koin.androidx.compose.koinViewModel
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StrategiesScreen(
@@ -38,9 +37,9 @@ fun StrategiesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
+    val actionState by viewModel.actionState.collectAsState()
     var showAddStrategyDialog by remember { mutableStateOf(false) }
     var showDeleteStrategyConfirmDialog by remember { mutableStateOf(false) }
-    val actionState by viewModel.actionState.collectAsState()
     var isSelectionMode by remember { mutableStateOf(false) }
     val selectedStrategies = remember { mutableStateListOf<Strategy>() }
 
@@ -49,26 +48,26 @@ fun StrategiesScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text =  if (isSelectionMode)
+                        text = if (isSelectionMode)
                             "${selectedStrategies.size} selected"
                         else "Strategies",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground
-                    ) },
+                    )
+                },
                 actions = {
-                    if(!isSelectionMode){
-                        IconButton(
-                            onClick = { showAddStrategyDialog = true }
-                        ) {
+                    if (!isSelectionMode) {
+                        IconButton(onClick = {
+                            viewModel.clearActionState()
+                            showAddStrategyDialog = true
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.AddCircle,
                                 contentDescription = "Add Strategy",
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        IconButton(
-                            onClick = { isSelectionMode = true }
-                        ) {
+                        IconButton(onClick = { isSelectionMode = true }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Edit",
@@ -76,10 +75,8 @@ fun StrategiesScreen(
                             )
                         }
                     } else {
-                        if(selectedStrategies.size > 0) {
-                            IconButton(
-                                onClick = { showDeleteStrategyConfirmDialog = true }
-                            ) {
+                        if (selectedStrategies.size > 0) {
+                            IconButton(onClick = { showDeleteStrategyConfirmDialog = true }) {
                                 Icon(
                                     imageVector = Icons.Default.DeleteForever,
                                     contentDescription = "Delete Strategy",
@@ -94,17 +91,15 @@ fun StrategiesScreen(
                             Icon(Icons.Default.Close, contentDescription = "Cancel")
                         }
                     }
-
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
-
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        when(uiState) {
+        when (uiState) {
             is StrategiesUiState.Error -> StrategyErrorView(
                 message = (uiState as StrategiesUiState.Error).message,
                 padding = padding
@@ -119,17 +114,13 @@ fun StrategiesScreen(
                 isSelectionMode = isSelectionMode,
                 selectedStrategies = selectedStrategies,
                 onSelectionChanged = { strategy, isSelected ->
-                    if (isSelected) {
-                        selectedStrategies.add(strategy)
-                    } else {
-                        selectedStrategies.remove(strategy)
-                    }
-
+                    if (isSelected) selectedStrategies.add(strategy)
+                    else selectedStrategies.remove(strategy)
                 }
-
             )
         }
     }
+
     if (showAddStrategyDialog) {
         AddStrategyDialog(
             actionState = actionState,
@@ -142,22 +133,22 @@ fun StrategiesScreen(
             }
         )
     }
-    if(showDeleteStrategyConfirmDialog) {
+
+    if (showDeleteStrategyConfirmDialog) {
         DeleteStrategyBottomSheet(
-            onDismiss = {
-                showDeleteStrategyConfirmDialog = false
-            },
+            selectedCount = selectedStrategies.size,
+            actionState = actionState,
             onConfirm = {
                 viewModel.deleteStrategies(selectedStrategies)
-                showDeleteStrategyConfirmDialog = false
-                isSelectionMode = false
-                selectedStrategies.clear()
             },
-            selectedCount = selectedStrategies.size
+            onDismiss = {
+                showDeleteStrategyConfirmDialog = false
+                if (actionState is ActionState.Success) {
+                    isSelectionMode = false
+                    selectedStrategies.clear()
+                }
+                viewModel.clearActionState()
+            }
         )
     }
-
 }
-
-
-

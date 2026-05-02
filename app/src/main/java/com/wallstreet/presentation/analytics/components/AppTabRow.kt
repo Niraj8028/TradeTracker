@@ -21,16 +21,12 @@ fun AppTabRow(tabs: List<TabItem>, selectedIndex: Int, onTabChange: (Int) -> Uni
 
 
     TabRow(
-
         selectedTabIndex = selectedIndex,
-
-//        modifier = Modifier.background(),
         containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
+        contentColor = MaterialTheme.colorScheme.primary,
         indicator = { tabPositions ->
             TabRowDefaults.Indicator(
-                modifier = Modifier
-                    .tabIndicatorOffset(tabPositions[selectedIndex]),
+                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
                 color = MaterialTheme.colorScheme.primary
             )
         },
@@ -38,20 +34,26 @@ fun AppTabRow(tabs: List<TabItem>, selectedIndex: Int, onTabChange: (Int) -> Uni
             HorizontalDivider(
                 Modifier,
                 DividerDefaults.Thickness,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
             )
         }
-
     ) {
         tabs.forEachIndexed { index, tab ->
-
             Tab(
                 selected = index == selectedIndex,
                 onClick = { onTabChange(index) },
-                text = { Text(tab.name, color = MaterialTheme.colorScheme.primary) },
+                text = {
+                    Text(
+                        tab.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (index == selectedIndex)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                },
             )
         }
-
     }
 
 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
@@ -85,7 +86,7 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
                 }
                 return LineComponent(
                     fill = fill(color),
-                    thicknessDp = 38f,
+                    thicknessDp = 26f,
                     shape = CorneredShape.rounded(allPercent = 20),
                 )
             }
@@ -96,7 +97,7 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
             ): LineComponent {
                 return LineComponent(
                     fill = fill(NoTradeColor),
-                    thicknessDp = 38f,
+                    thicknessDp = 26f,
                     shape = CorneredShape.rounded(allPercent = 20),
                 )
             }
@@ -120,43 +121,40 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         text = "Day-wise Performance",
-                        fontSize = 18.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                     Text(
                         text = "Your most profitable days",
-                        fontSize = 13.sp,
+                        fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
-                // Best day badge — BadgeStockBg / BadgeStockText from your theme
+                // Best day badge
                 if (bestDay != null && bestDay.pnl > 0) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF1E3A8A))       // BadgeStockBg
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .background(Color(0xFF1E3A8A))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
                             text = "Best: ${bestDay.day.name.take(3).uppercase()}",
-                            fontSize = 13.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White,           // BadgeStockText
+                            color = Color.White,
                         )
                     }
                 }
             }
 
             // ── PnL labels above bars ────────────────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-            ) {
+            Row(modifier = Modifier.fillMaxWidth()) {
                 dayPerformance.days.forEach { day ->
                     val (labelText, labelColor) = when {
                         day.pnl == 0.0 -> "—" to MaterialTheme.colorScheme.onSurfaceVariant
@@ -164,10 +162,13 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
                         else -> "\$${formatAmount(day.pnl)}" to DangerRed
                     }
                     Text(
+                        modifier = Modifier.weight(1f),
                         text = labelText,
-                        fontSize = 11.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = labelColor,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
                     )
                 }
             }
@@ -186,8 +187,8 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
                     bottomAxis = HorizontalAxis.rememberBottom(
                         label = rememberTextComponent(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textSize = 12.sp,
-                            padding = Insets(topDp = 8f),
+                            textSize = 10.sp,
+                            padding = Insets(topDp = 6f),
                         ),
                         line = null,
                         tick = null,

@@ -66,19 +66,27 @@ fun FilterTab(
     LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         items(filters, key = { it.label }) { filter ->
             FilterChip(
                 selected = filter == selected,
                 onClick = { onSelectFilter(filter) },
-                label = { Text(filter.label, style = MaterialTheme.typography.titleMedium) },
+                label = { Text(filter.label, style = MaterialTheme.typography.labelMedium) },
                 shape = RoundedCornerShape(16.dp),
                 colors = FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     selectedContainerColor = MaterialTheme.colorScheme.primary,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = filter == selected,
+                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    selectedBorderColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     }
