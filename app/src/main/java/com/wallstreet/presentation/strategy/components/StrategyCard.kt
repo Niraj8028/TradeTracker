@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -58,7 +57,7 @@ fun StrategyCard(
                 spotColor = Color.Black.copy(alpha = 0.3f)
             )
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
@@ -131,39 +130,37 @@ fun StrategyCard(
     }
 }
 
-
-
 @Composable
 private fun MetricsRow(stats: StrategyStats) {
     val rrDisplay = if (stats.rrRatio == 0.0) "∞" else stats.rrRatio.format(1)
+    val winRateColor = when {
+        stats.winRate >= 60 -> SuccessGreen
+        stats.winRate < 40  -> DangerRed
+        else                -> PrimaryBlue
+    }
+    val rrColor = when {
+        stats.rrRatio >= 2.0 -> SuccessGreen
+        stats.rrRatio >= 1.0 -> PrimaryBlue
+        else                 -> DangerRed
+    }
+    val avgColor = if (stats.avgProfitPerTrade >= 0) SuccessGreen else DangerRed
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        MetricItem(
-            label = "Win Rate",
-            value = stats.winRate.formatPercent()
-        )
-        MetricItem(
-            label = "Total Trades",
-            value = "${stats.totalTrades}"
-        )
-        MetricItem(
-            label = "R/R Ratio",
-            value = rrDisplay
-        )
-        MetricItem(
-            label = "Avg Profit",
-            value = stats.avgProfitPerTrade.formatPnl()
-        )
+        MetricItem(label = "Win Rate",     value = stats.winRate.formatPercent(),       valueColor = winRateColor)
+        MetricItem(label = "Total Trades", value = "${stats.totalTrades}",              valueColor = MaterialTheme.colorScheme.onSurface)
+        MetricItem(label = "R/R Ratio",    value = rrDisplay,                           valueColor = rrColor)
+        MetricItem(label = "Avg Profit",   value = stats.avgProfitPerTrade.formatPnl(), valueColor = avgColor)
     }
 }
 
 @Composable
 private fun MetricItem(
     label: String,
-    value: String
+    value: String,
+    valueColor: Color
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -178,7 +175,7 @@ private fun MetricItem(
         Text(
             text = value,
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface
+            color = valueColor
         )
     }
 }

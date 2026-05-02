@@ -40,13 +40,11 @@ fun StrategySuccessView(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 16.dp, top = 8.dp)
     ) {
-        if (true) {
-            item {
-                PeriodSelector(
-                    selectedPeriod = timePeriod,
-                    onPeriodSelected = onPeriodSelected
-                )
-            }
+        item {
+            PeriodSelector(
+                selectedPeriod = timePeriod,
+                onPeriodSelected = onPeriodSelected
+            )
         }
         if (uiState.strategyStats.isEmpty()) {
             item { EmptyStrategiesView() }

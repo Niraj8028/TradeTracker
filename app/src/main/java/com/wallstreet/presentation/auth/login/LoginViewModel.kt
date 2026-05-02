@@ -3,7 +3,6 @@ package com.wallstreet.presentation.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
-import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.usecase.auth.SendPasswordResetEmailUseCase
 import com.wallstreet.domain.usecase.auth.SignInUseCase
 import com.wallstreet.domain.usecase.auth.SignInWithGoogleUseCase
@@ -24,7 +23,6 @@ class LoginViewModel(
     private val signIn: SignInUseCase,
     private val signInWithGoogle: SignInWithGoogleUseCase,
     private val sendPasswordResetEmail: SendPasswordResetEmailUseCase,
-    private val tradeStore: TradeStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -34,7 +32,6 @@ class LoginViewModel(
         _uiState.value = LoginUiState(isLoading = true)
         when (val r = signIn.invoke(email, password)) {
             is Result.Success -> {
-                tradeStore.startObserving(r.data.id)
                 _uiState.value = LoginUiState(isSuccess = true)
             }
 
@@ -56,7 +53,6 @@ class LoginViewModel(
         _uiState.value = LoginUiState(isLoading = true)
         _uiState.value = when (val r = signInWithGoogle.invoke(idToken)) {
             is Result.Success -> {
-                tradeStore.startObserving(r.data.id)
                 LoginUiState(isSuccess = true)
             }
             is Result.Error -> LoginUiState(error = r.message)
