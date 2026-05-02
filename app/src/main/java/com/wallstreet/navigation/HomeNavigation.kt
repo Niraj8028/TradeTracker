@@ -22,6 +22,7 @@ import com.wallstreet.presentation.profile.screens.PrivacyPolicyScreen
 import com.wallstreet.presentation.profile.screens.SecurityPrivacyScreen
 import com.wallstreet.presentation.profile.screens.TermsOfServiceScreen
 import com.wallstreet.presentation.strategy.StrategiesScreen
+import com.wallstreet.presentation.strategy.detail.StrategyDetailsScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -174,7 +175,9 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             entry<AppRoute.Home.CalendarRoute> {
                 MainScaffold(homeBackStack) {
                     StrategiesScreen(
-                        onStrategyClick = {},
+                        onStrategyClick = { strategyId ->
+                            homeBackStack.add(AppRoute.Home.StrategyDetailRoute(strategyId))
+                        },
                         onAddStrategy = { },
                     )
                 }
@@ -185,7 +188,10 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             }
 
             entry<AppRoute.Home.StrategyDetailRoute> { key ->
-                Text("Strategy: ${key.strategyId}")
+                StrategyDetailsScreen(
+                    strategyId = key.strategyId,
+                    onBack = { homeBackStack.removeLastOrNull() }
+                )
             }
 
             entry<AppRoute.Home.SecurityPrivacyRoute> {
