@@ -6,12 +6,12 @@ import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
 import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
-import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
 import com.wallstreet.domain.usecase.home.GetEquityCurveDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
+import kotlin.math.max
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +38,6 @@ class StrategyDetailViewModel(
     private val getTradeSummaryUseCase: GetTradeSummaryUseCase,
     private val getDayPerformanceUseCase: GetDayPerformanceUseCase,
     private val equityCurveDataUsecase: GetEquityCurveDataUsecase,
-    private val heatMapDataUsecase: ComputeHeatMapDataUsecase,
     private val mistakesAnalysisUsecase: GetMistakesAnalysisUsecase,
     private val symbolPerformanceUsecase: GetSymbolPerformanceUsecase,
 ) : ViewModel() {
@@ -63,6 +62,32 @@ class StrategyDetailViewModel(
                     ?: return@combine StrategyDetailUiState.Error("Strategy not found")
 
                 val strategyTrades = trades.filter { it.strategyId == strategyId }
+                val sorted = strategyTrades.sortedBy { it.tradeDate }
+
+                val grossWin = sorted.filter { (it.profitLoss ?: 0.0) > 0 }.sumOf { it.profitLoss ?: 0.0 }
+                val grossLoss = sorted.filter { (it.profitLoss ?: 0.0) < 0 }.sumOf { -(it.profitLoss ?: 0.0) }
+                val profitFactor = if (grossLoss > 0) grossWin / grossLoss else if (grossWin > 0) 999.0 else 0.0
+
+                var equity = 0.0
+                var peak = 0.0
+                var maxDrawdown = 0.0
+                for (t in sorted) {
+                    equity += t.profitLoss ?: 0.0
+                    peak = max(peak, equity)
+                    maxDrawdown = max(maxDrawdown, peak - equity)
+                }
+
+                var currentStreak = 0
+                var winStreak = 0
+                for (t in sorted) {
+                    val pnl = t.profitLoss ?: 0.0
+                    if (pnl > 0) {
+                        currentStreak++
+                        winStreak = max(winStreak, currentStreak)
+                    } else if (pnl < 0) {
+                        currentStreak = 0
+                    }
+                }
 
                 StrategyDetailUiState.Success(
                     strategy = strategy,
@@ -71,11 +96,13 @@ class StrategyDetailViewModel(
                     tradeSummary = getTradeSummaryUseCase(strategyTrades),
                     dayPerformance = getDayPerformanceUseCase(strategyTrades),
                     equityCurveData = equityCurveDataUsecase(strategyTrades),
-                    heatMapData = heatMapDataUsecase(strategyTrades, 4),
                     mistakesAnalysisData = mistakesAnalysisUsecase(strategyTrades),
                     symbolPerformance = symbolPerformanceUsecase(strategyTrades),
                     recentTrades = getRecentTradeData(strategyTrades),
-                    totalTradesInPeriod = strategyTrades.size
+                    totalTradesInPeriod = strategyTrades.size,
+                    profitFactor = profitFactor,
+                    maxDrawdown = maxDrawdown,
+                    winStreak = winStreak
                 )
             }
         }

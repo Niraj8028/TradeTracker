@@ -33,14 +33,11 @@ import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.presentation.analytics.components.DayWisePerformance
 import com.wallstreet.presentation.analytics.components.LongShortCard
 import com.wallstreet.presentation.home.components.EquityCurveChart
-import com.wallstreet.presentation.home.components.HeatMapCard
-import com.wallstreet.presentation.home.components.MainPnLCard
 import com.wallstreet.presentation.home.components.PeriodSelector
-import com.wallstreet.presentation.home.components.RecentTradesSection
-import com.wallstreet.presentation.home.components.StatsRow
 import com.wallstreet.presentation.home.components.SymbolPerformanceCard
 import com.wallstreet.presentation.home.components.TopMistakesCard
 import com.wallstreet.presentation.strategy.detail.components.StrategyHeaderCard
+import com.wallstreet.presentation.strategy.detail.components.StrategyRiskRewardCard
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -150,60 +147,51 @@ private fun StrategyDetailSuccess(
             totalTradesInPeriod = state.totalTradesInPeriod
         )
 
+        // Section 1 — Period filter
+        PeriodSelector(
+            selectedPeriod = selectedPeriod,
+            onPeriodSelected = onPeriodSelected
+        )
+
         if (state.totalTradesInPeriod == 0) {
-            EmptyTradesPlaceholder(
-                selectedPeriod = selectedPeriod,
-                onPeriodSelected = onPeriodSelected
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No trades yet for this strategy\nin the selected period.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
         } else {
-            MainPnLCard(
+            StrategyRiskRewardCard(
                 stats = state.stats,
-                selectedPeriod = selectedPeriod,
-                onPeriodSelected = onPeriodSelected
+                profitFactor = state.profitFactor,
+                maxDrawdown = state.maxDrawdown,
+                winStreak = state.winStreak
             )
-            StatsRow(stats = state.stats)
-            LongShortCard(summary = state.tradeSummary)
             EquityCurveChart(
                 equityCurveData = state.equityCurveData,
                 selectedPeriod = selectedPeriod,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
-            DayWisePerformance(dayPerformance = state.dayPerformance)
-            HeatMapCard(heatMapData = state.heatMapData)
-            SymbolPerformanceCard(symbols = state.symbolPerformance)
-            TopMistakesCard(data = state.mistakesAnalysisData)
-            RecentTradesSection(
-                trades = state.recentTrades,
-                onViewAll = {}
-            )
-        }
-    }
-}
+            // Section 4 — Long vs Short
+            LongShortCard(summary = state.tradeSummary)
 
-@Composable
-private fun EmptyTradesPlaceholder(
-    selectedPeriod: TimePeriod,
-    onPeriodSelected: (TimePeriod) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        PeriodSelector(
-            selectedPeriod = selectedPeriod,
-            onPeriodSelected = onPeriodSelected
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 48.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "No trades yet for this strategy\nin the selected period.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+            // Section 5 — Top Symbols
+            SymbolPerformanceCard(symbols = state.symbolPerformance)
+
+            // Section 6 — Best trading day
+            DayWisePerformance(dayPerformance = state.dayPerformance)
+
+            // Section 7 — Mistake summary
+            TopMistakesCard(
+                data = state.mistakesAnalysisData,
+                onViewAll = {}
             )
         }
     }

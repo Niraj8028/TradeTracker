@@ -34,7 +34,6 @@ val viewModelModule = module {
             getTradeSummaryUseCase = get(),
             getDayPerformanceUseCase = get(),
             equityCurveDataUsecase = get(),
-            heatMapDataUsecase = get(),
             mistakesAnalysisUsecase = get(),
             symbolPerformanceUsecase = get()
         )

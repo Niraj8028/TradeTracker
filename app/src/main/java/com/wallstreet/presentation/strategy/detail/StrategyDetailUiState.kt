@@ -23,10 +23,12 @@ sealed interface StrategyDetailUiState {
         val tradeSummary: TradeSummary,
         val dayPerformance: DayPerformance,
         val equityCurveData: EquityCurveData,
-        val heatMapData: HeatMapData,
         val mistakesAnalysisData: MistakesAnalysisData,
         val symbolPerformance: List<SymbolStat>,
         val recentTrades: List<RecentTradeItem>,
-        val totalTradesInPeriod: Int
+        val totalTradesInPeriod: Int,
+        val profitFactor: Double,
+        val maxDrawdown: Double,
+        val winStreak: Int
     ) : StrategyDetailUiState
 }
