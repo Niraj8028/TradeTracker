@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,12 +26,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wallstreet.presentation.strategy.ActionState
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.White
 
@@ -38,10 +41,12 @@ import com.wallstreet.ui.theme.White
 @Composable
 fun DeleteStrategyBottomSheet(
     selectedCount: Int,
+    actionState: ActionState,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isLoading = actionState is ActionState.Loading
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -57,7 +62,6 @@ fun DeleteStrategyBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Icon + title on same row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -84,7 +88,6 @@ fun DeleteStrategyBottomSheet(
                 )
             }
 
-            // Message
             Text(
                 text = "This will permanently delete the selected " +
                         "${if (selectedCount == 1) "strategy" else "strategies"} " +
@@ -94,50 +97,64 @@ fun DeleteStrategyBottomSheet(
                 lineHeight = 18.sp
             )
 
+            if (actionState is ActionState.Error) {
+                Text(
+                    text = actionState.message,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Buttons row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 OutlinedButton(
                     onClick = onDismiss,
+                    enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
-                    border = BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        text = "Cancel",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+                    Text("Cancel", style = MaterialTheme.typography.labelLarge)
                 }
 
                 Button(
                     onClick = onConfirm,
+                    enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = DangerRed,
+                        disabledContainerColor = DangerRed.copy(alpha = 0.6f)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        text = "Delete",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = White
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = White
+                        )
+                    } else {
+                        Text("Delete", style = MaterialTheme.typography.labelLarge, color = White)
+                    }
                 }
             }
         }
+    }
+
+    LaunchedEffect(actionState) {
+        if (actionState is ActionState.Success) onDismiss()
     }
 }

@@ -1,91 +1,165 @@
 package com.wallstreet.presentation.strategy.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.wallstreet.presentation.strategy.ActionState
+import com.wallstreet.ui.theme.White
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddStrategyDialog(
     actionState: ActionState,
     onDismiss: () -> Unit,
     onAddClick: (String, String) -> Unit
-    ) {
+) {
     var name by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isError = actionState is ActionState.ValidationError || actionState is ActionState.Error
 
-
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = { onAddClick(name, description) },
-                enabled = actionState !is ActionState.Loading
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Add")
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = "New Strategy",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Track performance by strategy",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-        title = { Text("Add Strategy") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Strategy Name") },
-                    singleLine = true
-                )
-                when (actionState) {
-                    is ActionState.Loading -> {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        CircularProgressIndicator()
-                    }
 
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Strategy Name") },
+                singleLine = true,
+                isError = isError,
+                supportingText = when (actionState) {
                     is ActionState.ValidationError -> {
-                        Text(
-                            text = actionState.message,
-                            color = MaterialTheme.colorScheme.error
-                        )
+                        { Text(actionState.message, style = MaterialTheme.typography.labelSmall) }
                     }
-
                     is ActionState.Error -> {
-                        Text(
-                            text = actionState.message,
-                            color = MaterialTheme.colorScheme.error
+                        { Text(actionState.message, style = MaterialTheme.typography.labelSmall) }
+                    }
+                    else -> null
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    if (name.isNotBlank()) onAddClick(name, "")
+                }),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Cancel", style = MaterialTheme.typography.labelLarge)
+                }
+                Button(
+                    onClick = { onAddClick(name, "") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp),
+                    enabled = actionState !is ActionState.Loading,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    if (actionState is ActionState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = White
                         )
+                    } else {
+                        Text("Add Strategy", style = MaterialTheme.typography.labelLarge, color = White)
                     }
-
-                    is ActionState.Success -> {
-                        // Auto close handled outside
-                    }
-
-                    else -> Unit
                 }
             }
         }
-    )
+    }
 
     LaunchedEffect(actionState) {
-        if (actionState is ActionState.Success) {
-            onDismiss()
-        }
+        if (actionState is ActionState.Success) onDismiss()
     }
 }

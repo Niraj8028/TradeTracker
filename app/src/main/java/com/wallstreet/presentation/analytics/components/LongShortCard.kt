@@ -35,22 +35,22 @@ fun LongShortCard(summary: TradeSummary) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(20.dp)
+            .padding(16.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
             // ── Header ──────────────────────────────────────────────────────
-            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = "Long vs Short",
-                    fontSize = 18.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = "Direction distribution · ${summary.totalTrades} trades",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant // DarkTextSecondary / LightTextSecondary
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -205,24 +205,24 @@ private fun DirectionDetail(
         ) {
             Text(
                 text = label,
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant  // DarkTextSecondary / LightTextSecondary
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "$percentage%",
-                fontSize = 13.sp,
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground      // DarkTextPrimary / LightTextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
         // PnL
         Text(
             text = pnlFormatted,
-            fontSize = 24.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = pnlColor,
-            lineHeight = 28.sp
+            lineHeight = 22.sp
         )
 
         // Trade count + win rate row
