@@ -66,7 +66,7 @@ fun FilterTab(
     LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         items(filters, key = { it.label }) { filter ->

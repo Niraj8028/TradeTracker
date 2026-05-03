@@ -89,11 +89,14 @@ private fun AnalyticsContent(
             selectedIndex = state.selectedTabIndex,
             onTabChange = onTabSelect
         )
-        FilterTab(
-            filters = FilterOption.all,
-            selected = FilterOption.fromTimePeriod(state.selectedFilter),
-            onSelectFilter = onFilterSelect
-        )
+        if(state.selectedTabIndex != 1) {
+            FilterTab(
+                filters = FilterOption.all,
+                selected = FilterOption.fromTimePeriod(state.selectedFilter),
+                onSelectFilter = onFilterSelect
+            )
+        }
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f)

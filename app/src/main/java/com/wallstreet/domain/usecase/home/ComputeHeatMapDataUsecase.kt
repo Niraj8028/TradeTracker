@@ -41,7 +41,7 @@ class ComputeHeatMapDataUsecase {
             .takeWhile { !it.isAfter(gridEnd) }
             .map { date ->
                 val (pnl, count) = dailyMap[date] ?: (0.0 to 0)
-                val intensity = (abs(pnl) / maxAbsPnl).coerceIn(0.2, 1.0).toFloat()
+                val intensity = (abs(pnl) / maxAbsPnl).coerceIn(0.5, 1.0).toFloat()
                 val type = when {
                     count == 0 -> HeatType.NEUTRAL
                     pnl > 0    -> HeatType.PROFIT

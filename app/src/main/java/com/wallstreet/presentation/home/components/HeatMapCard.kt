@@ -20,13 +20,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wallstreet.core.preferences.ThemePreferences
+import com.wallstreet.core.preferences.ThemeTypes
 import com.wallstreet.domain.model.HeatMapCell
 import com.wallstreet.domain.model.HeatMapData
 import com.wallstreet.domain.model.HeatType
@@ -112,10 +117,21 @@ fun HeatMapDay(
     cell: HeatMapCell?,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme()
+    var heatMapEmptyCell = HeatmapEmpty
+    val context = LocalContext.current
+    val themePrefs = ThemePreferences(context)
+    val selectedTheme by themePrefs.theme.collectAsState( ThemeTypes.SYSTEM)
+    when(selectedTheme) {
+        ThemeTypes.LIGHT -> { heatMapEmptyCell = HeatmapEmpty }
+        ThemeTypes.DARK -> { heatMapEmptyCell = HeatmapEmptyDark}
+        ThemeTypes.SYSTEM -> if (isSystemInDarkTheme()) { heatMapEmptyCell = HeatmapEmptyDark }
+            else { heatMapEmptyCell = HeatmapEmpty }
+    }
+
+
     val cellColour = when {
         cell == null -> Color.Transparent
-        cell.type == HeatType.NEUTRAL -> if (isDark) HeatmapEmptyDark else HeatmapEmpty
+        cell.type == HeatType.NEUTRAL -> heatMapEmptyCell
         cell.type == HeatType.PROFIT -> SuccessGreen.copy(alpha = cell.intensity)
         else -> DangerRed.copy(alpha = cell.intensity)
     }
