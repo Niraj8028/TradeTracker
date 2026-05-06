@@ -77,7 +77,6 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Onboarding> {
                 val context = LocalContext.current
                 OnboardingScreen(
-                    onboardingPreferences = OnboardingPreferences(context),
                     onFinish = {
                         // ✅ Remove onboarding from backstack so back button
                         // doesn't return to it after navigating to Login

@@ -9,7 +9,7 @@ sealed interface StrategiesUiState {
     data class Success(
         val strategyStats: List<StrategyStats>,
         val selectedPeriod: TimePeriod
-    ): StrategiesUiState
+    ) : StrategiesUiState
 }
 
 sealed interface ActionState {
