@@ -3,13 +3,13 @@ package com.wallstreet.presentation.onboarding.components
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -94,7 +94,33 @@ fun PageTwo(
                 modifier = Modifier.fillMaxSize()
             )
         }
-        Row() { }
+        Column() {
+            Text(
+                text = "Watch the 60-second tour",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = "Discover how Trade Coach helps you journal smarter and trade better.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            VideoProgressBar(
+                player = player,
+                progress = progress,
+                currentMs = currentMs,
+                durationMs = durationMs,
+                onSeek = { newProgress ->
+
+                    val seekPosition =
+                        (durationMs * newProgress).toLong()
+
+                    player.seekTo(seekPosition)
+                },
+                modifier = Modifier
+            )
+        }
 
     }
 }
