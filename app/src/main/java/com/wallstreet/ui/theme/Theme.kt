@@ -94,8 +94,8 @@ val DarkGradient = Brush.verticalGradient(
 )
 
 val LightGradient = Brush.verticalGradient(
-    0.0f to Color(0xFF91C5FA),
-    0.45f to Color(0xFFB0D8FA),
+    0.0f to Color(0xFFABD1FA),
+    0.45f to Color(0xFFD0E5F8),
     1.0f to Color(0xFFE3ECF7),
 )
 
