@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,8 +33,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -44,8 +47,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.wallstreet.R
 import com.wallstreet.presentation.onboarding.components.PageOne
 import com.wallstreet.presentation.onboarding.components.PageTwo
+import com.wallstreet.ui.theme.Gradient
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.absoluteValue
 
 
 @OptIn(UnstableApi::class)
@@ -57,6 +62,7 @@ fun OnboardingScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val pagerState = rememberPagerState(pageCount = { 2 })
+
     val player = remember {
         ExoPlayer.Builder(context).build().apply {
             val mediaItem = MediaItem.Builder()
@@ -110,11 +116,12 @@ fun OnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Gradient.current)
             .windowInsetsPadding(WindowInsets.systemBars)
             .padding(horizontal = 24.dp),
     ) {
         Column() {
+            Spacer(modifier = Modifier.height(10.dp))
 
             //indicator
             Row(
@@ -135,28 +142,66 @@ fun OnboardingScreen(
                     }
 
                 }
-                Text("Next", modifier = Modifier.clickable(onClick = { onContinue() }))
+//                Text("Next", modifier = Modifier.clickable(onClick = { onContinue() }))
             }
             //pager view
-            HorizontalPager(state = pagerState, beyondViewportPageCount = 0) { page ->
-                when (page) {
-                    0 -> PageOne(
-                        selected = uiState.selected,
-                        onUserTypeSelected = viewModel::onUserTypeSelected
-                    )
+            HorizontalPager(
+                state = pagerState,
+                beyondViewportPageCount = 0,
+                modifier = Modifier.weight(1f)
+            ) { page ->
 
-                    1 -> PageTwo(
-                        isPlaying = uiState.isPlaying,
-                        progress = uiState.progress,
-                        currentMs = uiState.currentMs,
-                        durationMs = uiState.durationMs,
-                        onProgressChanged = viewModel::onProgressChanged,
-                        onPlayingChanged = viewModel::onPlayingChanged,
-                        player = player,
-                    )
+                val pageOffset = (
+                        (pagerState.currentPage - page) +
+                                pagerState.currentPageOffsetFraction
+                        ).absoluteValue
+
+                Box(
+                    modifier = Modifier.graphicsLayer {
+
+                        // alpha
+                        alpha = lerp(
+                            start = 0.5f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
+
+                        // scale
+                        val scale = lerp(
+                            start = 0.9f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
+
+                        scaleX = scale
+                        scaleY = scale
+
+                        // translation
+                        translationX = pageOffset * 80f
+                    }
+                ) {
+
+                    when (page) {
+
+                        0 -> PageOne(
+                            selectedRoles = uiState.selectedRoles,
+                            onUserTypeSelected = viewModel::onUserTypeSelected
+                        )
+
+                        1 -> PageTwo(
+                            isPlaying = uiState.isPlaying,
+                            progress = uiState.progress,
+                            currentMs = uiState.currentMs,
+                            durationMs = uiState.durationMs,
+                            onProgressChanged = viewModel::onProgressChanged,
+                            onPlayingChanged = viewModel::onPlayingChanged,
+                            player = player,
+                        )
+                    }
                 }
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
             //Continue button
             Button(
                 onClick = { onContinue() },
@@ -172,6 +217,8 @@ fun OnboardingScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
             }
+            Spacer(modifier = Modifier.height(44.dp))
+
 
         }
 

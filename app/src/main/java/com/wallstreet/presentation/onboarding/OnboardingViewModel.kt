@@ -16,8 +16,16 @@ class OnboardingViewModel(
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
-    fun onUserTypeSelected(lable: String) {
-        _uiState.update { it.copy(selected = lable) }
+    fun onUserTypeSelected(role: String) {
+        _uiState.update { state ->
+            val currentSelected = state.selectedRoles
+            val newSelected = if (currentSelected.contains(role)) {
+                currentSelected - role
+            } else {
+                currentSelected + role
+            }
+            state.copy(selectedRoles = newSelected)
+        }
     }
 
     fun onPlayingChanged(playing: Boolean) {

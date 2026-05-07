@@ -1,7 +1,7 @@
 package com.wallstreet.presentation.onboarding
 
 data class OnboardingUiState(
-    val selected: String? = null,
+    val selectedRoles: List<String> = emptyList(),
     val isPlaying: Boolean = false,
     val progress: Float = 0f,
     val currentMs: Long = 0L,
