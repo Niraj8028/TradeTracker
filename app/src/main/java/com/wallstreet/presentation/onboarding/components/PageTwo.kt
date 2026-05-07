@@ -159,7 +159,7 @@ fun PageTwo(
                         .background(Color.Black.copy(alpha = 0.35f)),
                     contentAlignment = Alignment.Center
                 ) {
-                  
+
                     Box(
                         modifier = Modifier
                             .size(72.dp)
@@ -180,12 +180,15 @@ fun PageTwo(
             }
 
         }
+        Spacer(modifier = Modifier.height(22.dp))
+
         Column() {
             Text(
                 text = "Watch the 60-second tour",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleLarge
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "Discover how Trade Coach helps you journal smarter and trade better.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
