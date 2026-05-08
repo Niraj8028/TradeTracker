@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
@@ -184,13 +185,13 @@ fun PageTwo(
 
         Column() {
             Text(
-                text = "Watch the 60-second tour",
+                text = stringResource(R.string.onboarding_page_two_title),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "Discover how Trade Coach helps you journal smarter and trade better.",
+                text = stringResource(R.string.onboarding_page_two_subtitle),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.titleMedium
             )

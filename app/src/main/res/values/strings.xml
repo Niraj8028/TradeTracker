@@ -5,4 +5,8 @@
     <string name="nav_strategies">Strategies</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_log_trade">Log Trade</string>
+    <string name="onboarding_page_one_title">Tell us about you</string>
+    <string name="onboarding_page_one_subtitle">Personalize your trading journal experience</string>
+    <string name="onboarding_page_two_title">Watch the 60-second tour</string>
+    <string name="onboarding_page_two_subtitle">Discover how Trade Coach helps you journal smarter and trade better.</string>
 </resources>
