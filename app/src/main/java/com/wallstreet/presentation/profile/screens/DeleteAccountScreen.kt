@@ -36,12 +36,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavKey
 import com.wallstreet.R
 import com.wallstreet.presentation.profile.ProfileViewModel
 import com.wallstreet.presentation.profile.components.ConfirmationDialog
 import com.wallstreet.presentation.profile.components.DeleteReasonOption
-import com.wallstreet.ui.theme.LocalBorderColors
+import com.wallstreet.ui.theme.BorderColors
 import org.koin.androidx.compose.koinViewModel
 
 enum class DeleteReason(val title: String) {
@@ -149,8 +148,8 @@ fun DeleteAccountScreen(
                     singleLine = false,
                     shape = MaterialTheme.shapes.medium,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = LocalBorderColors.current.primary,
-                        unfocusedBorderColor = LocalBorderColors.current.secondary
+                        focusedBorderColor = BorderColors.current.primary,
+                        unfocusedBorderColor = BorderColors.current.secondary
 
                     )
                 )

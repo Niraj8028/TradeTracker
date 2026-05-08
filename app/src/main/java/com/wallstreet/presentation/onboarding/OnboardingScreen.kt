@@ -1,218 +1,227 @@
 package com.wallstreet.presentation.onboarding
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import android.media.browse.MediaBrowser
+import androidx.annotation.OptIn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.wallstreet.core.preferences.OnboardingPreferences
+import androidx.compose.ui.util.lerp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.RawResourceDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import com.wallstreet.R
+import com.wallstreet.presentation.onboarding.components.PageOne
+import com.wallstreet.presentation.onboarding.components.PageTwo
+import com.wallstreet.ui.theme.Gradient
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import kotlin.math.absoluteValue
 
-data class OnboardingPage(
-    val title: String,
-    val description: String,
-    val emoji: String
-)
 
-private val pages = listOf(
-    OnboardingPage(
-        title = "Track Every Trade",
-        description = "Log your trades with entry, exit, P&L and strategy — all in one place.",
-        emoji = "📈"
-    ),
-    OnboardingPage(
-        title = "Analyse Your Mistakes",
-        description = "Spot patterns like FOMO, revenge trades and over-leveraging before they cost you more.",
-        emoji = "🔍"
-    ),
-    OnboardingPage(
-        title = "Build Better Strategies",
-        description = "Compare strategies by win rate, profit factor and expected value.",
-        emoji = "🧠"
-    ),
-    OnboardingPage(
-        title = "Stay Consistent",
-        description = "Your equity curve, drawdown and monthly heatmap in one dashboard.",
-        emoji = "🎯"
-    )
-)
-
+@OptIn(UnstableApi::class)
 @Composable
 fun OnboardingScreen(
-    onFinish: () -> Unit, onboardingPreferences: OnboardingPreferences
+    onFinish: () -> Unit, viewModel: OnboardingViewModel = koinViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var currentPage by remember { mutableIntStateOf(0) }
-    val isLast = currentPage == pages.lastIndex
-    val finish = {
-        scope.launch { onboardingPreferences.setOnboardingCompleted() }
-        onFinish()
+    val context = LocalContext.current
+    val pagerState = rememberPagerState(pageCount = { 2 })
+
+    val player = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.Builder()
+                .setUri(RawResourceDataSource.buildRawResourceUri(R.raw.tutorial))
+                .setMimeType(MimeTypes.VIDEO_WEBM)
+                .build()
+            setMediaItem(mediaItem)
+            prepare()
+            repeatMode = Player.REPEAT_MODE_ONE
+        }
     }
-    Column(
+
+    DisposableEffect(Unit) {
+        onDispose {
+            player.release()
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == 1) {
+            player.play()
+            viewModel.onPlayingChanged(true)
+        } else {
+            player.pause()
+            viewModel.onPlayingChanged(false)
+        }
+    }
+
+    fun onNext() {
+        scope.launch { pagerState.animateScrollToPage(1) }
+    }
+
+    fun onBack() {
+        scope.launch { pagerState.animateScrollToPage(0) }
+    }
+
+    fun onFinished() {
+        viewModel.onFinish()
+        onFinish()
+//        Timber.d("on press finished called")
+    }
+
+    fun onContinue() {
+        if (pagerState.currentPage == 0) {
+            onNext()
+        } else (
+                onFinished()
+                )
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)  // DarkSurface
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(Gradient.current)
+            .windowInsetsPadding(WindowInsets.systemBars)
+            .padding(horizontal = 24.dp),
     ) {
+        Column() {
+            Spacer(modifier = Modifier.height(10.dp))
 
-        // Skip button top-right
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            TextButton(onClick = finish) {
-                Text(
-                    text = "Skip",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,  // DarkTextSecondary
-                    style = MaterialTheme.typography.labelLarge
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Animated page content
-        AnimatedContent(
-            targetState = currentPage,
-            transitionSpec = {
-                if (targetState > initialState) {
-                    slideInHorizontally { it } + fadeIn() togetherWith
-                            slideOutHorizontally { -it } + fadeOut()
-                } else {
-                    slideInHorizontally { -it } + fadeIn() togetherWith
-                            slideOutHorizontally { it } + fadeOut()
-                }
-            },
-            label = "onboarding_page"
-        ) { index ->
-            val p = pages[index]
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+            //indicator
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = p.emoji,
-                    fontSize = 80.sp
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    repeat(2) { index ->
+                        val activeIndex = index == pagerState.currentPage
 
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Text(
-                    text = p.title,
-                    color = MaterialTheme.colorScheme.onBackground,     // DarkTextPrimary
-                    style = MaterialTheme.typography.headlineSmall,      // 24sp SemiBold
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = p.description,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,  // DarkTextSecondary
-                    style = MaterialTheme.typography.bodyMedium,          // 14sp Normal
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Dot indicators
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            pages.forEachIndexed { index, _ ->
-                Box(
-                    modifier = Modifier
-                        .size(if (index == currentPage) 10.dp else 6.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (index == currentPage) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outline               // BorderPrimary
+                        Box(
+                            modifier = Modifier
+                                .height(4.dp)
+                                .width(if (activeIndex) 24.dp else 8.dp)
+                                .clip(CircleShape)
+                                .background(if (activeIndex) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary)
                         )
-                )
+                    }
+
+                }
+//                Text("Next", modifier = Modifier.clickable(onClick = { onContinue() }))
             }
-        }
+            //pager view
+            HorizontalPager(
+                state = pagerState,
+                beyondViewportPageCount = 0,
+                modifier = Modifier.weight(1f)
+            ) { page ->
 
-        Spacer(modifier = Modifier.height(32.dp))
+                val pageOffset = (
+                        (pagerState.currentPage - page) +
+                                pagerState.currentPageOffsetFraction
+                        ).absoluteValue
 
-        // Prev / Next buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (currentPage > 0) {
-                Button(
-                    onClick = { currentPage-- },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,  // DarkSurfaceVariant
-                        contentColor = MaterialTheme.colorScheme.onSurface          // DarkTextPrimary
-                    )
+                Box(
+                    modifier = Modifier.graphicsLayer {
+
+                        // alpha
+                        alpha = lerp(
+                            start = 0.5f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
+
+                        // scale
+                        val scale = lerp(
+                            start = 0.9f,
+                            stop = 1f,
+                            fraction = 1f - pageOffset.coerceIn(0f, 1f)
+                        )
+
+                        scaleX = scale
+                        scaleY = scale
+
+                        // translation
+                        translationX = pageOffset * 80f
+                    }
                 ) {
-                    Text(
-                        text = "Prev",
-                        style = MaterialTheme.typography.labelLarge
-                    )
+
+                    when (page) {
+
+                        0 -> PageOne(
+                            selectedRoles = uiState.selectedRoles,
+                            onUserTypeSelected = viewModel::onUserTypeSelected
+                        )
+
+                        1 -> PageTwo(
+                            isPlaying = uiState.isPlaying,
+                            progress = uiState.progress,
+                            currentMs = uiState.currentMs,
+                            durationMs = uiState.durationMs,
+                            onProgressChanged = viewModel::onProgressChanged,
+                            onPlayingChanged = viewModel::onPlayingChanged,
+                            player = player,
+                        )
+                    }
                 }
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
+            //Continue button
             Button(
-                onClick = { if (isLast) finish() else currentPage++ },
+                onClick = { onContinue() },
                 modifier = Modifier
-                    .weight(1f)
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,    // PrimaryBlue
-                    contentColor = MaterialTheme.colorScheme.onPrimary     // White
-                )
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(30.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text(
-                    text = if (isLast) "Get Started" else "Next",
-                    style = MaterialTheme.typography.labelLarge
+                    "Continue",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.titleLarge
                 )
             }
+            Spacer(modifier = Modifier.height(44.dp))
+
+
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+
     }
 }

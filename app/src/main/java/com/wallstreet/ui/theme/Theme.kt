@@ -7,7 +7,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
@@ -20,13 +22,13 @@ val LightBorderSecondary = DarkTextSecondary
 val DarkBorderPrimary = PrimaryBlueDark
 val DarkBorderSecondary = DarkTextTertiary
 
-data class BorderColors(
+data class AppBorderColors(
     val primary: Color,
     val secondary: Color
 )
 
-val LocalBorderColors = staticCompositionLocalOf {
-    BorderColors(
+val BorderColors = staticCompositionLocalOf {
+    AppBorderColors(
         primary = Color.Unspecified,
         secondary = Color.Unspecified
     )
@@ -84,6 +86,24 @@ private val LightColorScheme = lightColorScheme(
     outlineVariant = BorderSecondary,
 )
 
+
+val DarkGradient = Brush.verticalGradient(
+    0.0f to Color(0xFF0B1220),
+    0.35f to Color(0xFF0F1724),
+    1.0f to Color(0xFF162235),
+)
+
+val LightGradient = Brush.verticalGradient(
+    0.0f to Color(0xFFABD1FA),
+    0.45f to Color(0xFFD0E5F8),
+    1.0f to Color(0xFFE3ECF7),
+)
+
+// ── CompositionLocal so any screen can access it ──────────────────────────────
+val Gradient = compositionLocalOf<Brush> {
+    error("No gradient provided")
+}
+
 @Composable
 fun WallStreetAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -91,16 +111,21 @@ fun WallStreetAndroidTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val borderColors = if (darkTheme) {
-        BorderColors(
+        AppBorderColors(
             primary = DarkBorderPrimary,
             secondary = DarkBorderSecondary
         )
     } else {
-        BorderColors(
+        AppBorderColors(
             primary = LightBorderPrimary,
             secondary = LightBorderSecondary
         )
     }
+
+    val gradient =
+        if (darkTheme) DarkGradient else LightGradient
+
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -111,7 +136,9 @@ fun WallStreetAndroidTheme(
         }
     }
     androidx.compose.runtime.CompositionLocalProvider(
-        LocalBorderColors provides borderColors
+        BorderColors provides borderColors,
+        Gradient provides gradient
+
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

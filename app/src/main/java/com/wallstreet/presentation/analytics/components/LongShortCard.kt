@@ -22,8 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.ui.theme.DangerRed
-import com.wallstreet.ui.theme.DarkSurfaceVariant
-import com.wallstreet.ui.theme.LocalBorderColors
+import com.wallstreet.ui.theme.BorderColors
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.domain.model.TradeSummary
 import com.wallstreet.core.util.formatPnl
@@ -96,7 +95,7 @@ fun LongShortCard(summary: TradeSummary) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(1.dp)
-                    .background(LocalBorderColors.current.secondary)
+                    .background(BorderColors.current.secondary)
             )
 
             // ── Long | Short detail columns ───────────────────────────────────
@@ -121,7 +120,7 @@ fun LongShortCard(summary: TradeSummary) {
                         .width(1.dp)
                         .height(100.dp)
                         .align(Alignment.CenterVertically)
-                        .background(LocalBorderColors.current.secondary)
+                        .background(BorderColors.current.secondary)
                 )
 
                 DirectionDetail(
