@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     id("com.google.gms.google-services")
+//    id("com.google.devtools.ksp")
 }
 
 android {
@@ -127,5 +128,16 @@ dependencies {
 
     //splash
     implementation(libs.androidx.core.splashscreen)
+    val room_version = "2.8.4"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation ("androidx.room:room-ktx:$room_version")
+
+    val work_version = "2.11.2"
+
+    implementation("androidx.work:work-runtime-ktx:$work_version")
+    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+    // See Add the KSP plugin to your project
+
 
 }

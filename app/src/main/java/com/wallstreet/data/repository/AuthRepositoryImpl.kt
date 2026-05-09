@@ -23,7 +23,6 @@ import timber.log.Timber
 class AuthRepositoryImpl(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val tradeStore: TradeStore
 ) : AuthRepository {
 
     override suspend fun signInWithEmail(email: String, password: String): Result<User> {
@@ -84,7 +83,6 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun signOut() {
-        tradeStore.stopObserving()
         auth.signOut()
     }
 
