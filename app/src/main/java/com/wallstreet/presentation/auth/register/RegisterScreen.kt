@@ -66,10 +66,10 @@ fun RegisterScreen(
                 "ERROR_USER_NOT_FOUND" -> context.getString(R.string.error_user_not_found)
                 "ERROR_NETWORK_CONNECTION" -> context.getString(R.string.error_network_connection)
                 "EMAIL_NOT_VERIFIED" -> context.getString(R.string.error_email_not_verified)
-                "Name cannot be empty" -> context.getString(R.string.error_name_empty)
-                "Email cannot be empty" -> context.getString(R.string.error_email_empty)
-                "Password must be at least 6 characters" -> context.getString(R.string.error_password_too_short)
-                "Passwords do not match" -> context.getString(R.string.error_passwords_do_not_match)
+                "ERROR_NAME_EMPTY" -> context.getString(R.string.error_name_empty)
+                "ERROR_EMAIL_EMPTY" -> context.getString(R.string.error_email_empty)
+                "ERROR_PASSWORD_TOO_SHORT" -> context.getString(R.string.error_password_too_short)
+                "ERROR_PASSWORDS_DO_NOT_MATCH" -> context.getString(R.string.error_passwords_do_not_match)
                 else -> error
             }
             snackbarHostState.showSnackbar(message)
@@ -143,7 +143,7 @@ fun RegisterScreen(
                             )
                         ) {
                             append(stringResource(R.string.register_title_create))
-                            append(" ")
+                            
                         }
                         withStyle(
                             SpanStyle(

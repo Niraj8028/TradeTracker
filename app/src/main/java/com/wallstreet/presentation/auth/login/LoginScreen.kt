@@ -66,8 +66,8 @@ fun LoginScreen(
                 "ERROR_USER_NOT_FOUND" -> context.getString(R.string.error_user_not_found)
                 "ERROR_NETWORK_CONNECTION" -> context.getString(R.string.error_network_connection)
                 "EMAIL_NOT_VERIFIED" -> context.getString(R.string.error_email_not_verified)
-                "Email cannot be empty" -> context.getString(R.string.error_email_empty)
-                "Password must be at least 6 characters" -> context.getString(R.string.error_password_too_short)
+                "ERROR_EMAIL_EMPTY" -> context.getString(R.string.error_email_empty)
+                "ERROR_PASSWORD_TOO_SHORT" -> context.getString(R.string.error_password_too_short)
                 else -> error
             }
             snackbarHostState.showSnackbar(message)

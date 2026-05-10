@@ -42,6 +42,16 @@
     <string name="register_confirm_password">Confirm Password</string>
     <string name="register_button">Create Account</string>
 
+    <!-- Verification Screen -->
+    <string name="verification_title">Verify Your Email</string>
+    <string name="verification_message">We sent a verification link to your email.\nClick the link in your inbox and we\'ll\nautomatically continue.</string>
+    <string name="verification_waiting">Waiting for verification…</string>
+    <string name="verification_resend">Resend Verification Link</string>
+    <string name="verification_email_resent">Verification email resent!</string>
+    <string name="verification_open_email_app">Open Email App</string>
+    <string name="verification_no_email">Didn\'t receive the email? </string>
+    <string name="verification_success_title">You\'re Verified!</string>
+    <string name="verification_success_message">Taking you in…</string>
     <!-- Auth Errors -->
     <string name="error_email_already_in_use">An account with this email already exists</string>
     <string name="error_invalid_password">Incorrect password</string>

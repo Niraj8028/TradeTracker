@@ -9,8 +9,6 @@ import com.wallstreet.domain.repository.StrategyRepository
 
 class SignInUseCase(private val repo: AuthRepository) {
     suspend operator fun invoke(email: String, password: String): Result<User> {
-        if (email.isBlank()) return Result.Error("Email cannot be empty")
-        if (password.length < 6) return Result.Error("Password must be at least 6 characters")
         return repo.signInWithEmail(email, password)
     }
 }
@@ -37,10 +35,6 @@ class SignUpUseCase(
         fullName: String, email: String,
         password: String, confirmPassword: String
     ): Result<User> {
-        if (fullName.isBlank()) return Result.Error("Name cannot be empty")
-        if (email.isBlank()) return Result.Error("Email cannot be empty")
-        if (password.length < 6) return Result.Error("Password must be at least 6 characters")
-        if (password != confirmPassword) return Result.Error("Passwords do not match")
         val result = repo.signUp(fullName, email, password)
         if (result is Result.Error) return result
         runCatching {
@@ -61,7 +55,6 @@ class VerifyOtpUseCase(
 
 class SendPasswordResetEmailUseCase(private val repo: AuthRepository) {
     suspend operator fun invoke(email: String): Result<Unit> {
-        if (email.isBlank()) return Result.Error("Please enter your email address")
         return repo.sendPasswordResetEmail(email)
     }
 }
@@ -75,5 +68,3 @@ class SignOutUseCase(private val repo: AuthRepository) {
 class GetCurrentUserUseCase(private val repo: AuthRepository) {
     operator fun invoke() = repo.getCurrentUser()
 }
-
-

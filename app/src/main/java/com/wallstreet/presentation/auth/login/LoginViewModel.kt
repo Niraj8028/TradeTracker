@@ -22,6 +22,14 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun signIn(email: String, password: String) = viewModelScope.launch {
+        if (email.isBlank()) {
+            _uiState.value = LoginUiState(error = "ERROR_EMAIL_EMPTY")
+            return@launch
+        }
+        if (password.length < 6) {
+            _uiState.value = LoginUiState(error = "ERROR_PASSWORD_TOO_SHORT")
+            return@launch
+        }
         _uiState.value = LoginUiState(isLoading = true)
         when (val r = signIn.invoke(email, password)) {
             is Result.Success -> {
@@ -30,7 +38,6 @@ class LoginViewModel(
 
             is Result.Error -> {
                 if (r.message == "EMAIL_NOT_VERIFIED") {
-
                     _uiState.value = LoginUiState(navigateToOtp = true)
                 } else {
                     _uiState.value = LoginUiState(error = r.message)
@@ -55,6 +62,10 @@ class LoginViewModel(
     }
 
     fun forgotPassword(email: String) = viewModelScope.launch {
+        if (email.isBlank()) {
+            _uiState.value = LoginUiState(error = "Please enter your email address")
+            return@launch
+        }
         _uiState.value = LoginUiState(isLoading = true)
         when (val r = sendPasswordResetEmail.invoke(email)) {
             is Result.Success -> _uiState.value = LoginUiState(resetEmailSent = true)
