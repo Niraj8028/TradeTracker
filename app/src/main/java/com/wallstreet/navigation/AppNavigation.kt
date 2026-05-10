@@ -3,7 +3,8 @@ package com.wallstreet.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -25,6 +26,8 @@ fun AppNavigation(
     onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var isLogoutFlow by rememberSaveable { mutableStateOf(false) }
+
     val initialRoute = when (startDestination) {
         StartDestination.Home -> AppRoute.Home
         StartDestination.Onboarding -> AppRoute.OnBoarding
@@ -33,8 +36,8 @@ fun AppNavigation(
         StartDestination.Unknown -> AppRoute.OnBoarding
     }
 
-    val skipToLogin = startDestination == StartDestination.Auth
-    val goToOtp = startDestination == StartDestination.Otp
+    val skipToLogin = (startDestination == StartDestination.Auth) || isLogoutFlow
+    val goToOtp = (startDestination == StartDestination.Otp) && !isLogoutFlow
     val backStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
@@ -68,6 +71,7 @@ fun AppNavigation(
                     skipToLogin = { skipToLogin },
                     goToOtp = { goToOtp },
                     onLogin = {
+                        isLogoutFlow = false
                         onLogin()
                         // Add then remove to keep backstack non-empty
                         backStack.add(AppRoute.Home)
@@ -78,6 +82,7 @@ fun AppNavigation(
             entry<AppRoute.Home> {
                 HomeNavigation(
                     onLogout = {
+                        isLogoutFlow = true
                         onLogout()
                         // Add then remove to keep backstack non-empty
                         backStack.add(AppRoute.OnBoarding)
