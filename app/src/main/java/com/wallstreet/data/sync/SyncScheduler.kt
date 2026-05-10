@@ -29,4 +29,8 @@ class SyncScheduler(private val workManager: WorkManager) {
             request
         )
     }
+
+    fun cancelSync(userId: String) {
+        workManager.cancelUniqueWork("trade_sync_$userId")
+    }
 }

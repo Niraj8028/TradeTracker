@@ -2,6 +2,7 @@ package com.wallstreet.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.data.sync.SyncScheduler
 import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
@@ -31,8 +32,15 @@ class HomeViewModel(
     private val equityCurveDataUsecase: GetEquityCurveDataUsecase,
     private val mistakesAnalysisUsecase: GetMistakesAnalysisUsecase,
     private val symbolPerformanceUsecase: GetSymbolPerformanceUsecase,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val syncScheduler: SyncScheduler
 ) : ViewModel() {
+
+    init {
+        authRepository.getCurrentUser()?.id?.let { userId ->
+            syncScheduler.scheduleSync(userId)
+        }
+    }
 
     val selectedPeriod = MutableStateFlow(TimePeriod.ONE_MONTH)
 
