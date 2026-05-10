@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -58,8 +59,20 @@ fun RegisterScreen(
         if (uiState.isSuccess) onRegisterSuccess()
     }
     LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
+        uiState.error?.let { error ->
+            val message = when (error) {
+                "ERROR_EMAIL_ALREADY_IN_USE" -> context.getString(R.string.error_email_already_in_use)
+                "ERROR_INVALID_PASSWORD" -> context.getString(R.string.error_invalid_password)
+                "ERROR_USER_NOT_FOUND" -> context.getString(R.string.error_user_not_found)
+                "ERROR_NETWORK_CONNECTION" -> context.getString(R.string.error_network_connection)
+                "EMAIL_NOT_VERIFIED" -> context.getString(R.string.error_email_not_verified)
+                "Name cannot be empty" -> context.getString(R.string.error_name_empty)
+                "Email cannot be empty" -> context.getString(R.string.error_email_empty)
+                "Password must be at least 6 characters" -> context.getString(R.string.error_password_too_short)
+                "Passwords do not match" -> context.getString(R.string.error_passwords_do_not_match)
+                else -> error
+            }
+            snackbarHostState.showSnackbar(message)
             viewModel.clearError()
         }
     }
@@ -113,7 +126,11 @@ fun RegisterScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
-                    .padding(top = padding.calculateTopPadding() + 48.dp, start = 24.dp, end = 24.dp),
+                    .padding(
+                        top = padding.calculateTopPadding() + 48.dp,
+                        start = 24.dp,
+                        end = 24.dp
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Two-tone brand title
@@ -124,13 +141,16 @@ fun RegisterScreen(
                                 color = MaterialTheme.colorScheme.onBackground,
                                 fontWeight = FontWeight.ExtraBold
                             )
-                        ) { append("Create ") }
+                        ) {
+                            append(stringResource(R.string.register_title_create))
+                            append(" ")
+                        }
                         withStyle(
                             SpanStyle(
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.ExtraBold
                             )
-                        ) { append("Account") }
+                        ) { append(stringResource(R.string.register_title_account)) }
                     },
                     style = MaterialTheme.typography.headlineLarge,
                     letterSpacing = (-0.5).sp
@@ -139,7 +159,7 @@ fun RegisterScreen(
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-                    "Set up your profile and start\nmastering your trades today",
+                    stringResource(R.string.register_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -165,7 +185,7 @@ fun RegisterScreen(
                         .padding(top = 12.dp, bottom = 28.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
- 
+
                     Spacer(Modifier.height(24.dp))
 
                     // ── Full Name ──
@@ -174,7 +194,7 @@ fun RegisterScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            "Full Name",
+                            stringResource(R.string.register_full_name),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -184,7 +204,7 @@ fun RegisterScreen(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
-                                    "Enter your name",
+                                    stringResource(R.string.register_full_name_placeholder),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             },
@@ -209,7 +229,7 @@ fun RegisterScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            "Email Address",
+                            stringResource(R.string.auth_email_address),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -219,7 +239,7 @@ fun RegisterScreen(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
-                                    "Enter your email id",
+                                    stringResource(R.string.auth_email_placeholder),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             },
@@ -245,7 +265,7 @@ fun RegisterScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            "Password",
+                            stringResource(R.string.auth_password),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -255,7 +275,7 @@ fun RegisterScreen(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
-                                    "••••••••",
+                                    stringResource(R.string.auth_password_placeholder),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             },
@@ -293,7 +313,7 @@ fun RegisterScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            "Confirm Password",
+                            stringResource(R.string.register_confirm_password),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -303,7 +323,7 @@ fun RegisterScreen(
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = {
                                 Text(
-                                    "••••••••",
+                                    stringResource(R.string.auth_password_placeholder),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             },
@@ -356,7 +376,7 @@ fun RegisterScreen(
                             )
                         } else {
                             Text(
-                                "Create Account",
+                                stringResource(R.string.register_button),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 letterSpacing = 0.5.sp
@@ -376,7 +396,7 @@ fun RegisterScreen(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                         )
                         Text(
-                            "  or  ",
+                            "  ${stringResource(R.string.auth_or)}  ",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -411,7 +431,7 @@ fun RegisterScreen(
                         )
                         Spacer(Modifier.width(10.dp))
                         Text(
-                            "Continue with Google",
+                            stringResource(R.string.auth_continue_with_google),
                             fontWeight = FontWeight.Medium,
                             fontSize = 15.sp
                         )
@@ -419,7 +439,6 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(20.dp))
 
-                    // ── Sign In link ──
                     TextButton(onClick = onNavigateToLogin) {
                         Text(buildAnnotatedString {
                             withStyle(
@@ -427,14 +446,14 @@ fun RegisterScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 14.sp
                                 )
-                            ) { append("Already have an account? ") }
+                            ) { append(stringResource(R.string.auth_already_have_account)) }
                             withStyle(
                                 SpanStyle(
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )
-                            ) { append("Sign In") }
+                            ) { append(stringResource(R.string.auth_sign_in)) }
                         })
                     }
                 }

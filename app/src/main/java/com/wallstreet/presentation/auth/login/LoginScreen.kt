@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -58,15 +59,25 @@ fun LoginScreen(
         if (uiState.isSuccess) onLoginSuccess()
     }
     LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
+        uiState.error?.let { error ->
+            val message = when (error) {
+                "ERROR_EMAIL_ALREADY_IN_USE" -> context.getString(R.string.error_email_already_in_use)
+                "ERROR_INVALID_PASSWORD" -> context.getString(R.string.error_invalid_password)
+                "ERROR_USER_NOT_FOUND" -> context.getString(R.string.error_user_not_found)
+                "ERROR_NETWORK_CONNECTION" -> context.getString(R.string.error_network_connection)
+                "EMAIL_NOT_VERIFIED" -> context.getString(R.string.error_email_not_verified)
+                "Email cannot be empty" -> context.getString(R.string.error_email_empty)
+                "Password must be at least 6 characters" -> context.getString(R.string.error_password_too_short)
+                else -> error
+            }
+            snackbarHostState.showSnackbar(message)
             viewModel.clearError()
         }
     }
     LaunchedEffect(uiState.resetEmailSent) {
         if (uiState.resetEmailSent) {
             showForgotDialog = false
-            snackbarHostState.showSnackbar("Password reset email sent. Check your inbox.")
+            snackbarHostState.showSnackbar(context.getString(R.string.login_reset_email_sent))
         }
     }
 
@@ -89,11 +100,11 @@ fun LoginScreen(
     if (showForgotDialog) {
         AlertDialog(
             onDismissRequest = { showForgotDialog = false },
-            title = { Text("Reset Password") },
+            title = { Text(stringResource(R.string.login_reset_password_title)) },
             text = {
                 Column {
                     Text(
-                        "Enter your email and we'll send you a reset link.",
+                        stringResource(R.string.login_reset_password_message),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -101,7 +112,7 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = resetEmail,
                         onValueChange = { resetEmail = it },
-                        placeholder = { Text("Enter your email") },
+                        placeholder = { Text(stringResource(R.string.login_reset_password_placeholder)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
@@ -121,13 +132,13 @@ fun LoginScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Send Reset Link")
+                        Text(stringResource(R.string.login_send_reset_link))
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showForgotDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.login_cancel))
                 }
             }
         )
@@ -188,14 +199,14 @@ fun LoginScreen(
 
 
                 Text(
-                    "TradeCoach",
+                    stringResource(R.string.login_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Master your trading psychology",
+                    stringResource(R.string.login_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -223,12 +234,12 @@ fun LoginScreen(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text("Email Address", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.auth_email_address), style = MaterialTheme.typography.labelLarge)
                         OutlinedTextField(
                             value = email,
                             onValueChange = { email = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Enter your email id") },
+                            placeholder = { Text(stringResource(R.string.auth_email_placeholder)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                             singleLine = true,
                             shape = RoundedCornerShape(50.dp) // pill shape like reference
@@ -242,12 +253,12 @@ fun LoginScreen(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text("Password", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.auth_password), style = MaterialTheme.typography.labelLarge)
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("••••••••") },
+                            placeholder = { Text(stringResource(R.string.auth_password_placeholder)) },
                             visualTransformation = if (passwordVisible)
                                 VisualTransformation.None else PasswordVisualTransformation(),
                             trailingIcon = {
@@ -269,7 +280,7 @@ fun LoginScreen(
                             resetEmail = email
                             showForgotDialog = true
                         }) {
-                            Text("Forgot Password?", color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary)
                         }
                     }
 
@@ -289,7 +300,7 @@ fun LoginScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Sign In", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.auth_sign_in), fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -305,7 +316,7 @@ fun LoginScreen(
                             color = MaterialTheme.colorScheme.outline
                         )
                         Text(
-                            "  or  ",
+                            "  ${stringResource(R.string.auth_or)}  ",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -341,7 +352,7 @@ fun LoginScreen(
                         )
                         Spacer(Modifier.width(10.dp))
                         Text(
-                            "Continue with Google",
+                            stringResource(R.string.auth_continue_with_google),
                             fontWeight = FontWeight.Medium,
                             fontSize = 15.sp
                         )
@@ -353,7 +364,7 @@ fun LoginScreen(
                     TextButton(onClick = onNavigateToRegister) {
                         Text(buildAnnotatedString {
                             withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                                append("Don't have an account? ")
+                                append(stringResource(R.string.auth_dont_have_account))
                             }
                             withStyle(
                                 SpanStyle(
@@ -361,7 +372,7 @@ fun LoginScreen(
                                     fontWeight = FontWeight.SemiBold
                                 )
                             ) {
-                                append("Sign Up")
+                                append(stringResource(R.string.auth_sign_up))
                             }
                         })
                     }

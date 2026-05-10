@@ -121,16 +121,13 @@ fun PageTwo(
 
             AndroidView(
                 factory = { ctx ->
-                    PlayerView(ctx).apply {
-
+                    val view = android.view.LayoutInflater.from(ctx).inflate(R.layout.view_player_texture, null) as PlayerView
+                    view.apply {
                         this.player = player
-
                         useController = false
-
                         clipToOutline = true
                         resizeMode =
                             AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-
                     }
                 },
                 update = { view ->

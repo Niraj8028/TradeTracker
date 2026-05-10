@@ -9,4 +9,49 @@
     <string name="onboarding_page_one_subtitle">Personalize your trading journal experience</string>
     <string name="onboarding_page_two_title">Watch the 60-second tour</string>
     <string name="onboarding_page_two_subtitle">Discover how Trade Coach helps you journal smarter and trade better.</string>
+
+    <!-- Auth Common -->
+    <string name="auth_email_address">Email Address</string>
+    <string name="auth_email_placeholder">Enter your email id</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_password_placeholder">••••••••</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_sign_up">Sign Up</string>
+    <string name="auth_or">or</string>
+    <string name="auth_continue_with_google">Continue with Google</string>
+    <string name="auth_dont_have_account">Don\'t have an account?\u0020</string>
+    <string name="auth_already_have_account">Already have an account?\u0020</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">TradeCoach</string>
+    <string name="login_subtitle">Master your trading psychology</string>
+    <string name="login_reset_password_title">Reset Password</string>
+    <string name="login_reset_password_message">Enter your email and we\'ll send you a reset link.</string>
+    <string name="login_reset_password_placeholder">Enter your email</string>
+    <string name="login_send_reset_link">Send Reset Link</string>
+    <string name="login_reset_email_sent">Password reset email sent. Check your inbox.</string>
+    <string name="login_cancel">Cancel</string>
+
+    <!-- Register Screen -->
+    <string name="register_title_create">Create\u0020</string>
+    <string name="register_title_account">Account</string>
+    <string name="register_subtitle">Set up your profile and start\nmastering your trades today</string>
+    <string name="register_full_name">Full Name</string>
+    <string name="register_full_name_placeholder">Enter your name</string>
+    <string name="register_confirm_password">Confirm Password</string>
+    <string name="register_button">Create Account</string>
+
+    <!-- Auth Errors -->
+    <string name="error_email_already_in_use">An account with this email already exists</string>
+    <string name="error_invalid_password">Incorrect password</string>
+    <string name="error_user_not_found">No account found with this email</string>
+    <string name="error_network_connection">Network error. Please check your connection</string>
+    <string name="error_unknown">An error occurred</string>
+    <string name="error_user_not_logged_in">User not logged in</string>
+    <string name="error_email_not_verified">Please verify your email to continue</string>
+    <string name="error_name_empty">Name cannot be empty</string>
+    <string name="error_email_empty">Email cannot be empty</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
+    <string name="error_passwords_do_not_match">Passwords do not match</string>
 </resources>

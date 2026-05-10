@@ -128,18 +128,18 @@ class AuthRepositoryImpl(
 
     private fun Exception.friendlyMessage(): String = when {
         message?.contains("email address is already in use") == true ->
-            "An account with this email already exists"
+            "ERROR_EMAIL_ALREADY_IN_USE"
 
         message?.contains("password is invalid") == true ->
-            "Incorrect password"
+            "ERROR_INVALID_PASSWORD"
 
         message?.contains("no user record") == true ->
-            "No account found with this email"
+            "ERROR_USER_NOT_FOUND"
 
         message?.contains("network") == true ->
-            "Network error. Please check your connection"
+            "ERROR_NETWORK_CONNECTION"
 
-        else -> message ?: "An error occurred"
+        else -> message ?: "ERROR_UNKNOWN"
     }
 
 
