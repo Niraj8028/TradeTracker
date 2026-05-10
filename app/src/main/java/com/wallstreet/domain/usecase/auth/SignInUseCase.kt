@@ -42,7 +42,7 @@ class SignUpUseCase(
         if (password.length < 6) return Result.Error("Password must be at least 6 characters")
         if (password != confirmPassword) return Result.Error("Passwords do not match")
         val result = repo.signUp(fullName, email, password)
-        if (result is Result.Error) return Result.Error("Error signing up")
+        if (result is Result.Error) return result
         runCatching {
             defaultStrategies.forEach { strategyRepository.addStrategy(it) }
         }

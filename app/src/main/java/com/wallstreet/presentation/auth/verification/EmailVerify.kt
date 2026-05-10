@@ -25,9 +25,13 @@ fun EmailVerificationScreen(
         if (uiState.isSuccess) onVerified()
     }
 
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbarHostState.showSnackbar(it)
+    LaunchedEffect(uiState.error, uiState.resendSuccess) {
+        if (uiState.error != null) {
+            snackbarHostState.showSnackbar(uiState.error!!)
+            viewModel.clearError()
+        }
+        if (uiState.resendSuccess) {
+            snackbarHostState.showSnackbar("Verification email resent!")
             viewModel.clearError()
         }
     }
@@ -71,6 +75,19 @@ fun EmailVerificationScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            Spacer(Modifier.height(32.dp))
+
+            TextButton(
+                onClick = { viewModel.resendEmail() },
+                enabled = !uiState.isResending
+            ) {
+                if (uiState.isResending) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                } else {
+                    Text("Resend Verification Link")
+                }
+            }
         }
     }
 }
