@@ -50,7 +50,11 @@ fun AppNavigation(
     NavDisplay(
         modifier = modifier,
         backStack = backStack,
-        onBack = { backStack.removeLastOrNull() },
+        onBack = {
+            if (backStack.size > 1) {
+                backStack.removeLastOrNull()
+            }
+        },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
@@ -65,8 +69,9 @@ fun AppNavigation(
                     goToOtp = { goToOtp },
                     onLogin = {
                         onLogin()
-                        backStack.remove(AppRoute.OnBoarding)
+                        // Add then remove to keep backstack non-empty
                         backStack.add(AppRoute.Home)
+                        backStack.remove(AppRoute.OnBoarding)
                     }
                 )
             }
@@ -74,8 +79,9 @@ fun AppNavigation(
                 HomeNavigation(
                     onLogout = {
                         onLogout()
-                        backStack.remove(AppRoute.Home)
+                        // Add then remove to keep backstack non-empty
                         backStack.add(AppRoute.OnBoarding)
+                        backStack.remove(AppRoute.Home)
                     })
             }
 

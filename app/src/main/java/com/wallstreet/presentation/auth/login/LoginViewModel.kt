@@ -11,13 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-data class LoginUiState(
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val isSuccess: Boolean = false,
-    val navigateToOtp: Boolean = false,
-    val resetEmailSent: Boolean = false
-)
 
 class LoginViewModel(
     private val signIn: SignInUseCase,
@@ -55,6 +48,7 @@ class LoginViewModel(
             is Result.Success -> {
                 LoginUiState(isSuccess = true)
             }
+
             is Result.Error -> LoginUiState(error = r.message)
             is Result.Loading -> LoginUiState(isLoading = true)
         }

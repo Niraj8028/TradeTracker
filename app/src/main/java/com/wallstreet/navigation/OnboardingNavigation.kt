@@ -67,7 +67,11 @@ fun OnboardingNavigation(
     NavDisplay(
         backStack = onBoardingBackStack,
         modifier = modifier,
-        onBack = { onBoardingBackStack.removeLastOrNull() },
+        onBack = {
+            if (onBoardingBackStack.size > 1) {
+                onBoardingBackStack.removeLastOrNull()
+            }
+        },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
@@ -78,10 +82,9 @@ fun OnboardingNavigation(
                 val context = LocalContext.current
                 OnboardingScreen(
                     onFinish = {
-                        // ✅ Remove onboarding from backstack so back button
-                        // doesn't return to it after navigating to Login
-                        onBoardingBackStack.removeLastOrNull()
+                        // Add first then remove to avoid empty backstack crash in NavDisplay
                         onBoardingBackStack.add(AppRoute.OnBoarding.Login)
+                        onBoardingBackStack.remove(AppRoute.OnBoarding.Onboarding)
                     }
                 )
             }
@@ -97,7 +100,14 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Register> {
                 RegisterScreen(
                     onRegisterSuccess = { onLogin() },
-                    onNavigateToLogin = { onBoardingBackStack.removeLastOrNull() },
+                    onNavigateToLogin = {
+                        if (onBoardingBackStack.size > 1) {
+                            onBoardingBackStack.removeLastOrNull()
+                        } else {
+                            onBoardingBackStack.add(AppRoute.OnBoarding.Login)
+                            onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
+                        }
+                    },
                     onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen) }
                 )
             }
