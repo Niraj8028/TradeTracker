@@ -2,7 +2,6 @@ package com.wallstreet.presentation.analytics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wallstreet.data.store.TradeStore
 import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.analytics.GetCalendarDataUseCase
@@ -24,7 +23,6 @@ import java.time.YearMonth
 @OptIn(ExperimentalCoroutinesApi::class)
 class AnalyticsViewModel(
     private val authRepository: AuthRepository,
-    private val tradeStore: TradeStore,
     private val getTradeSummaryUseCase: GetTradeSummaryUseCase,
     private val getDayPerformanceUseCase: GetDayPerformanceUseCase,
     private val getCalendarDataUseCase: GetCalendarDataUseCase,
@@ -39,23 +37,22 @@ class AnalyticsViewModel(
         val userId = authRepository.getCurrentUser()?.id ?: ""
         combine(
             getTradesUseCase(userId, filter, 500),
-            tradeStore.trades,
             _currentMonth,
             _selectedTabIndex
-        ) { filteredTrades, allTrades, month, tabIndex ->
+        ) { trades, currentMonth, tabIndex ->
 
-            val summary = getTradeSummaryUseCase(filteredTrades)
-            val performance = getDayPerformanceUseCase(filteredTrades)
-            val calendarDays = getCalendarDataUseCase(month, allTrades)
+            val summary = getTradeSummaryUseCase(trades)
+            val performance = getDayPerformanceUseCase(trades)
+            val calendarDays = getCalendarDataUseCase(currentMonth, trades)
 
             AnalyticsUiState.Success(
                 selectedFilter = filter,
                 tradeSummary = summary,
                 dayPerformance = performance,
                 calendarDays = calendarDays,
-                currentMonth = month,
+                currentMonth = currentMonth,
                 selectedTabIndex = tabIndex,
-                recentTrades = getRecentTradeData(filteredTrades)
+                recentTrades = getRecentTradeData(trades)
             ) as AnalyticsUiState
         }
     }.onStart {
@@ -67,13 +64,6 @@ class AnalyticsViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AnalyticsUiState.Loading
     )
-
-    init {
-        val userId = authRepository.getCurrentUser()?.id
-        if (userId != null) {
-            tradeStore.startObserving(userId)
-        }
-    }
 
     fun onTabSelect(index: Int) {
         _selectedTabIndex.value = index
@@ -97,6 +87,5 @@ class AnalyticsViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        tradeStore.stopObserving()
     }
 }

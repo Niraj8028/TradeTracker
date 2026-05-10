@@ -14,8 +14,8 @@ import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.TradeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 
 class TradeRepositoryImpl(
     private val tradeDao: TradeDao,
@@ -27,7 +27,6 @@ class TradeRepositoryImpl(
 
     override fun getAllTrades(userId: String): Flow<List<Trade>> =
         tradeDao.getAllTrades(userId)
-            .onStart { refreshFromFirestore(userId) }
             .map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun addTrade(trade: Trade): Result<String> {
@@ -84,12 +83,14 @@ class TradeRepositoryImpl(
         return tradeDao.getPendingSyncTrades(userId).isNotEmpty()
     }
 
-    private suspend fun refreshFromFirestore(userId: String) {
+    override suspend fun seedFromFirestore(userId: String) {
         try {
             val snapshot = tradesCollection
                 .whereEqualTo("userId", userId)
                 .get()
                 .await()
+
+            Timber.d("seedFromFirestore: fetched ${snapshot.documents.size} docs for userId=$userId")
 
             val pendingIds = tradeDao.getPendingSyncTrades(userId).map { it.id }.toSet()
 
@@ -99,8 +100,8 @@ class TradeRepositoryImpl(
                     tradeDao.insertTrade(dto.toDomain().toEntity(SyncStatus.SYNCED))
                 }
             }
-        } catch (_: Exception) {
-            // Offline or error — Room serves existing local data
+        } catch (e: Exception) {
+            Timber.e(e, "seedFromFirestore failed for userId=$userId")
         }
     }
 }
