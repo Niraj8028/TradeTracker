@@ -3,7 +3,6 @@ package com.wallstreet.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -11,7 +10,6 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
-import com.wallstreet.core.preferences.OnboardingPreferences
 import com.wallstreet.presentation.auth.login.LoginScreen
 import com.wallstreet.presentation.auth.verification.EmailVerificationScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
@@ -22,13 +20,15 @@ import kotlinx.serialization.modules.polymorphic
 @Composable
 fun OnboardingNavigation(
     onLogin: () -> Unit,
-    goToOtp: () -> Boolean = { false },
+    onLogout: () -> Unit = {},
+    goToOtp: () -> String? = { null },
     skipToLogin: () -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
     val initialRoute = remember {
+        val otpEmail = goToOtp()
         when {
-            goToOtp() -> AppRoute.OnBoarding.EmailVerificationScreen
+            otpEmail != null -> AppRoute.OnBoarding.EmailVerificationScreen(otpEmail)
             skipToLogin() -> AppRoute.OnBoarding.Login
             else -> AppRoute.OnBoarding.Onboarding
         }
@@ -79,7 +79,6 @@ fun OnboardingNavigation(
         entryProvider = entryProvider {
 
             entry<AppRoute.OnBoarding.Onboarding> {
-                val context = LocalContext.current
                 OnboardingScreen(
                     onFinish = {
                         // Add first then remove to avoid empty backstack crash in NavDisplay
@@ -93,7 +92,9 @@ fun OnboardingNavigation(
                 LoginScreen(
                     onLoginSuccess = { onLogin() },
                     onNavigateToRegister = { onBoardingBackStack.add(AppRoute.OnBoarding.Register) },
-                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen) }
+                    onNavigateToOtp = { email -> 
+                        onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 
+                    }
                 )
             }
 
@@ -108,12 +109,39 @@ fun OnboardingNavigation(
                             onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
                         }
                     },
-                    onNavigateToOtp = { onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen) }
+                    onNavigateToOtp = { email -> 
+                        onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 
+                    }
                 )
             }
 
-            entry<AppRoute.OnBoarding.EmailVerificationScreen> {
-                EmailVerificationScreen(onVerified = { onLogin() })
+            entry<AppRoute.OnBoarding.EmailVerificationScreen> { route ->
+                EmailVerificationScreen(
+                    email = route.email,
+                    onVerified = { onLogin() },
+                    onBack = {
+                        // viewModel.abandon() in EmailVerify.kt has already:
+                        //   - cancelled the polling coroutine
+                        //   - deleted the unverified Firebase account
+                        //   - signed the user out
+                        // So here we only fix the navigation back-stack.
+
+                        if (onBoardingBackStack.size > 1) {
+                            // Normal flow: Register → EmailVerification
+                            // Popping reveals the Register entry; rememberSaveable keeps form values.
+                            onBoardingBackStack.removeLastOrNull()
+                        } else {
+                            // Cold-start flow: app launched directly into EmailVerification.
+                            // Replace this single entry with Register so the user can
+                            // correct their email without being redirected back here.
+                            // Also notify AppNavigation to clear its goToOtp flag so it
+                            // won't re-route to OTP on any future recomposition.
+                            onLogout()
+                            onBoardingBackStack.add(AppRoute.OnBoarding.Register)
+                            onBoardingBackStack.remove(route)
+                        }
+                    }
+                )
             }
         }
     )

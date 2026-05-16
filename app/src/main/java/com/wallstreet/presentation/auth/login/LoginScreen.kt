@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -40,20 +41,23 @@ import timber.log.Timber
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToOtp: () -> Unit,
+    onNavigateToOtp: (String) -> Unit,
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    var showForgotDialog by remember { mutableStateOf(false) }
-    var resetEmail by remember { mutableStateOf("") }
+    var showForgotDialog by rememberSaveable { mutableStateOf(false) }
+    var resetEmail by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(uiState.navigateToOtp) {
-        if (uiState.navigateToOtp) onNavigateToOtp()
+        if (uiState.navigateToOtp) {
+            viewModel.resetNavigation() // consume FIRST so it never re-fires
+            onNavigateToOtp(email)
+        }
     }
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) onLoginSuccess()
@@ -76,6 +80,7 @@ fun LoginScreen(
     }
     LaunchedEffect(uiState.resetEmailSent) {
         if (uiState.resetEmailSent) {
+            viewModel.clearResetEmailSent() // consume the event
             showForgotDialog = false
             snackbarHostState.showSnackbar(context.getString(R.string.login_reset_email_sent))
         }

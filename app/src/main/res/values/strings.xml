@@ -52,6 +52,7 @@
     <string name="verification_no_email">Didn\'t receive the email? </string>
     <string name="verification_success_title">You\'re Verified!</string>
     <string name="verification_success_message">Taking you in…</string>
+    <string name="verification_wrong_email">Wrong email? Go back</string>
     <!-- Auth Errors -->
     <string name="error_email_already_in_use">An account with this email already exists</string>
     <string name="error_invalid_password">Incorrect password</string>

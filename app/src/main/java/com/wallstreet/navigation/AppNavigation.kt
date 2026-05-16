@@ -6,6 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -32,21 +33,33 @@ fun AppNavigation(
         StartDestination.Home -> AppRoute.Home
         StartDestination.Onboarding -> AppRoute.OnBoarding
         StartDestination.Auth -> AppRoute.OnBoarding
-        StartDestination.Otp -> AppRoute.OnBoarding
+        is StartDestination.Otp -> AppRoute.OnBoarding
         StartDestination.Unknown -> AppRoute.OnBoarding
     }
 
     val skipToLogin = (startDestination == StartDestination.Auth) || isLogoutFlow
-    val goToOtp = (startDestination == StartDestination.Otp) && !isLogoutFlow
-    val backStack = rememberNavBackStack(
-        configuration = SavedStateConfiguration {
+    val otpEmail = (startDestination as? StartDestination.Otp)?.email ?: ""
+
+    // Once the user deliberately abandons email verification (taps "Wrong email? Go back"),
+    // we must not re-route them back to the OTP screen even if startDestination is still Otp.
+    // This flag starts as true only for Otp destinations and is cleared on abandon/logout.
+    var goToOtp by rememberSaveable {
+        mutableStateOf((startDestination is StartDestination.Otp) && !isLogoutFlow)
+    }
+    
+    val navConfig = remember {
+        SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
                     subclass(AppRoute.OnBoarding::class, AppRoute.OnBoarding.serializer())
                     subclass(AppRoute.Home::class, AppRoute.Home.serializer())
                 }
             }
-        },
+        }
+    }
+
+    val backStack = rememberNavBackStack(
+        navConfig,
         initialRoute
     )
 
@@ -69,13 +82,22 @@ fun AppNavigation(
             entry<AppRoute.OnBoarding> {
                 OnboardingNavigation(
                     skipToLogin = { skipToLogin },
-                    goToOtp = { goToOtp },
+                    goToOtp = { if (goToOtp) otpEmail else null },
                     onLogin = {
                         isLogoutFlow = false
+                        goToOtp = false
                         onLogin()
                         // Add then remove to keep backstack non-empty
                         backStack.add(AppRoute.Home)
                         backStack.remove(AppRoute.OnBoarding)
+                    },
+                    onLogout = {
+                        // Covers both explicit logout AND abandon() from EmailVerificationScreen
+                        // (abandon calls FirebaseAuth.signOut() which triggers this path).
+                        goToOtp = false
+                        isLogoutFlow = true
+                        FirebaseAuth.getInstance().signOut()
+                        onLogout()
                     }
                 )
             }

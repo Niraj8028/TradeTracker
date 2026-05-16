@@ -57,7 +57,9 @@ private fun openEmailApp(context: Context) {
 
 @Composable
 fun EmailVerificationScreen(
+    email: String,
     onVerified: () -> Unit,
+    onBack: () -> Unit,
     viewModel: EmailVerifyViewModel = koinViewModel()
 ) {
 
@@ -190,17 +192,47 @@ fun EmailVerificationScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Text(
-                    text = if (uiState.isSuccess) {
-                        stringResource(R.string.verification_success_message)
-                    } else {
-                        stringResource(R.string.verification_message)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
-                )
+                if (uiState.isSuccess) {
+                    Text(
+                        text = stringResource(R.string.verification_success_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp
+                    )
+                } else {
+                    Text(
+                        text = buildAnnotatedString {
+                            append(stringResource(R.string.verification_message))
+                            append(" ")
+                            withStyle(
+                                SpanStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                append(email)
+                            }
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp
+                    )
+                }
+
+                if (!uiState.isSuccess) {
+                    TextButton(onClick = {
+                        viewModel.abandon()
+                        onBack()
+                    }) {
+                        Text(
+                            text = stringResource(R.string.verification_wrong_email),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
 
             // =========================================================

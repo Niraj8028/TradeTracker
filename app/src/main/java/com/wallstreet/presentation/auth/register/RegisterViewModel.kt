@@ -63,4 +63,7 @@ class RegisterViewModel(
     }
 
     fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
+
+    /** Consume the one-shot navigate-to-OTP event so it cannot re-fire when coming back to this screen. */
+    fun resetNavigation() { _uiState.value = _uiState.value.copy(navigateToOtp = false) }
 }

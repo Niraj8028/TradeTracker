@@ -77,4 +77,14 @@ class LoginViewModel(
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
     }
+
+    /** Consume the one-shot navigate-to-OTP event so it cannot re-fire on screen restore. */
+    fun resetNavigation() {
+        _uiState.value = _uiState.value.copy(navigateToOtp = false)
+    }
+
+    /** Consume the reset-email-sent flag after snackbar is shown. */
+    fun clearResetEmailSent() {
+        _uiState.value = _uiState.value.copy(resetEmailSent = false)
+    }
 }
