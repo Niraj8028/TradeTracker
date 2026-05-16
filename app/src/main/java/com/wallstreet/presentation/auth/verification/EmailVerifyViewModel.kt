@@ -2,15 +2,17 @@ package com.wallstreet.presentation.auth.verification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.wallstreet.core.result.Result
-import com.wallstreet.domain.usecase.auth.VerifyOtpUseCase
+import com.wallstreet.domain.usecase.auth.DeleteAccountUseCase
 import com.wallstreet.domain.usecase.auth.ResendVerificationEmailUseCase
+import com.wallstreet.domain.usecase.auth.SignOutUseCase
+import com.wallstreet.domain.usecase.auth.VerifyOtpUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 
 
@@ -24,9 +26,12 @@ data class OtpUiState(
 
 class EmailVerifyViewModel(
     private val verifyOtp: VerifyOtpUseCase,
-    private val resendVerificationEmail: ResendVerificationEmailUseCase
+    private val resendVerificationEmail: ResendVerificationEmailUseCase,
+    private val deleteAccount: DeleteAccountUseCase,
+    private val signOut: SignOutUseCase,
 ) : ViewModel() {
-    val _uiState = MutableStateFlow(OtpUiState())
+    private val _uiState = MutableStateFlow(OtpUiState())
+    val uiState: StateFlow<OtpUiState> = _uiState.asStateFlow()
 
     /** Holds a reference to the active polling coroutine so we can cancel it on demand. */
     private var pollingJob: Job? = null
@@ -74,14 +79,11 @@ class EmailVerifyViewModel(
 
         viewModelScope.launch {
             try {
-                val currentUser = FirebaseAuth.getInstance().currentUser
-                if (currentUser != null && !currentUser.isEmailVerified) {
-                    currentUser.delete().await()
-                }
+                deleteAccount()
             } catch (e: Exception) {
                 Timber.w(e, "EmailVerifyViewModel: could not delete unverified user")
             } finally {
-                FirebaseAuth.getInstance().signOut()
+                signOut()
             }
         }
     }

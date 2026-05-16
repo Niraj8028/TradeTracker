@@ -63,7 +63,7 @@ fun EmailVerificationScreen(
     viewModel: EmailVerifyViewModel = koinViewModel()
 ) {
 
-    val uiState by viewModel._uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val gradient = Gradient.current

@@ -63,7 +63,7 @@ class LoginViewModel(
 
     fun forgotPassword(email: String) = viewModelScope.launch {
         if (email.isBlank()) {
-            _uiState.value = LoginUiState(error = "Please enter your email address")
+            _uiState.value = LoginUiState(error = "ERROR_EMAIL_EMPTY")
             return@launch
         }
         _uiState.value = LoginUiState(isLoading = true)
