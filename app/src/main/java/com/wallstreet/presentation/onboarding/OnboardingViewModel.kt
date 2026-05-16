@@ -50,6 +50,7 @@ class OnboardingViewModel(
 
     fun onFinish() {
         viewModelScope.launch {
+            onboardingPreferences.saveUserRoles(_uiState.value.selectedRoles.toSet())
             onboardingPreferences.setOnboardingCompleted()
         }
     }
