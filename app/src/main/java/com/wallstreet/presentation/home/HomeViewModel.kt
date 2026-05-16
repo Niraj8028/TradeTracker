@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -53,18 +54,21 @@ class HomeViewModel(
     val homeUiState: StateFlow<HomeUiState> = selectedPeriod
         .flatMapLatest { period ->
             val userId = authRepository.getCurrentUser()!!.id
-            getTradesUsecase(userId, period, 500)
-                .map { trades ->
-                    HomeUiState.Success(
-                        stats = getHomeStateUsecase(trades),
-                        recentTrades = getRecentTradeData(trades),
-                        heatMapData = heatMapDataUsecase(trades, 4),
-                        selectedPeriod = period,
-                        equityCurveData = equityCurveDataUsecase(trades),
-                        mistakesAnalysisData = mistakesAnalysisUsecase(trades),
-                        symbolPerformance = symbolPerformanceUsecase(trades)
-                    ) as HomeUiState
-                }
+            val heatmapPeriod = if (period == TimePeriod.ONE_WEEK) TimePeriod.ONE_MONTH else period
+            combine(
+                getTradesUsecase(userId, period, 500),
+                getTradesUsecase(userId, heatmapPeriod, 500)
+            ) { trades, heatmapTrades ->
+                HomeUiState.Success(
+                    stats = getHomeStateUsecase(trades),
+                    recentTrades = getRecentTradeData(heatmapTrades),
+                    heatMapData = heatMapDataUsecase(heatmapTrades, 4),
+                    selectedPeriod = period,
+                    equityCurveData = equityCurveDataUsecase(trades),
+                    mistakesAnalysisData = mistakesAnalysisUsecase(trades),
+                    symbolPerformance = symbolPerformanceUsecase(trades)
+                ) as HomeUiState
+            }
                 .flowOn(Dispatchers.Default)
                 .catch { e ->
                     emit(HomeUiState.Error(e.message ?: "Unknown error"))

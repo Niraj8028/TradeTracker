@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
             user == null && onboardingDone -> StartDestination.Auth
             user != null && !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
             else -> {
-                if (user != null) tradeStore.startObserving(user.uid)
+//                if (user != null) tradeStore.startObserving(user.uid)
                 StartDestination.Home
             }
         }

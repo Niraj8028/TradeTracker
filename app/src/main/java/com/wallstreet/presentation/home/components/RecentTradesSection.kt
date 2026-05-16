@@ -24,10 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.RecentTradeItem
 import com.wallstreet.domain.model.TradeType
-import com.wallstreet.ui.theme.BadgeLongBg
-import com.wallstreet.ui.theme.BadgeLongText
-import com.wallstreet.ui.theme.BadgeShortBg
-import com.wallstreet.ui.theme.BadgeShortText
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
@@ -108,7 +104,6 @@ private fun TradeRow(trade: RecentTradeItem) {
     val isPnlPositive = pnl >= 0
     val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
     val pnlText = if (isPnlPositive) "+$${"%.0f".format(pnl)}" else "-$${"%.0f".format(-pnl)}"
-    val accentColor = if (trade.tradeType == TradeType.LONG) SuccessGreen else DangerRed
 
     val shape = RoundedCornerShape(12.dp)
     Row(
@@ -129,13 +124,13 @@ private fun TradeRow(trade: RecentTradeItem) {
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(accentColor.copy(alpha = 0.12f)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = trade.symbol.take(2).uppercase(),
                     style = MaterialTheme.typography.labelMedium,
-                    color = accentColor,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -161,35 +156,37 @@ private fun TradeRow(trade: RecentTradeItem) {
             }
         }
 
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(pnlColor.copy(alpha = 0.12f))
-                .padding(horizontal = 10.dp, vertical = 6.dp)
-        ) {
+//        Box(
+//            modifier = Modifier
+//                .clip(RoundedCornerShape(8.dp))
+//                .background(pnlColor.copy(alpha = 0.12f))
+//                .padding(horizontal = 10.dp, vertical = 6.dp)
+//        ) {
             Text(
                 text = pnlText,
                 style = MaterialTheme.typography.labelLarge,
                 color = pnlColor,
                 fontWeight = FontWeight.Bold
             )
-        }
+//        }
     }
 }
 
 @Composable
 private fun TradeBadge(tradeType: TradeType) {
     val isLong = tradeType == TradeType.LONG
+    val bg = if (isLong) SuccessGreen.copy(alpha = 0.12f) else DangerRed.copy(alpha = 0.12f)
+    val textColor = if (isLong) SuccessGreen else DangerRed
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .background(if (isLong) BadgeLongBg else BadgeShortBg)
+            .background(bg)
             .padding(horizontal = 8.dp, vertical = 3.dp)
     ) {
         Text(
             text = if (isLong) "LONG" else "SHORT",
             style = MaterialTheme.typography.labelSmall,
-            color = if (isLong) BadgeLongText else BadgeShortText,
+            color = textColor,
             letterSpacing = 0.5.sp
         )
     }
