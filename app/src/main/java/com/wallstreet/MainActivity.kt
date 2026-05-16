@@ -19,6 +19,8 @@ import com.wallstreet.navigation.AppNavigation
 import com.wallstreet.ui.theme.WallStreetAndroidTheme
 
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
 
@@ -60,14 +62,23 @@ class MainActivity : ComponentActivity() {
 
     private suspend fun decideStartDestination() {
         val user = FirebaseAuth.getInstance().currentUser
+        try {
+            user?.reload()?.await() // Properly await the refresh
+        } catch (e: Exception) {
+            // If reload fails (e.g. no network), we still proceed with cached state
+        }
+        
         val prefs = OnboardingPreferences(applicationContext)
         val onboardingDone = prefs.isOnboardingCompleted()
 
         val destination = when {
             user == null && !onboardingDone -> StartDestination.Onboarding
             user == null && onboardingDone -> StartDestination.Auth
-//            user != null && !user.isEmailVerified -> StartDestination.Otp
-            else -> StartDestination.Home
+            user != null && !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
+            else -> {
+                if (user != null) tradeStore.startObserving(user.uid)
+                StartDestination.Home
+            }
         }
 
         SplashGate.resolve(destination)

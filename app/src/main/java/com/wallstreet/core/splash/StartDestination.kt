@@ -5,7 +5,7 @@ sealed interface StartDestination {
     data object Unknown : StartDestination
     data object Home : StartDestination
     data object Auth : StartDestination
-    data object Otp : StartDestination
+    data class Otp(val email: String) : StartDestination
     data object Onboarding : StartDestination
 
 }

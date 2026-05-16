@@ -104,7 +104,11 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
     NavDisplay(
         backStack = homeBackStack,
         modifier = modifier,
-        onBack = { homeBackStack.removeLastOrNull() },
+        onBack = {
+            if (homeBackStack.size > 1) {
+                homeBackStack.removeLastOrNull()
+            }
+        },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
@@ -162,7 +166,11 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             entry<AppRoute.Home.LogTradeRoute> {
                 MainScaffold(homeBackStack) {
                     LogTradeScreen(
-                        onNavigateBack = { homeBackStack.removeLastOrNull() }
+                        onNavigateBack = {
+                            if (homeBackStack.size > 1) {
+                                homeBackStack.removeLastOrNull()
+                            }
+                        }
                     )
                 }
 
@@ -190,26 +198,45 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             entry<AppRoute.Home.StrategyDetailRoute> { key ->
                 StrategyDetailsScreen(
                     strategyId = key.strategyId,
-                    onBack = { homeBackStack.removeLastOrNull() }
+                    onBack = {
+                        if (homeBackStack.size > 1) {
+                            homeBackStack.removeLastOrNull()
+                        }
+                    }
                 )
             }
 
             entry<AppRoute.Home.SecurityPrivacyRoute> {
-                SecurityPrivacyScreen(onBack = { homeBackStack.removeLastOrNull() })
+                SecurityPrivacyScreen(onBack = {
+                    if (homeBackStack.size > 1) {
+                        homeBackStack.removeLastOrNull()
+                    }
+                })
             }
 
             entry<AppRoute.Home.PrivacyPolicyRoute> {
-                PrivacyPolicyScreen(onBack = { homeBackStack.removeLastOrNull() })
+                PrivacyPolicyScreen(onBack = {
+                    if (homeBackStack.size > 1) {
+                        homeBackStack.removeLastOrNull()
+                    }
+                })
             }
 
             entry<AppRoute.Home.TermsOfServiceRoute> {
-                TermsOfServiceScreen(onBack = { homeBackStack.removeLastOrNull() })
+                TermsOfServiceScreen(onBack = {
+                    if (homeBackStack.size > 1) {
+                        homeBackStack.removeLastOrNull()
+                    }
+                })
             }
             entry<AppRoute.Home.DeleteAccountRoute> { key ->
                 DeleteAccountScreen(
-                    onBack = { homeBackStack.removeLastOrNull() },
+                    onBack = {
+                        if (homeBackStack.size > 1) {
+                            homeBackStack.removeLastOrNull()
+                        }
+                    },
                     onDelete = onLogout
-
                 )
             }
 

@@ -27,23 +27,22 @@ class RegisterViewModel(
 
     fun signUp(fullName: String, email: String, password: String, confirmPassword: String) =
         viewModelScope.launch {
-            if(fullName.isBlank()){
-                _uiState.value= RegisterUiState(error="Please enter your name")
+            if (fullName.isBlank()) {
+                _uiState.value = RegisterUiState(error = "ERROR_NAME_EMPTY")
                 return@launch
             }
-            if(email.isBlank()){
-                _uiState.value= RegisterUiState(error="Please enter your email")
+            if (email.isBlank()) {
+                _uiState.value = RegisterUiState(error = "ERROR_EMAIL_EMPTY")
                 return@launch
             }
-            if(password.length<6){
-                _uiState.value= RegisterUiState(error="Password must be at least 6 characters")
+            if (password.length < 6) {
+                _uiState.value = RegisterUiState(error = "ERROR_PASSWORD_TOO_SHORT")
                 return@launch
             }
-            if(password!= confirmPassword){
-                _uiState.value= RegisterUiState(error="Passwords do not match")
+            if (password != confirmPassword) {
+                _uiState.value = RegisterUiState(error = "ERROR_PASSWORDS_DO_NOT_MATCH")
                 return@launch
             }
-
 
             _uiState.value = RegisterUiState(isLoading = true)
 
@@ -64,4 +63,7 @@ class RegisterViewModel(
     }
 
     fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
+
+    /** Consume the one-shot navigate-to-OTP event so it cannot re-fire when coming back to this screen. */
+    fun resetNavigation() { _uiState.value = _uiState.value.copy(navigateToOtp = false) }
 }

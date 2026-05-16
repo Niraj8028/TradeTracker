@@ -26,6 +26,7 @@ val useCaseModule = module {
     factory { SignOutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
     factory { VerifyOtpUseCase(get()) }
+    factory { ResendVerificationEmailUseCase(get()) }
     factory { SendPasswordResetEmailUseCase(get()) }
     factory { AddTradeUseCase(get()) }
     factory { GetTradesUseCase(get()) }

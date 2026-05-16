@@ -24,7 +24,7 @@ sealed interface AppRoute : NavKey {
         data object Register : NavKey
 
         @Serializable
-        data object EmailVerificationScreen : NavKey
+        data class EmailVerificationScreen(val email: String) : NavKey
     }
 
 // Bottom nav destinations
