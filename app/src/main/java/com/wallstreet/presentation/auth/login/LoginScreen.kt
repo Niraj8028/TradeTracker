@@ -6,8 +6,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -197,7 +199,7 @@ fun LoginScreen(
                     Image(
                         painter = painterResource(R.drawable.globe),
                         contentDescription = "TradeTrack Globe",
-                        modifier = Modifier.size(300.dp),
+                        modifier = Modifier.fillMaxSize(0.7f),
                         contentScale = ContentScale.Fit
                     )
                 }
@@ -221,7 +223,8 @@ fun LoginScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.64f)
+                    .verticalScroll(rememberScrollState())
+
                     .align(Alignment.BottomCenter),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
                 color = MaterialTheme.colorScheme.surface,
@@ -239,7 +242,10 @@ fun LoginScreen(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(stringResource(R.string.auth_email_address), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            stringResource(R.string.auth_email_address),
+                            style = MaterialTheme.typography.labelLarge
+                        )
                         OutlinedTextField(
                             value = email,
                             onValueChange = { email = it },
@@ -258,7 +264,10 @@ fun LoginScreen(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(stringResource(R.string.auth_password), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            stringResource(R.string.auth_password),
+                            style = MaterialTheme.typography.labelLarge
+                        )
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
@@ -285,7 +294,10 @@ fun LoginScreen(
                             resetEmail = email
                             showForgotDialog = true
                         }) {
-                            Text(stringResource(R.string.auth_forgot_password), color = MaterialTheme.colorScheme.primary)
+                            Text(
+                                stringResource(R.string.auth_forgot_password),
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
 
@@ -305,7 +317,10 @@ fun LoginScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(stringResource(R.string.auth_sign_in), fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.auth_sign_in),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
 
@@ -334,7 +349,7 @@ fun LoginScreen(
                     Spacer(Modifier.height(16.dp))
 
                     // Google Sign In
-                    
+
                     OutlinedButton(
                         onClick = {
                             val gso = GoogleSignInOptions
@@ -353,8 +368,8 @@ fun LoginScreen(
                         Image(
                             painter = painterResource(R.drawable.google_icon),
                             contentDescription = "Google",
-                            modifier = Modifier.size(20.dp)
-                        )
+
+                            )
                         Spacer(Modifier.width(10.dp))
                         Text(
                             stringResource(R.string.auth_continue_with_google),
