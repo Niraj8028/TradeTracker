@@ -10,5 +10,6 @@ data class StrategyStats(
     val winRate: Double,
     val rrRatio: Double,        // Avg Win / Avg Loss
     val avgProfitPerTrade: Double,
-    val period: TimePeriod
+    val period: TimePeriod,
+    val sparkline: List<Double> = emptyList()   // cumulative P&L points, chronological
 )
