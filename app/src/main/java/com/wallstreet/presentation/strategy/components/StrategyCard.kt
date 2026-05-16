@@ -77,7 +77,7 @@ fun StrategyCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -169,13 +169,14 @@ fun StrategyCard(
             StatCell(
                 label = "WIN RATE",
                 value = stats.winRate.formatPercent(),
-                valueColor = winRateColor,
+                valueColor = MaterialTheme.colorScheme.onSurface,
                 bar = (stats.winRate / 100.0).toFloat(),
+                barColor = winRateColor,
                 modifier = Modifier.weight(1f)
             )
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight().padding(horizontal = 8.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
             )
             StatCell(
                 label = "TRADES",
@@ -185,7 +186,7 @@ fun StrategyCard(
             )
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight().padding(horizontal = 8.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
             )
             StatCell(
                 label = "R:R",
@@ -195,7 +196,7 @@ fun StrategyCard(
             )
             VerticalDivider(
                 modifier = Modifier.fillMaxHeight().padding(horizontal = 8.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
             )
             StatCell(
                 label = "AVG P&L",
@@ -313,7 +314,8 @@ private fun StatCell(
     value: String,
     valueColor: Color,
     modifier: Modifier = Modifier,
-    bar: Float? = null
+    bar: Float? = null,
+    barColor: Color? = null
 ) {
     Column(
         modifier = modifier,
@@ -329,7 +331,7 @@ private fun StatCell(
         Text(
             text = value,
             color = valueColor,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
             fontSize = 13.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -347,7 +349,7 @@ private fun StatCell(
                     modifier = Modifier
                         .fillMaxWidth(bar.coerceIn(0f, 1f))
                         .fillMaxHeight()
-                        .background(valueColor)
+                        .background(barColor ?: valueColor)
                 )
             }
         }

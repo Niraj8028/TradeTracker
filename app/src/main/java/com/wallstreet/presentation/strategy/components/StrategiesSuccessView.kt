@@ -50,7 +50,6 @@ import com.wallstreet.ui.theme.PrimaryBlue
 @Composable
 fun StrategySuccessView(
     uiState: StrategiesUiState.Success,
-    padding: PaddingValues,
     timePeriod: TimePeriod,
     onPeriodSelected: (TimePeriod) -> Unit,
     sortOption: StrategySortOption,
@@ -70,10 +69,9 @@ fun StrategySuccessView(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding)
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(bottom = 16.dp, top = 8.dp)
+        contentPadding = PaddingValues(bottom = 16.dp, top = 4.dp)
     ) {
         item {
             PeriodSelector(selectedPeriod = timePeriod, onPeriodSelected = onPeriodSelected)
