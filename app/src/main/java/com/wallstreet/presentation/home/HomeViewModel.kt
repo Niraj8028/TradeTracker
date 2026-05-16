@@ -2,8 +2,10 @@ package com.wallstreet.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.data.sync.SyncScheduler
 import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.domain.repository.TradeRepository
 import com.wallstreet.domain.usecase.home.ComputeHeatMapDataUsecase
 import com.wallstreet.domain.usecase.home.GetEquityCurveDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
@@ -14,6 +16,7 @@ import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -31,8 +34,19 @@ class HomeViewModel(
     private val equityCurveDataUsecase: GetEquityCurveDataUsecase,
     private val mistakesAnalysisUsecase: GetMistakesAnalysisUsecase,
     private val symbolPerformanceUsecase: GetSymbolPerformanceUsecase,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val syncScheduler: SyncScheduler,
+    private val tradeRepository: TradeRepository
 ) : ViewModel() {
+
+    init {
+        authRepository.getCurrentUser()?.id?.let { userId ->
+            syncScheduler.scheduleSync(userId)
+            viewModelScope.launch {
+                tradeRepository.seedFromFirestore(userId)
+            }
+        }
+    }
 
     val selectedPeriod = MutableStateFlow(TimePeriod.ONE_MONTH)
 
