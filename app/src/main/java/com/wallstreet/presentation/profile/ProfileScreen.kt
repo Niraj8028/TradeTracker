@@ -204,7 +204,7 @@ fun ProfileScreen(
         icon = painterResource(R.drawable.log_out),
         onConfirm = {
             showLogoutDialog = false
-            viewModel.signOut()
+            viewModel.onSignOutClicked()
         },
         onDismiss = { showLogoutDialog = false }
     )
