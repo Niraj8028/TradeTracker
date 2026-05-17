@@ -18,7 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.wallstreet.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +30,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Privacy Policy") },
+                title = { Text(stringResource(R.string.privacy_policy_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -45,47 +49,64 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Text("What data we collect", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
             Text(
-                "We collect your trades and journal notes.",
+                text = stringResource(R.string.privacy_policy_effective_date),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(Modifier.height(16.dp))
+            
+            Text(
+                text = stringResource(R.string.privacy_policy_description),
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
-            Text("How we use it", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Only to show you your own analytics.",
-                style = MaterialTheme.typography.bodyMedium
+            PolicySection(
+                title = stringResource(R.string.privacy_policy_collect_title),
+                content = stringResource(R.string.privacy_policy_collect_content)
             )
 
-            Spacer(Modifier.height(16.dp))
-
-            Text("We don't sell your data", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Your data is never shared or sold to third parties.",
-                style = MaterialTheme.typography.bodyMedium
+            PolicySection(
+                title = stringResource(R.string.privacy_policy_usage_title),
+                content = stringResource(R.string.privacy_policy_usage_content)
             )
 
-            Spacer(Modifier.height(16.dp))
-
-            Text("Data Storage", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Stored on Firebase, encrypted and secure.",
-                style = MaterialTheme.typography.bodyMedium
+            PolicySection(
+                title = stringResource(R.string.privacy_policy_sale_title),
+                content = stringResource(R.string.privacy_policy_sale_content)
             )
 
-            Spacer(Modifier.height(16.dp))
+            PolicySection(
+                title = stringResource(R.string.privacy_policy_storage_title),
+                content = stringResource(R.string.privacy_policy_storage_content)
+            )
 
-            Text("Contact", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text("support@tradetrap.com", style = MaterialTheme.typography.bodyMedium)
+            PolicySection(
+                title = stringResource(R.string.privacy_policy_contact_title),
+                content = stringResource(R.string.privacy_policy_contact_content)
+            )
 
             Spacer(Modifier.height(32.dp))
         }
     }
+}
+
+@Composable
+private fun PolicySection(title: String, content: String) {
+    Text(
+        text = title, 
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary
+    )
+    Spacer(Modifier.height(4.dp))
+    Text(
+        text = content,
+        style = MaterialTheme.typography.bodyMedium,
+        lineHeight = 22.sp
+    )
+    Spacer(Modifier.height(20.dp))
 }

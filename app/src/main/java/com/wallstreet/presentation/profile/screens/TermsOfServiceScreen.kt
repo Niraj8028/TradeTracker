@@ -18,7 +18,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.wallstreet.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +30,7 @@ fun TermsOfServiceScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Terms of Service") },
+                title = { Text(stringResource(R.string.terms_of_use_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -45,47 +49,59 @@ fun TermsOfServiceScreen(onBack: () -> Unit) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Text("For journaling only", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
             Text(
-                "This app is a trade journal tool only.",
+                text = stringResource(R.string.privacy_policy_effective_date),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Spacer(Modifier.height(16.dp))
+            
+            Text(
+                text = stringResource(R.string.terms_of_use_description),
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
-            Text("Not Financial Advice", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Nothing in this app constitutes financial advice.",
-                style = MaterialTheme.typography.bodyMedium
+            PolicySection(
+                title = stringResource(R.string.terms_of_use_usage_title),
+                content = stringResource(R.string.terms_of_use_usage_content)
             )
 
-            Spacer(Modifier.height(16.dp))
-
-            Text("Your Data", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "You own your data. We don't sell it.",
-                style = MaterialTheme.typography.bodyMedium
+            PolicySection(
+                title = stringResource(R.string.terms_of_use_journaling_title),
+                content = stringResource(R.string.terms_of_use_journaling_content)
             )
 
-            Spacer(Modifier.height(16.dp))
-
-            Text("No account sharing", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Each account is for personal use only.",
-                style = MaterialTheme.typography.bodyMedium
+            PolicySection(
+                title = stringResource(R.string.terms_of_use_advice_title),
+                content = stringResource(R.string.terms_of_use_advice_content)
             )
 
-            Spacer(Modifier.height(16.dp))
-
-            Text("Contact", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(4.dp))
-            Text("support@tradetrap.com", style = MaterialTheme.typography.bodyMedium)
+            PolicySection(
+                title = stringResource(R.string.terms_of_use_account_title),
+                content = stringResource(R.string.terms_of_use_account_content)
+            )
 
             Spacer(Modifier.height(32.dp))
         }
     }
+}
+
+@Composable
+private fun PolicySection(title: String, content: String) {
+    Text(
+        text = title, 
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary
+    )
+    Spacer(Modifier.height(4.dp))
+    Text(
+        text = content,
+        style = MaterialTheme.typography.bodyMedium,
+        lineHeight = 22.sp
+    )
+    Spacer(Modifier.height(20.dp))
 }

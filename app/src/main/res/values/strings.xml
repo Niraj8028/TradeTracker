@@ -65,4 +65,44 @@
     <string name="error_email_empty">Email cannot be empty</string>
     <string name="error_password_too_short">Password must be at least 6 characters</string>
     <string name="error_passwords_do_not_match">Passwords do not match</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_effective_date">Effective Date: 03 May 2026\nLast Updated: 03 May 2026</string>
+    <string name="privacy_policy_description">TradeCoach is designed to help traders review their own performance. This privacy policy summarizes how the website and app content are intended to handle user data.</string>
+    <string name="privacy_policy_collect_title">What Data We Collect</string>
+    <string name="privacy_policy_collect_content">The app may store trade records, journal notes, strategy tags, screenshots, and related analytics inputs that you choose to add.</string>
+    <string name="privacy_policy_usage_title">How Data Is Used</string>
+    <string name="privacy_policy_usage_content">Your data is used to show your own performance analytics, review history, strategy comparisons, and mistake patterns inside the app experience.</string>
+    <string name="privacy_policy_sale_title">No Sale of Personal Data</string>
+    <string name="privacy_policy_sale_content">We do not sell your data to third parties.</string>
+    <string name="privacy_policy_storage_title">Storage and Security</string>
+    <string name="privacy_policy_storage_content">According to the Android app content, data is stored using Firebase-backed services and protected with standard security controls.</string>
+    <string name="privacy_policy_contact_title">Contact</string>
+    <string name="privacy_policy_contact_content">If you have any questions about this Privacy Policy, please contact us through the support section in the app.</string>
+
+    <!-- Terms of Use -->
+    <string name="terms_of_use_title">Terms of Use</string>
+    <string name="terms_of_use_description">TradeCoach is a trade journaling and analytics tool. These terms describe basic use of the website and app information.</string>
+    <string name="terms_of_use_usage_title">Use of TradeCoach</string>
+    <string name="terms_of_use_usage_content">Use TradeCoach only for lawful purposes and for your personal trading review workflow. Do not misuse TradeCoach branding, website content, or any app-related resources.</string>
+    <string name="terms_of_use_journaling_title">Journaling Only</string>
+    <string name="terms_of_use_journaling_content">TradeCoach is intended for trade journaling, review, and analytics. The product is not a broker, exchange, portfolio manager, or investment advisory service.</string>
+    <string name="terms_of_use_advice_title">No Financial Advice</string>
+    <string name="terms_of_use_advice_content">Nothing on TradeCoach should be treated as financial, investment, legal, or tax advice. All trading decisions remain your responsibility.</string>
+    <string name="terms_of_use_account_title">Your Data and Account</string>
+    <string name="terms_of_use_account_content">Each account is meant for individual use. You remain responsible for the information you log, review, and store in your account.</string>
+    <!-- Security & Privacy -->
+    <string name="security_privacy_title">Security &amp; Privacy</string>
+    <string name="security_header_auth">Authentication</string>
+    <string name="security_signed_in_as">Signed in with %1$s</string>
+    <string name="security_auth_email">Email</string>
+    <string name="security_auth_google">Google</string>
+    <string name="security_header_password">Password Management</string>
+    <string name="security_send_reset_email">Send Password Reset Email</string>
+    <string name="security_reset_email_sent">Reset link sent to your email.</string>
+    <string name="security_header_danger">Danger Zone</string>
+    <string name="security_delete_account_request">Request Account Deletion</string>
+    <string name="security_delete_account_request_desc">Visit our portal to request permanent data removal</string>
+    <string name="security_delete_account_url">https://tradecoachofficial.netlify.app/delete-account/</string>
 </resources>

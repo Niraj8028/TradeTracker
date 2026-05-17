@@ -14,6 +14,8 @@ import com.wallstreet.presentation.auth.login.LoginScreen
 import com.wallstreet.presentation.auth.verification.EmailVerificationScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
 import com.wallstreet.presentation.onboarding.OnboardingScreen
+import com.wallstreet.presentation.profile.screens.PrivacyPolicyScreen
+import com.wallstreet.presentation.profile.screens.TermsOfServiceScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -54,6 +56,14 @@ fun OnboardingNavigation(
                     subclass(
                         AppRoute.OnBoarding.EmailVerificationScreen::class,
                         AppRoute.OnBoarding.EmailVerificationScreen.serializer()
+                    )
+                    subclass(
+                        AppRoute.OnBoarding.PrivacyPolicy::class,
+                        AppRoute.OnBoarding.PrivacyPolicy.serializer()
+                    )
+                    subclass(
+                        AppRoute.OnBoarding.TermsOfService::class,
+                        AppRoute.OnBoarding.TermsOfService.serializer()
                     )
                 }
             }
@@ -111,6 +121,12 @@ fun OnboardingNavigation(
                     },
                     onNavigateToOtp = { email -> 
                         onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 
+                    },
+                    onNavigateToPrivacyPolicy = {
+                        onBoardingBackStack.add(AppRoute.OnBoarding.PrivacyPolicy)
+                    },
+                    onNavigateToTermsOfService = {
+                        onBoardingBackStack.add(AppRoute.OnBoarding.TermsOfService)
                     }
                 )
             }
@@ -142,6 +158,14 @@ fun OnboardingNavigation(
                         }
                     }
                 )
+            }
+
+            entry<AppRoute.OnBoarding.PrivacyPolicy> {
+                PrivacyPolicyScreen(onBack = { onBoardingBackStack.removeLastOrNull() })
+            }
+
+            entry<AppRoute.OnBoarding.TermsOfService> {
+                TermsOfServiceScreen(onBack = { onBoardingBackStack.removeLastOrNull() })
             }
         }
     )

@@ -5,12 +5,10 @@ data class User(
     val name: String,
     val email: String,
     val photoUrl: String? = null,
-//    val createdAt: Long,
-    // TODO work on userSettings
-    //    val settings: UserSettings
+    val providerId: String? = null
 )
 
-data class UserSettings (
+data class UserSettings(
     val isDarkMode: Boolean = false,
     val baseCurrency: String = "USD",
     val notificationsEnabled: Boolean = true

@@ -207,11 +207,17 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             }
 
             entry<AppRoute.Home.SecurityPrivacyRoute> {
-                SecurityPrivacyScreen(onBack = {
-                    if (homeBackStack.size > 1) {
-                        homeBackStack.removeLastOrNull()
+                SecurityPrivacyScreen(
+                    viewModel = org.koin.androidx.compose.koinViewModel(),
+                    onDeleteInApp = {
+                        homeBackStack.add(AppRoute.Home.DeleteAccountRoute)
+                    },
+                    onBack = {
+                        if (homeBackStack.size > 1) {
+                            homeBackStack.removeLastOrNull()
+                        }
                     }
-                })
+                )
             }
 
             entry<AppRoute.Home.PrivacyPolicyRoute> {

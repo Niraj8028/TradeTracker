@@ -7,6 +7,7 @@ import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.TradeRepository
 import com.wallstreet.domain.usecase.auth.DeleteAccountUseCase
 import com.wallstreet.domain.usecase.auth.GetCurrentUserUseCase
+import com.wallstreet.domain.usecase.auth.SendPasswordResetUseCase
 import com.wallstreet.domain.usecase.auth.SignOutUseCase
 import com.wallstreet.presentation.profile.screens.DeleteUiState
 import com.wallstreet.presentation.profile.screens.DeleteUiState.Error
@@ -19,6 +20,7 @@ class ProfileViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val signOutUseCase: SignOutUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
+    private val sendPasswordResetUseCase: SendPasswordResetUseCase,
     private val tradeRepository: TradeRepository
 ) : ViewModel() {
 
@@ -32,6 +34,9 @@ class ProfileViewModel(
 
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
+
+    private val _resetEmailState = MutableStateFlow<Result<Unit>?>(null)
+    val resetEmailState: StateFlow<Result<Unit>?> = _resetEmailState.asStateFlow()
 
     // true = show "unsynced trades" warning dialog before logout
     private val _showUnsyncedWarning = MutableStateFlow(false)
@@ -80,5 +85,15 @@ class ProfileViewModel(
             is Result.Error -> _deleteState.value = Error(result.message)
             Result.Loading -> _deleteState.value = DeleteUiState.Loading
         }
+    }
+
+    fun sendPasswordResetEmail() = viewModelScope.launch {
+        val email = user?.email ?: return@launch
+        _resetEmailState.value = Result.Loading
+        _resetEmailState.value = sendPasswordResetUseCase(email)
+    }
+
+    fun clearResetEmailState() {
+        _resetEmailState.value = null
     }
 }

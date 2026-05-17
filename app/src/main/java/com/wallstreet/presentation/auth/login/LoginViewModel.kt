@@ -3,7 +3,7 @@ package com.wallstreet.presentation.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.core.result.Result
-import com.wallstreet.domain.usecase.auth.SendPasswordResetEmailUseCase
+import com.wallstreet.domain.usecase.auth.SendPasswordResetUseCase
 import com.wallstreet.domain.usecase.auth.SignInUseCase
 import com.wallstreet.domain.usecase.auth.SignInWithGoogleUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 class LoginViewModel(
     private val signIn: SignInUseCase,
     private val signInWithGoogle: SignInWithGoogleUseCase,
-    private val sendPasswordResetEmail: SendPasswordResetEmailUseCase,
+    private val sendPasswordResetEmail: SendPasswordResetUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())

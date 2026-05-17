@@ -123,7 +123,8 @@ class AuthRepositoryImpl(
         id = uid,
         name = displayName ?: "Trader",
         email = email ?: "",
-        photoUrl = photoUrl?.toString()
+        photoUrl = photoUrl?.toString(),
+        providerId = providerData.getOrNull(1)?.providerId ?: "password"
     )
 
     private fun Exception.friendlyMessage(): String = when {
