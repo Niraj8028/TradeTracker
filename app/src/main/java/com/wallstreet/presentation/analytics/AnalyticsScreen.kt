@@ -21,12 +21,13 @@ import com.wallstreet.presentation.analytics.components.FilterOption
 import com.wallstreet.presentation.analytics.components.FilterTab
 import com.wallstreet.presentation.analytics.components.OverView
 import com.wallstreet.presentation.analytics.components.TabItem
+import com.wallstreet.presentation.analytics.components.TrendTab
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val tabList = listOf(TabItem("OverView"), TabItem("Calendar"))
+    val tabList = listOf(TabItem("Overview"), TabItem("Trend"), TabItem("Calendar"))
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -89,7 +90,7 @@ private fun AnalyticsContent(
             selectedIndex = state.selectedTabIndex,
             onTabChange = onTabSelect
         )
-        if(state.selectedTabIndex != 1) {
+        if(state.selectedTabIndex != 2) {
             FilterTab(
                 filters = FilterOption.all,
                 selected = FilterOption.fromTimePeriod(state.selectedFilter),
@@ -107,8 +108,8 @@ private fun AnalyticsContent(
                     dayPerformance = state.dayPerformance,
                     recentTrades = state.recentTrades
                 )
-
-                1 -> Calendar(
+                1 -> TrendTab(data = state.trendPerformance)
+                2 -> Calendar(
                     calendarDays = state.calendarDays,
                     currentMonth = state.currentMonth,
                     onNextMonth = onNextMonth,

@@ -10,6 +10,9 @@ import com.wallstreet.domain.model.TradeSummary
 import com.wallstreet.domain.model.CalendarDay
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeType
+import com.wallstreet.domain.model.TrendDirection
+import com.wallstreet.domain.model.TrendPerformanceData
+import com.wallstreet.domain.model.TrendStat
 import com.wallstreet.domain.repository.AnalyticsRepository
 import java.time.DayOfWeek
 import java.time.Instant
@@ -71,6 +74,19 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
         }
 
         return DayPerformance(dayStatsList, bestDay)
+    }
+
+    override fun getTrendPerformance(trades: List<Trade>): TrendPerformanceData {
+        val withDirection = trades.filter { it.trendDirection != null }
+        val stats = TrendDirection.entries.mapNotNull { dir ->
+            val group = withDirection.filter { it.trendDirection == dir }
+            if (group.isEmpty()) return@mapNotNull null
+            val totalPnl = group.sumOf { it.profitLoss ?: 0.0 }
+            val wins = group.count { (it.profitLoss ?: 0.0) > 0 }
+            val winRate = wins.toDouble() / group.size * 100
+            TrendStat(direction = dir, trades = group.size, totalPnl = totalPnl, winRate = winRate)
+        }
+        return TrendPerformanceData(stats)
     }
 
     override fun getCalendarData(yearMonth: YearMonth, trades: List<Trade>): List<CalendarDay> {

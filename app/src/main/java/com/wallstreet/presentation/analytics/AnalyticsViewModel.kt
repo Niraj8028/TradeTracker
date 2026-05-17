@@ -7,6 +7,7 @@ import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.analytics.GetCalendarDataUseCase
 import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
 import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
+import com.wallstreet.domain.usecase.analytics.GetTrendPerformanceUseCase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +27,8 @@ class AnalyticsViewModel(
     private val getTradeSummaryUseCase: GetTradeSummaryUseCase,
     private val getDayPerformanceUseCase: GetDayPerformanceUseCase,
     private val getCalendarDataUseCase: GetCalendarDataUseCase,
-    private val getTradesUseCase: GetTradesUseCase
+    private val getTradesUseCase: GetTradesUseCase,
+    private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase
 ) : ViewModel() {
 
     private val _selectedTabIndex = MutableStateFlow(0)
@@ -44,6 +46,7 @@ class AnalyticsViewModel(
             val summary = getTradeSummaryUseCase(trades)
             val performance = getDayPerformanceUseCase(trades)
             val calendarDays = getCalendarDataUseCase(currentMonth, trades)
+            val trendPerformance = getTrendPerformanceUseCase(trades)
 
             AnalyticsUiState.Success(
                 selectedFilter = filter,
@@ -52,7 +55,8 @@ class AnalyticsViewModel(
                 calendarDays = calendarDays,
                 currentMonth = currentMonth,
                 selectedTabIndex = tabIndex,
-                recentTrades = getRecentTradeData(trades)
+                recentTrades = getRecentTradeData(trades),
+                trendPerformance = trendPerformance
             ) as AnalyticsUiState
         }
     }.onStart {

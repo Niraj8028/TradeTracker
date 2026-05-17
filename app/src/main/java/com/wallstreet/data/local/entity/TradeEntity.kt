@@ -2,6 +2,7 @@ package com.wallstreet.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TradeType
 
 enum class SyncStatus { PENDING, SYNCED, FAILED }
@@ -27,5 +28,6 @@ data class TradeEntity(
     val createdAt: Long? = null,
     val syncStatus: SyncStatus = SyncStatus.PENDING,
     val lastSyncAttempt: Long? = null,
-    val syncError: String? = null
+    val syncError: String? = null,
+    val trendDirection: TrendDirection? = null
 )

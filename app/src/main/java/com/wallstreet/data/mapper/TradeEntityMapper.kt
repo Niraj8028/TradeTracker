@@ -21,7 +21,8 @@ fun TradeEntity.toDomain(): Trade = Trade(
     userId = userId,
     comments = comments,
     mistakes = mistakes,
-    createAt = createdAt
+    createAt = createdAt,
+    trendDirection = trendDirection
 )
 
 fun Trade.toEntity(
@@ -44,5 +45,6 @@ fun Trade.toEntity(
     comments = comments,
     mistakes = mistakes,
     createdAt = createAt,
-    syncStatus = syncStatus
+    syncStatus = syncStatus,
+    trendDirection = trendDirection
 )

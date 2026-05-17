@@ -5,6 +5,7 @@ import com.wallstreet.domain.model.TradeSummary
 import com.wallstreet.domain.model.CalendarDay
 import com.wallstreet.domain.model.RecentTradeItem
 import com.wallstreet.domain.model.TimePeriod
+import com.wallstreet.domain.model.TrendPerformanceData
 import java.time.YearMonth
 
 sealed class AnalyticsUiState {
@@ -17,6 +18,7 @@ sealed class AnalyticsUiState {
         val calendarDays: List<CalendarDay>,
         val currentMonth: YearMonth,
         val selectedTabIndex: Int,
-        val recentTrades: List<RecentTradeItem>
+        val recentTrades: List<RecentTradeItem>,
+        val trendPerformance: TrendPerformanceData
     ) : AnalyticsUiState()
 }

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.presentation.analytics.components.DayWisePerformance
 import com.wallstreet.presentation.analytics.components.LongShortCard
+import com.wallstreet.presentation.analytics.components.TrendPerformanceCard
 import com.wallstreet.presentation.home.components.EquityCurveChart
 import com.wallstreet.presentation.home.components.PeriodSelector
 import com.wallstreet.presentation.home.components.SymbolPerformanceCard
@@ -188,7 +189,10 @@ private fun StrategyDetailSuccess(
             // Section 6 — Best trading day
             DayWisePerformance(dayPerformance = state.dayPerformance)
 
-            // Section 7 — Mistake summary
+            // Section 7 — Trend performance
+            TrendPerformanceCard(data = state.trendPerformance)
+
+            // Section 8 — Mistake summary
             TopMistakesCard(
                 data = state.mistakesAnalysisData,
                 onViewAll = {}

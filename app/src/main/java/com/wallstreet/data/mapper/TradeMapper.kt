@@ -2,6 +2,7 @@ package com.wallstreet.data.mapper
 
 import com.wallstreet.data.model.TradeDto
 import com.wallstreet.domain.model.Trade
+import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TradeType
 
 fun TradeDto.toDomain(): Trade {
@@ -22,7 +23,8 @@ fun TradeDto.toDomain(): Trade {
         userId = userId,
         mistakes = mistakes,
         tradeDate = tradeDate,
-        createAt = createdAt
+        createAt = createdAt,
+        trendDirection = trendDirection?.let { TrendDirection.valueOf(it) }
     )
 }
 
@@ -44,6 +46,7 @@ fun Trade.toDto(): TradeDto {
         userId = userId,
         mistakes = mistakes,
         tradeDate = tradeDate,
-        createdAt = createAt
+        createdAt = createAt,
+        trendDirection = trendDirection?.name
     )
 }

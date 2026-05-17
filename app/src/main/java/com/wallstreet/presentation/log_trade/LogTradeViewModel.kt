@@ -6,6 +6,7 @@ import com.wallstreet.core.constants.AppConstants
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.Trade
+import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
@@ -45,6 +46,13 @@ class LogTradeViewModel(
 
     fun onTradeTypeChanged(tradeType: TradeType) {
         _uiState.update { it.copy(tradeType = tradeType, exitPriceError = null, entryPriceError = null) }
+    }
+
+    fun onTrendDirectionSelected(dir: TrendDirection) {
+        _uiState.update { state ->
+            val newDir = if (state.trendDirection == dir) null else dir
+            state.copy(trendDirection = newDir)
+        }
     }
 
     fun onSymbolChanged(symbol: String) {
@@ -135,7 +143,8 @@ class LogTradeViewModel(
                 imageUrl = state.imageUri,
                 tradeDate = state.tradeDate,
                 createAt = System.currentTimeMillis(),
-                mistakes = state.selectedMistakes.toList()
+                mistakes = state.selectedMistakes.toList(),
+                trendDirection = state.trendDirection
             )
             val result = addTradeUseCase(trade)
             when (result) {
