@@ -4,6 +4,7 @@ import android.app.Application
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.initialize
+import com.wallstreet.core.logging.CrashlyticsTree
 import com.wallstreet.di.appModule
 import com.wallstreet.di.databaseModule
 import com.wallstreet.di.firebaseModule
@@ -20,7 +21,12 @@ class TradeTrack: Application() {
     override fun onCreate() {
         super.onCreate()
         FirebaseApp.initializeApp(this)
-        if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
+
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        } else {
+            Timber.plant(CrashlyticsTree())
+        }
 
         startKoin {
             androidLogger(Level.DEBUG)
