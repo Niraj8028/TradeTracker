@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             // If reload fails (e.g. no network), we still proceed with cached state
         }
-        
+
         val prefs = OnboardingPreferences(applicationContext)
         val onboardingDone = prefs.isOnboardingCompleted()
 
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
             user == null && onboardingDone -> StartDestination.Auth
             user != null && !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
             else -> {
-                if (user != null) tradeStore.startObserving(user.uid)
+//                if (user != null) tradeStore.startObserving(user.uid)
                 StartDestination.Home
             }
         }
