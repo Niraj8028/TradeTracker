@@ -3,8 +3,8 @@ package com.wallstreet.presentation.onboarding
 import android.os.Bundle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wallstreet.core.preferences.OnboardingPreferences
 import com.wallstreet.domain.analytics.AnalyticsManager
+import com.wallstreet.domain.usecase.onboarding.CompleteOnboardingUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class OnboardingViewModel(
-    private val onboardingPreferences: OnboardingPreferences,
-    private val analyticsManager: AnalyticsManager
+    private val analyticsManager: AnalyticsManager,
+    private val completeOnboardingUseCase: CompleteOnboardingUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
@@ -91,9 +91,8 @@ class OnboardingViewModel(
                 putInt("roles_count", roles.size)
             })
 
-            // 3. Save to local preferences
-            onboardingPreferences.saveUserRoles(roles.toSet())
-            onboardingPreferences.setOnboardingCompleted()
+            // 3. Complete onboarding via UseCase (handles Firestore & Preferences)
+            completeOnboardingUseCase(roles.toSet())
         }
     }
 }
