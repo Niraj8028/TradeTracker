@@ -15,6 +15,7 @@ import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
 import com.wallstreet.core.splash.SplashGate
 import com.wallstreet.core.splash.StartDestination
+import com.wallstreet.domain.analytics.AnalyticsManager
 import com.wallstreet.navigation.AppNavigation
 import com.wallstreet.ui.theme.WallStreetAndroidTheme
 
@@ -23,6 +24,8 @@ import kotlinx.coroutines.tasks.await
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+
+    private val analyticsManager: AnalyticsManager by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enable Firestore debug logging
@@ -68,17 +71,19 @@ class MainActivity : ComponentActivity() {
             // If reload fails (e.g. no network), we still proceed with cached state
         }
 
+        user?.let {
+            analyticsManager.setUserId(it.uid)
+            it.email?.let { email -> analyticsManager.setUserProperty("user_email", email) }
+        }
+
         val prefs = OnboardingPreferences(applicationContext)
         val onboardingDone = prefs.isOnboardingCompleted()
 
         val destination = when {
-            user == null && !onboardingDone -> StartDestination.Onboarding
-            user == null && onboardingDone -> StartDestination.Auth
-            user != null && !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
-            else -> {
-//                if (user != null) tradeStore.startObserving(user.uid)
-                StartDestination.Home
-            }
+            user == null -> StartDestination.Auth
+            !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
+            !onboardingDone -> StartDestination.Onboarding
+            else -> StartDestination.Home
         }
 
         SplashGate.resolve(destination)

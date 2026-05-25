@@ -81,16 +81,17 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Onboarding> {
                 OnboardingScreen(
                     onFinish = {
-                        // Add first then remove to avoid empty backstack crash in NavDisplay
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Login)
-                        onBoardingBackStack.remove(AppRoute.OnBoarding.Onboarding)
+                        onLogin()
                     }
                 )
             }
 
             entry<AppRoute.OnBoarding.Login> {
                 LoginScreen(
-                    onLoginSuccess = { onLogin() },
+                    onLoginSuccess = {
+                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+                        onBoardingBackStack.remove(AppRoute.OnBoarding.Login)
+                    },
                     onNavigateToRegister = { onBoardingBackStack.add(AppRoute.OnBoarding.Register) },
                     onNavigateToOtp = { email -> 
                         onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 
@@ -100,7 +101,10 @@ fun OnboardingNavigation(
 
             entry<AppRoute.OnBoarding.Register> {
                 RegisterScreen(
-                    onRegisterSuccess = { onLogin() },
+                    onRegisterSuccess = {
+                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+                        onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
+                    },
                     onNavigateToLogin = {
                         if (onBoardingBackStack.size > 1) {
                             onBoardingBackStack.removeLastOrNull()
@@ -118,7 +122,10 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.EmailVerificationScreen> { route ->
                 EmailVerificationScreen(
                     email = route.email,
-                    onVerified = { onLogin() },
+                    onVerified = {
+                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+                        onBoardingBackStack.remove(route)
+                    },
                     onBack = {
                         // viewModel.abandon() in EmailVerify.kt has already:
                         //   - cancelled the polling coroutine
