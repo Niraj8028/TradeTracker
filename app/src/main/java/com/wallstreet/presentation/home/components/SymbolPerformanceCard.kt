@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.core.util.formatPnl
@@ -100,6 +101,7 @@ private fun SymbolRow(stat: SymbolStat, rank: Int, maxAbsPnl: Double) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
+                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -115,11 +117,15 @@ private fun SymbolRow(stat: SymbolStat, rank: Int, maxAbsPnl: Double) {
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        maxLines = 1
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -129,7 +135,9 @@ private fun SymbolRow(stat: SymbolStat, rank: Int, maxAbsPnl: Double) {
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 13.sp
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         if (stat.isBest) {
                             SymbolBadge(label = "BEST", background = SuccessGreen.copy(alpha = 0.15f), textColor = SuccessGreen)
@@ -141,7 +149,9 @@ private fun SymbolRow(stat: SymbolStat, rank: Int, maxAbsPnl: Double) {
                         text = "${stat.tradeCount} trades · WR ${"%.0f".format(stat.winRate)}%",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -151,7 +161,9 @@ private fun SymbolRow(stat: SymbolStat, rank: Int, maxAbsPnl: Double) {
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = pnlColor,
-                fontSize = 13.sp
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 

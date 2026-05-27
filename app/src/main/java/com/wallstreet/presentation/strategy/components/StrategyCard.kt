@@ -131,14 +131,17 @@ fun StrategyCard(
                 fontWeight = FontWeight.ExtraBold,
                 color = pnlColor,
                 fontSize = 26.sp,
-                letterSpacing = (-0.6).sp
+                letterSpacing = (-0.6).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
             if (stats.sparkline.size >= 2) {
                 Sparkline(
                     points = stats.sparkline,
                     color = pnlColor,
                     modifier = Modifier
-                        .width(140.dp)
+                        .width(120.dp)
                         .height(52.dp)
                 )
             }
@@ -326,7 +329,9 @@ private fun StatCell(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 9.5.sp,
             fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.4.sp
+            letterSpacing = 0.4.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             text = value,

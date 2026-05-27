@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,7 +19,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -44,6 +47,7 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
 
     var fullName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
@@ -55,7 +59,7 @@ fun RegisterScreen(
 
     LaunchedEffect(uiState.navigateToOtp) {
         if (uiState.navigateToOtp) {
-            viewModel.resetNavigation() // consume FIRST so it never re-fires on back-stack restore
+            viewModel.resetNavigation()
             onNavigateToOtp(email)
         }
     }
@@ -65,15 +69,15 @@ fun RegisterScreen(
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             val message = when (error) {
-                "ERROR_EMAIL_ALREADY_IN_USE" -> context.getString(R.string.error_email_already_in_use)
-                "ERROR_INVALID_PASSWORD" -> context.getString(R.string.error_invalid_password)
-                "ERROR_USER_NOT_FOUND" -> context.getString(R.string.error_user_not_found)
-                "ERROR_NETWORK_CONNECTION" -> context.getString(R.string.error_network_connection)
-                "EMAIL_NOT_VERIFIED" -> context.getString(R.string.error_email_not_verified)
-                "ERROR_NAME_EMPTY" -> context.getString(R.string.error_name_empty)
-                "ERROR_EMAIL_EMPTY" -> context.getString(R.string.error_email_empty)
-                "ERROR_PASSWORD_TOO_SHORT" -> context.getString(R.string.error_password_too_short)
-                "ERROR_PASSWORDS_DO_NOT_MATCH" -> context.getString(R.string.error_passwords_do_not_match)
+                "ERROR_EMAIL_ALREADY_IN_USE"  -> context.getString(R.string.error_email_already_in_use)
+                "ERROR_INVALID_PASSWORD"      -> context.getString(R.string.error_invalid_password)
+                "ERROR_USER_NOT_FOUND"        -> context.getString(R.string.error_user_not_found)
+                "ERROR_NETWORK_CONNECTION"    -> context.getString(R.string.error_network_connection)
+                "EMAIL_NOT_VERIFIED"          -> context.getString(R.string.error_email_not_verified)
+                "ERROR_NAME_EMPTY"            -> context.getString(R.string.error_name_empty)
+                "ERROR_EMAIL_EMPTY"           -> context.getString(R.string.error_email_empty)
+                "ERROR_PASSWORD_TOO_SHORT"    -> context.getString(R.string.error_password_too_short)
+                "ERROR_PASSWORDS_DO_NOT_MATCH"-> context.getString(R.string.error_passwords_do_not_match)
                 else -> error
             }
             snackbarHostState.showSnackbar(message)
@@ -93,6 +97,12 @@ fun RegisterScreen(
             } catch (_: ApiException) {
             }
         }
+    }
+
+    // Helper: submit the form
+    val submit = {
+        focusManager.clearFocus()
+        viewModel.signUp(fullName, email, password, confirmPassword)
     }
 
     Scaffold(
@@ -125,7 +135,7 @@ fun RegisterScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
-            // ── TOP: Title + subtitle sitting in dark background ──
+            // ── TOP: Title + subtitle ───────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,7 +147,6 @@ fun RegisterScreen(
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Two-tone brand title
                 Text(
                     buildAnnotatedString {
                         withStyle(
@@ -147,7 +156,6 @@ fun RegisterScreen(
                             )
                         ) {
                             append(stringResource(R.string.register_title_create))
-                            
                         }
                         withStyle(
                             SpanStyle(
@@ -170,11 +178,11 @@ fun RegisterScreen(
                 )
             }
 
-            // ── BOTTOM CARD: large card taking ~80% of screen ──
+            // ── BOTTOM CARD ─────────────────────────────────────────────────
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f)          // <-- large card like reference
+                    .fillMaxHeight(0.8f)
                     .align(Alignment.BottomCenter),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
                 color = MaterialTheme.colorScheme.surface,
@@ -184,6 +192,7 @@ fun RegisterScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .imePadding()                    // slide up when keyboard appears
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 24.dp)
                         .padding(top = 12.dp, bottom = 28.dp),
@@ -192,7 +201,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(24.dp))
 
-                    // ── Full Name ──
+                    // ── Full Name ──────────────────────────────────────────
                     Column(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -220,6 +229,13 @@ fun RegisterScreen(
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next          // → email
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
                             singleLine = true,
                             shape = RoundedCornerShape(50.dp)
                         )
@@ -227,7 +243,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(14.dp))
 
-                    // ── Email ──
+                    // ── Email ──────────────────────────────────────────────
                     Column(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -255,7 +271,13 @@ fun RegisterScreen(
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next          // → password
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
                             singleLine = true,
                             shape = RoundedCornerShape(50.dp)
                         )
@@ -263,7 +285,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(14.dp))
 
-                    // ── Password ──
+                    // ── Password ───────────────────────────────────────────
                     Column(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -303,7 +325,13 @@ fun RegisterScreen(
                                     )
                                 }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Next          // → confirm password
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
                             singleLine = true,
                             shape = RoundedCornerShape(50.dp)
                         )
@@ -311,7 +339,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(14.dp))
 
-                    // ── Confirm Password ──
+                    // ── Confirm Password ───────────────────────────────────
                     Column(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -321,6 +349,10 @@ fun RegisterScreen(
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
                         )
+                        // Inline mismatch hint (no snackbar needed for this one)
+                        val passwordMismatch = confirmPassword.isNotEmpty() &&
+                                confirmPassword != password
+
                         OutlinedTextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
@@ -335,7 +367,9 @@ fun RegisterScreen(
                                 Icon(
                                     Icons.Filled.LockOpen,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    tint = if (passwordMismatch)
+                                        MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
@@ -353,7 +387,17 @@ fun RegisterScreen(
                                     )
                                 }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            isError = passwordMismatch,
+                            supportingText = if (passwordMismatch) {
+                                { Text(stringResource(R.string.error_passwords_do_not_match)) }
+                            } else null,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done           // → submit form
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = { submit() }
+                            ),
                             singleLine = true,
                             shape = RoundedCornerShape(50.dp)
                         )
@@ -361,11 +405,9 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(24.dp))
 
-                    // ── Create Account Button ──
+                    // ── Create Account Button ──────────────────────────────
                     Button(
-                        onClick = {
-                            viewModel.signUp(fullName, email, password, confirmPassword)
-                        },
+                        onClick = { submit() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -390,7 +432,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // ── "or" Divider ──
+                    // ── "or" Divider ───────────────────────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -412,7 +454,7 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // ── Google Sign Up ──
+                    // ── Google Sign Up ─────────────────────────────────────
                     OutlinedButton(
                         onClick = {
                             val gso = GoogleSignInOptions
@@ -426,7 +468,8 @@ fun RegisterScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        shape = RoundedCornerShape(50.dp)
+                        shape = RoundedCornerShape(50.dp),
+                        enabled = !uiState.isLoading   // block during any in-flight request
                     ) {
                         Image(
                             painter = painterResource(R.drawable.google_icon),

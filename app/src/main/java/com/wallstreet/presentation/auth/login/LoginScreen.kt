@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,9 +20,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -36,6 +39,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.wallstreet.R
+import com.wallstreet.ui.theme.SuccessGreen
 import org.koin.androidx.compose.koinViewModel
 import timber.log.Timber
 
@@ -48,16 +52,20 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     var showForgotDialog by rememberSaveable { mutableStateOf(false) }
     var resetEmail by rememberSaveable { mutableStateOf("") }
+    // track whether the current snackbar message is an error or a success
+    var snackbarIsError by remember { mutableStateOf(true) }
 
     LaunchedEffect(uiState.navigateToOtp) {
         if (uiState.navigateToOtp) {
-            viewModel.resetNavigation() // consume FIRST so it never re-fires
+            viewModel.resetNavigation()
             onNavigateToOtp(email)
         }
     }
@@ -68,22 +76,24 @@ fun LoginScreen(
         uiState.error?.let { error ->
             val message = when (error) {
                 "ERROR_EMAIL_ALREADY_IN_USE" -> context.getString(R.string.error_email_already_in_use)
-                "ERROR_INVALID_PASSWORD" -> context.getString(R.string.error_invalid_password)
-                "ERROR_USER_NOT_FOUND" -> context.getString(R.string.error_user_not_found)
-                "ERROR_NETWORK_CONNECTION" -> context.getString(R.string.error_network_connection)
-                "EMAIL_NOT_VERIFIED" -> context.getString(R.string.error_email_not_verified)
-                "ERROR_EMAIL_EMPTY" -> context.getString(R.string.error_email_empty)
-                "ERROR_PASSWORD_TOO_SHORT" -> context.getString(R.string.error_password_too_short)
+                "ERROR_INVALID_PASSWORD"     -> context.getString(R.string.error_invalid_password)
+                "ERROR_USER_NOT_FOUND"       -> context.getString(R.string.error_user_not_found)
+                "ERROR_NETWORK_CONNECTION"   -> context.getString(R.string.error_network_connection)
+                "EMAIL_NOT_VERIFIED"         -> context.getString(R.string.error_email_not_verified)
+                "ERROR_EMAIL_EMPTY"          -> context.getString(R.string.error_email_empty)
+                "ERROR_PASSWORD_TOO_SHORT"   -> context.getString(R.string.error_password_too_short)
                 else -> error
             }
+            snackbarIsError = true
             snackbarHostState.showSnackbar(message)
             viewModel.clearError()
         }
     }
     LaunchedEffect(uiState.resetEmailSent) {
         if (uiState.resetEmailSent) {
-            viewModel.clearResetEmailSent() // consume the event
+            viewModel.clearResetEmailSent()
             showForgotDialog = false
+            snackbarIsError = false   // success — show in green
             snackbarHostState.showSnackbar(context.getString(R.string.login_reset_email_sent))
         }
     }
@@ -104,9 +114,10 @@ fun LoginScreen(
         }
     }
 
+    // ── Forgot-password dialog ──────────────────────────────────────────────
     if (showForgotDialog) {
         AlertDialog(
-            onDismissRequest = { showForgotDialog = false },
+            onDismissRequest = { if (!uiState.isLoading) showForgotDialog = false },
             title = { Text(stringResource(R.string.login_reset_password_title)) },
             text = {
                 Column {
@@ -120,7 +131,13 @@ fun LoginScreen(
                         value = resetEmail,
                         onValueChange = { resetEmail = it },
                         placeholder = { Text(stringResource(R.string.login_reset_password_placeholder)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { if (resetEmail.isNotBlank()) viewModel.forgotPassword(resetEmail) }
+                        ),
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -130,7 +147,7 @@ fun LoginScreen(
             confirmButton = {
                 Button(
                     onClick = { viewModel.forgotPassword(resetEmail) },
-                    enabled = !uiState.isLoading
+                    enabled = !uiState.isLoading && resetEmail.isNotBlank()
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
@@ -144,7 +161,10 @@ fun LoginScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showForgotDialog = false }) {
+                TextButton(
+                    onClick = { showForgotDialog = false },
+                    enabled = !uiState.isLoading
+                ) {
                     Text(stringResource(R.string.login_cancel))
                 }
             }
@@ -164,8 +184,10 @@ fun LoginScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) { snackbarData ->
                     Snackbar(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
+                        containerColor = if (snackbarIsError)
+                            MaterialTheme.colorScheme.error else SuccessGreen,
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(snackbarData.visuals.message)
                     }
@@ -177,10 +199,10 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background) // dark top area
+                .background(MaterialTheme.colorScheme.background)
         ) {
 
-            // ── TOP SECTION: Logo + branding (lives in the dark background) ──
+            // ── TOP: Logo + branding ────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -192,7 +214,6 @@ fun LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-
                         .clipToBounds(),
                     contentAlignment = Alignment.Center
                 ) {
@@ -203,8 +224,6 @@ fun LoginScreen(
                         contentScale = ContentScale.Fit
                     )
                 }
-
-
                 Text(
                     stringResource(R.string.login_title),
                     style = MaterialTheme.typography.headlineMedium,
@@ -219,12 +238,12 @@ fun LoginScreen(
                 )
             }
 
-            // ── BOTTOM CARD: rounded top corners, elevated surface ──
+            // ── BOTTOM CARD ─────────────────────────────────────────────────
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .imePadding()                    // slide up when keyboard appears
                     .verticalScroll(rememberScrollState())
-
                     .align(Alignment.BottomCenter),
                 shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
                 color = MaterialTheme.colorScheme.surface,
@@ -237,7 +256,7 @@ fun LoginScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    // Email
+                    // ── Email ──────────────────────────────────────────────
                     Column(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -251,15 +270,21 @@ fun LoginScreen(
                             onValueChange = { email = it },
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = { Text(stringResource(R.string.auth_email_placeholder)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next          // move to password
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
                             singleLine = true,
-                            shape = RoundedCornerShape(50.dp) // pill shape like reference
+                            shape = RoundedCornerShape(50.dp)
                         )
                     }
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Password
+                    // ── Password ───────────────────────────────────────────
                     Column(
                         Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -283,9 +308,18 @@ fun LoginScreen(
                                     )
                                 }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done          // trigger sign-in
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    focusManager.clearFocus()
+                                    viewModel.signIn(email, password)
+                                }
+                            ),
                             singleLine = true,
-                            shape = RoundedCornerShape(50.dp) // pill shape
+                            shape = RoundedCornerShape(50.dp)
                         )
                     }
 
@@ -301,13 +335,16 @@ fun LoginScreen(
                         }
                     }
 
-                    // Sign In Button
+                    // ── Sign In Button ─────────────────────────────────────
                     Button(
-                        onClick = { viewModel.signIn(email, password) },
+                        onClick = {
+                            focusManager.clearFocus()
+                            viewModel.signIn(email, password)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        shape = RoundedCornerShape(50.dp), // pill shape
+                        shape = RoundedCornerShape(50.dp),
                         enabled = !uiState.isLoading
                     ) {
                         if (uiState.isLoading) {
@@ -326,7 +363,7 @@ fun LoginScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Divider with "or"
+                    // ── Divider ────────────────────────────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -348,8 +385,7 @@ fun LoginScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Google Sign In
-
+                    // ── Google Sign-In ─────────────────────────────────────
                     OutlinedButton(
                         onClick = {
                             val gso = GoogleSignInOptions
@@ -363,13 +399,14 @@ fun LoginScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        shape = RoundedCornerShape(50.dp)
+                        shape = RoundedCornerShape(50.dp),
+                        enabled = !uiState.isLoading   // block during any in-flight request
                     ) {
                         Image(
                             painter = painterResource(R.drawable.google_icon),
                             contentDescription = "Google",
-
-                            )
+                            modifier = Modifier.size(20.dp)   // fixed size so icon is consistent
+                        )
                         Spacer(Modifier.width(10.dp))
                         Text(
                             stringResource(R.string.auth_continue_with_google),
@@ -377,7 +414,6 @@ fun LoginScreen(
                             fontSize = 15.sp
                         )
                     }
-
 
                     Spacer(Modifier.height(20.dp))
 

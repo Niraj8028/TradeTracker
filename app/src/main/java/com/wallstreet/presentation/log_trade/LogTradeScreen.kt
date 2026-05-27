@@ -83,6 +83,7 @@ import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -99,7 +100,18 @@ fun LogTradeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = uiState.tradeDate)
     var showDatePicker by remember { mutableStateOf(false) }
-    var datePick by remember { mutableStateOf("today") }
+
+    val datePick = remember(uiState.tradeDate) {
+        val tradeDate = Instant.ofEpochMilli(uiState.tradeDate)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+        val today = LocalDate.now()
+        when (tradeDate) {
+            today -> "today"
+            today.minusDays(1) -> "yesterday"
+            else -> "custom"
+        }
+    }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -173,14 +185,6 @@ fun LogTradeScreen(
                     letterSpacing = (-0.3).sp,
                     modifier = Modifier.weight(1f)
                 )
-                TextButton(onClick = onNavigateBack) {
-                    Text(
-                        "Save draft",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
 
             // ── Scrollable body ──────────────────────────────────────────────
@@ -214,6 +218,7 @@ fun LogTradeScreen(
                             if (uiState.symbolError != null) {
                                 Text(uiState.symbolError!!, fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.padding(top = 2.dp, start = 2.dp))
                             }
                         }
@@ -231,6 +236,7 @@ fun LogTradeScreen(
                             if (uiState.quantityError != null) {
                                 Text(uiState.quantityError!!, fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.padding(top = 2.dp, start = 2.dp))
                             }
                         }
@@ -262,6 +268,7 @@ fun LogTradeScreen(
                             if (uiState.entryPriceError != null) {
                                 Text(uiState.entryPriceError!!, fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.padding(top = 2.dp, start = 2.dp))
                             }
                         }
@@ -280,6 +287,7 @@ fun LogTradeScreen(
                             if (uiState.exitPriceError != null) {
                                 Text(uiState.exitPriceError!!, fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.padding(top = 2.dp, start = 2.dp))
                             }
                         }
@@ -323,7 +331,6 @@ fun LogTradeScreen(
                             selected = datePick,
                             customLabel = customDateLabel,
                             onSelect = { chip ->
-                                datePick = chip
                                 when (chip) {
                                     "today" -> viewModel.onDateChange(System.currentTimeMillis())
                                     "yesterday" -> viewModel.onDateChange(System.currentTimeMillis() - 86_400_000L)
@@ -498,24 +505,28 @@ private fun FieldBlock(
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row {
+            Row(modifier = Modifier.weight(1f, fill = false)) {
                 Text(
                     text = label,
                     fontSize = 11.5.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (optional) {
                     Text(
                         text = " · optional",
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -524,7 +535,8 @@ private fun FieldBlock(
                 hint != null -> Text(
                     text = hint,
                     fontSize = 10.5.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    maxLines = 1
                 )
             }
         }
@@ -594,7 +606,9 @@ private fun TradeInput(
                         Text(
                             text = placeholder,
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     innerTextField()
@@ -756,7 +770,13 @@ private fun LiveCalcStrip(pnl: Double?, pctReturn: Double?, rrRatio: Double?) {
             },
             modifier = Modifier.weight(1f)
         )
-        Box(modifier = Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)))
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 2.dp)
+                .width(1.dp)
+                .height(28.dp)
+                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+        )
         CalcCell(
             label = "RETURN",
             value = if (pctReturn == null) "—"
@@ -768,7 +788,13 @@ private fun LiveCalcStrip(pnl: Double?, pctReturn: Double?, rrRatio: Double?) {
             },
             modifier = Modifier.weight(1f)
         )
-        Box(modifier = Modifier.width(1.dp).height(28.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)))
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 2.dp)
+                .width(1.dp)
+                .height(28.dp)
+                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+        )
         CalcCell(
             label = "R:R",
             value = if (rrRatio == null) "—" else "1 : ${rrRatio.format(2)}",
@@ -790,14 +816,18 @@ private fun CalcCell(label: String, value: String, color: Color, modifier: Modif
             fontSize = 9.5.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.4.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             text = value,
             fontSize = 13.5.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = (-0.2).sp,
-            color = color
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

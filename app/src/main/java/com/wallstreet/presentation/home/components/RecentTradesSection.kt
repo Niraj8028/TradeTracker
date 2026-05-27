@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.RecentTradeItem
@@ -117,6 +118,7 @@ private fun TradeRow(trade: RecentTradeItem) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -135,7 +137,10 @@ private fun TradeRow(trade: RecentTradeItem) {
                 )
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -144,14 +149,18 @@ private fun TradeRow(trade: RecentTradeItem) {
                         text = trade.symbol.uppercase(),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     TradeBadge(tradeType = trade.tradeType)
                 }
                 Text(
                     text = "${trade.quanity.toInt()} qty  •  ${"%.2f".format(trade.entryPrice)} → ${"%.2f".format(trade.exitPrice ?: 0.0)}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -166,7 +175,9 @@ private fun TradeRow(trade: RecentTradeItem) {
                 text = pnlText,
                 style = MaterialTheme.typography.labelLarge,
                 color = pnlColor,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 //        }
     }
