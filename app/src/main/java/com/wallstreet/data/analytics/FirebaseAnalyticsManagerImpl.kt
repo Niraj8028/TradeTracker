@@ -10,8 +10,22 @@ class FirebaseAnalyticsManagerImpl(
     private val firebaseCrashlytics: FirebaseCrashlytics
 ) : AnalyticsManager {
 
-    override fun logEvent(name: String, params: Bundle?) {
-        firebaseAnalytics.logEvent(name, params)
+    override fun logEvent(name: String, params: Map<String, Any?>?) {
+        val bundle = params?.let {
+            Bundle().apply {
+                it.forEach { (key, value) ->
+                    when (value) {
+                        is String -> putString(key, value)
+                        is Int -> putInt(key, value)
+                        is Long -> putLong(key, value)
+                        is Double -> putDouble(key, value)
+                        is Boolean -> putBoolean(key, value)
+                        else -> putString(key, value.toString())
+                    }
+                }
+            }
+        }
+        firebaseAnalytics.logEvent(name, bundle)
     }
 
     override fun logScreenView(screenName: String, screenClass: String?) {

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.domain.analytics.AnalyticsManager
 import com.wallstreet.domain.usecase.onboarding.CompleteOnboardingUseCase
+import com.wallstreet.core.result.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,10 +32,10 @@ class OnboardingViewModel(
         val isSelecting = !_uiState.value.selectedRoles.contains(role)
         
         // Log event outside of update block for thread safety
-        analyticsManager.logEvent("role_selected", Bundle().apply {
-            putString("role_name", role)
-            putBoolean("is_selected", isSelecting)
-        })
+        analyticsManager.logEvent("role_selected", mapOf(
+            "role_name" to role,
+            "is_selected" to isSelecting
+        ))
 
         _uiState.update { state ->
             val newSelected = if (isSelecting) {
@@ -87,12 +88,16 @@ class OnboardingViewModel(
             analyticsManager.setUserProperty("user_roles", roles.joinToString(","))
             
             // 2. Log Completion Event
-            analyticsManager.logEvent("onboarding_complete", Bundle().apply {
-                putInt("roles_count", roles.size)
-            })
+            analyticsManager.logEvent("onboarding_complete", mapOf(
+                "roles_count" to roles.size
+            ))
 
             // 3. Complete onboarding via UseCase (handles Firestore & Preferences)
-            completeOnboardingUseCase(roles.toSet())
+            val result = completeOnboardingUseCase(roles.toSet())
+            if (result is Result.Error) {
+                isFinishing = false
+                // Handle error if needed, maybe show a toast or log it
+            }
         }
     }
 }

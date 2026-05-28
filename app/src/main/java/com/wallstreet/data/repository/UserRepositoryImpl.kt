@@ -1,6 +1,7 @@
 package com.wallstreet.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.wallstreet.core.constants.AppConstants
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.repository.UserRepository
@@ -13,7 +14,7 @@ class UserRepositoryImpl(
         return try {
             firestore.collection(AppConstants.COLLECTION_USERS)
                 .document(userId)
-                .update("roles", roles)
+                .set(mapOf("roles" to roles), SetOptions.merge())
                 .await()
             Result.Success(Unit)
         } catch (e: Exception) {

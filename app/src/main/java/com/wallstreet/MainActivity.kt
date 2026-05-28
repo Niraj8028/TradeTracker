@@ -16,6 +16,7 @@ import com.wallstreet.core.preferences.ThemeTypes
 import com.wallstreet.core.splash.SplashGate
 import com.wallstreet.core.splash.StartDestination
 import com.wallstreet.domain.analytics.AnalyticsManager
+import com.wallstreet.data.store.TradeStore
 import com.wallstreet.navigation.AppNavigation
 import com.wallstreet.ui.theme.WallStreetAndroidTheme
 
@@ -26,6 +27,7 @@ import org.koin.android.ext.android.inject
 class MainActivity : ComponentActivity() {
 
     private val analyticsManager: AnalyticsManager by inject()
+    private val tradeStore: TradeStore by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enable Firestore debug logging
@@ -73,7 +75,6 @@ class MainActivity : ComponentActivity() {
 
         user?.let {
             analyticsManager.setUserId(it.uid)
-            it.email?.let { email -> analyticsManager.setUserProperty("user_email", email) }
         }
 
         val prefs = OnboardingPreferences(applicationContext)
@@ -83,7 +84,10 @@ class MainActivity : ComponentActivity() {
             user == null -> StartDestination.Auth
             !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
             !onboardingDone -> StartDestination.Onboarding
-            else -> StartDestination.Home
+            else -> {
+                tradeStore.startObserving(user.uid)
+                StartDestination.Home
+            }
         }
 
         SplashGate.resolve(destination)
