@@ -1,9 +1,11 @@
 package com.wallstreet.presentation.log_trade.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,7 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wallstreet.domain.model.TradeType
-import com.wallstreet.ui.theme.PrimaryBlue
+import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.White
 
 @Composable
@@ -25,31 +28,48 @@ fun TradeTypeToggle(
     selectedType: TradeType,
     onTypeSelected: (TradeType) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        TradeType.entries.forEach { type ->
-            val isSelected = selectedType == type
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(if (isSelected) PrimaryBlue else MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { onTypeSelected(type) }
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (type == TradeType.LONG) "Buy / Long" else "Sell / Short",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = if (isSelected) White else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                )
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = "Direction",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TradeType.entries.forEach { type ->
+                val isSelected = selectedType == type
+                val isLong = type == TradeType.LONG
+                val accentColor = if (isLong) SuccessGreen else DangerRed
+                val label = if (isLong) "Buy / Long" else "Sell / Short"
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            if (isSelected) accentColor.copy(alpha = 0.12f)
+                            else MaterialTheme.colorScheme.background
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = if (isSelected) accentColor
+                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .clickable { onTypeSelected(type) }
+                        .padding(vertical = 11.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isSelected) accentColor
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                    )
+                }
             }
         }
     }

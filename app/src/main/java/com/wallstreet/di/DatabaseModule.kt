@@ -13,7 +13,7 @@ val databaseModule = module {
             androidContext(),
             AppDatabase::class.java,
             "tradetrack.db"
-        ).build()
+        ).addMigrations(AppDatabase.MIGRATION_1_2).build()
     }
     single { get<AppDatabase>().tradeDao() }
     single { WorkManager.getInstance(androidContext()) }

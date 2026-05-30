@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.ui.theme.DangerRed
@@ -221,7 +222,9 @@ private fun DirectionDetail(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = pnlColor,
-            lineHeight = 22.sp
+            lineHeight = 22.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
         // Trade count + win rate row

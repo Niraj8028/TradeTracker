@@ -12,6 +12,16 @@ sealed interface StrategiesUiState {
     ) : StrategiesUiState
 }
 
+enum class StrategySortOption(val label: String) {
+    PNL("P&L"),
+    WIN_RATE("Win Rate"),
+    TRADES("Trades"),
+    RR_RATIO("R:R"),
+    RECENT("Recent")
+}
+
+enum class SortDirection { ASC, DESC }
+
 sealed interface ActionState {
     data object Idle : ActionState
     data object Loading : ActionState

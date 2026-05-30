@@ -3,18 +3,53 @@ package com.wallstreet.presentation.log_trade
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,21 +61,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.wallstreet.core.util.formatDate
+import com.wallstreet.core.util.format
+import com.wallstreet.core.util.formatPnl
+import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.TradeType
-import com.wallstreet.presentation.log_trade.components.ImageUploadSection
-import com.wallstreet.presentation.log_trade.components.MistakesSection
-import com.wallstreet.presentation.log_trade.components.PnlPreviewCard
+import com.wallstreet.domain.model.TrendDirection
+import com.wallstreet.presentation.log_trade.components.FlowRow
 import com.wallstreet.presentation.log_trade.components.StrategyDropdown
-import com.wallstreet.presentation.log_trade.components.TradeTypeToggle
+import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.PrimaryBlue
+import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.White
 import org.koin.androidx.compose.koinViewModel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.abs
+
+private val TrendAmber = Color(0xFFF59E0B)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,9 +98,20 @@ fun LogTradeScreen(
     viewModel: LogTradeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val scrollState = rememberScrollState()
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = uiState.tradeDate)
     var showDatePicker by remember { mutableStateOf(false) }
+
+    val datePick = remember(uiState.tradeDate) {
+        val tradeDate = Instant.ofEpochMilli(uiState.tradeDate)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+        val today = LocalDate.now()
+        when (tradeDate) {
+            today -> "today"
+            today.minusDays(1) -> "yesterday"
+            else -> "custom"
+        }
+    }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -60,298 +120,334 @@ fun LogTradeScreen(
     }
 
     LaunchedEffect(uiState.success) {
-        if(uiState.success) {
+        if (uiState.success) {
             onNavigateBack()
             viewModel.resetSuccess()
         }
     }
 
-    val pnl = remember(uiState.entryPrice, uiState.exitPrice, uiState.quantity, uiState.tradeType) {
-        val entry = uiState.entryPrice.toDoubleOrNull()
-        val exit = uiState.exitPrice.toDoubleOrNull()
-        val qty = uiState.quantity.toDoubleOrNull()
-        if (entry != null && exit != null && qty != null && entry > 0 && exit > 0 && qty > 0) {
-            val raw = (exit - entry) * qty
-            if (uiState.tradeType == TradeType.LONG) raw else -raw
-        } else null
+    // LiveCalc derived values
+    val entryVal = uiState.entryPrice.toDoubleOrNull()
+    val exitVal  = uiState.exitPrice.toDoubleOrNull()
+    val qtyVal   = uiState.quantity.toDoubleOrNull()
+    val stopVal  = uiState.stopLoss?.toDoubleOrNull()
+    val isLong   = uiState.tradeType == TradeType.LONG
+
+    val pnl: Double? = if (entryVal != null && exitVal != null && qtyVal != null)
+        (if (isLong) (exitVal - entryVal) else (entryVal - exitVal)) * qtyVal
+    else null
+
+    val pctReturn: Double? = if (entryVal != null && exitVal != null && entryVal > 0)
+        (if (isLong) ((exitVal - entryVal) / entryVal) else ((entryVal - exitVal) / entryVal)) * 100
+    else null
+
+    val rrRatio: Double? = if (entryVal != null && exitVal != null && stopVal != null) {
+        val reward = abs(exitVal - entryVal)
+        val risk   = if (isLong) abs(entryVal - stopVal) else abs(stopVal - entryVal)
+        if (risk > 0) reward / risk else null
+    } else null
+
+    val customDateLabel = remember(uiState.tradeDate) {
+        Instant.ofEpochMilli(uiState.tradeDate)
+            .atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ofPattern("d MMM"))
     }
 
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-//        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Text(
-//                        text = "Log Trade",
-//                        style = MaterialTheme.typography.titleMedium,
-//                        fontWeight = FontWeight.SemiBold,
-//                        color = MaterialTheme.colorScheme.onBackground
-//                    )
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = onNavigateBack) {
-//                        Icon(
-//                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-//                            contentDescription = "Back",
-//                            tint = MaterialTheme.colorScheme.onBackground
-//                        )
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.background
-//                )
-//            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // ── Header ───────────────────────────────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, end = 6.dp, top = 6.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .shadow(1.dp, CircleShape)
+                        .clickable { onNavigateBack() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Close, null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(16.dp))
+                }
+                Text(
+                    text = "Log Trade",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    letterSpacing = (-0.3).sp,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            // ── Scrollable body ──────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 14.dp)
+                    .padding(bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Trade type toggle
-                TradeTypeToggle(
-                    selectedType = uiState.tradeType,
-                    onTypeSelected = { viewModel.onTradeTypeChanged(it) }
-                )
-
-                // Live P&L preview
-                if (pnl != null) {
-                    PnlPreviewCard(pnl = pnl)
-                }
-
-                // Trade Details
-                SectionCard(label = "Trade Details") {
-                    AppTextField(
-                        value = uiState.symbol,
-                        onValueChange = { viewModel.onSymbolChanged(it) },
-                        label = "TICKER SYMBOL",
-                        placeholder = "AAPL",
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
+                // ── Card 1: Trade ────────────────────────────────────────────
+                TradeCard {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        FieldBlock(label = "Symbol", modifier = Modifier.weight(1.6f)) {
+                            TradeInput(
+                                value = uiState.symbol,
+                                onChange = { viewModel.onSymbolChanged(it) },
+                                placeholder = "AAPL",
+                                isError = uiState.symbolError != null,
+                                trailingContent = {
+                                    Icon(Icons.Default.Search, null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp))
+                                },
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                             )
-                        },
-                        isError = uiState.symbolError != null,
-                        errorMessage = uiState.symbolError,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                            if (uiState.symbolError != null) {
+                                Text(uiState.symbolError!!, fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 2.dp, start = 2.dp))
+                            }
+                        }
+                        FieldBlock(label = "Qty", hint = "shares", modifier = Modifier.weight(1f)) {
+                            TradeInput(
+                                value = uiState.quantity,
+                                onChange = { viewModel.onQuantityChanged(it) },
+                                placeholder = "100",
+                                isError = uiState.quantityError != null,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                )
+                            )
+                            if (uiState.quantityError != null) {
+                                Text(uiState.quantityError!!, fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 2.dp, start = 2.dp))
+                            }
+                        }
+                    }
 
-                    AppTextField(
-                        value = uiState.quantity,
-                        onValueChange = { viewModel.onQuantityChanged(it) },
-                        label = "QUANTITY",
-                        placeholder = "100",
-                        isError = uiState.quantityError != null,
-                        errorMessage = uiState.quantityError,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Next
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    FieldBlock(label = "Direction") {
+                        DirectionSegment(
+                            selected = uiState.tradeType,
+                            onSelect = { viewModel.onTradeTypeChanged(it) }
+                        )
+                    }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        AppTextField(
-                            value = uiState.entryPrice,
-                            onValueChange = { viewModel.onEntryPriceChanged(it) },
-                            label = "ENTRY PRICE",
-                            placeholder = "189.45",
+                        FieldBlock(label = "Entry", modifier = Modifier.weight(1f)) {
+                            TradeInput(
+                                value = uiState.entryPrice,
+                                onChange = { viewModel.onEntryPriceChanged(it) },
+                                placeholder = "0.00",
+                                prefix = "$",
+                                isError = uiState.entryPriceError != null,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                )
+                            )
+                            if (uiState.entryPriceError != null) {
+                                Text(uiState.entryPriceError!!, fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 2.dp, start = 2.dp))
+                            }
+                        }
+                        FieldBlock(label = "Exit", modifier = Modifier.weight(1f)) {
+                            TradeInput(
+                                value = uiState.exitPrice,
+                                onChange = { viewModel.onExitPriceChanged(it) },
+                                placeholder = "0.00",
+                                prefix = "$",
+                                isError = uiState.exitPriceError != null,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                )
+                            )
+                            if (uiState.exitPriceError != null) {
+                                Text(uiState.exitPriceError!!, fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.error,
+                                    maxLines = 2, overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 2.dp, start = 2.dp))
+                            }
+                        }
+                    }
+
+                    FieldBlock(label = "Stop loss", optional = true) {
+                        TradeInput(
+                            value = uiState.stopLoss ?: "",
+                            onChange = { viewModel.onStopLossChanged(it) },
+                            placeholder = "0.00",
                             prefix = "$",
-                            isError = uiState.entryPriceError != null,
-                            errorMessage = uiState.entryPriceError,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Decimal,
                                 imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier.weight(1f)
-                        )
-                        AppTextField(
-                            value = uiState.exitPrice,
-                            onValueChange = { viewModel.onExitPriceChanged(it) },
-                            label = "EXIT PRICE",
-                            placeholder = "192.10",
-                            prefix = "$",
-                            isError = uiState.exitPriceError != null,
-                            errorMessage = uiState.exitPriceError,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal,
-                                imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier.weight(1f)
+                            )
                         )
                     }
 
-                    AppTextField(
-                        value = uiState.stopLoss ?: "",
-                        onValueChange = { viewModel.onStopLossChanged(it) },
-                        label = "STOP LOSS (OPTIONAL)",
-                        placeholder = "185.00",
-                        prefix = "$",
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Decimal,
-                            imeAction = ImeAction.Done
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    LiveCalcStrip(pnl = pnl, pctReturn = pctReturn, rrRatio = rrRatio)
                 }
 
-                // Strategy
-                SectionCard(label = "Strategy") {
-                    StrategyDropdown(
-                        selectedStrategy = uiState.selectedStrategy,
-                        strategies = uiState.strategies,
-                        onStrategySelected = { viewModel.onStrategySelected(it) }
-                    )
+                // ── Card 2: Context ──────────────────────────────────────────
+                TradeCard {
+                    FieldBlock(label = "Strategy") {
+                        StrategyDropdown(
+                            selectedStrategy = uiState.selectedStrategy,
+                            strategies = uiState.strategies,
+                            onStrategySelected = { viewModel.onStrategySelected(it) }
+                        )
+                    }
+
+                    FieldBlock(label = "Market trend", optional = true) {
+                        TrendSegment(
+                            selected = uiState.trendDirection,
+                            onSelect = { viewModel.onTrendDirectionSelected(it) }
+                        )
+                    }
+
+                    FieldBlock(label = "Trade date") {
+                        DateChipRow(
+                            selected = datePick,
+                            customLabel = customDateLabel,
+                            onSelect = { chip ->
+                                when (chip) {
+                                    "today" -> viewModel.onDateChange(System.currentTimeMillis())
+                                    "yesterday" -> viewModel.onDateChange(System.currentTimeMillis() - 86_400_000L)
+                                    "custom" -> showDatePicker = true
+                                }
+                            }
+                        )
+                    }
                 }
 
-                // Trade Date
-                SectionCard(label = "Trade Date") {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.background)
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.outlineVariant,
-                                RoundedCornerShape(12.dp)
-                            )
-                            .clickable { showDatePicker = true }
-                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                // ── Card 3: Mistakes ─────────────────────────────────────────
+                TradeCard {
+                    FieldBlock(
+                        label = "Mistakes",
+                        optional = true,
+                        hintContent = if (uiState.selectedMistakes.isNotEmpty()) {
+                            {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(99.dp))
+                                        .background(DangerRed.copy(alpha = 0.15f))
+                                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "${uiState.selectedMistakes.size} selected",
+                                        fontSize = 10.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = DangerRed
+                                    )
+                                }
+                            }
+                        } else null
                     ) {
-                        Text(
-                            text = formatDate(uiState.tradeDate),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-
-                // Mistakes
-                if (viewModel.mistakes.isNotEmpty()) {
-                    SectionCard(label = "Mistakes Identified") {
-                        MistakesSection(
-                            selectedMistakes = uiState.selectedMistakes,
+                        MistakeChipSet(
+                            selected = uiState.selectedMistakes,
                             mistakes = viewModel.mistakes,
-                            onMistakeToggled = { viewModel.onMistakeToggled(it) }
+                            onToggle = { viewModel.onMistakeToggled(it) }
                         )
                     }
                 }
 
-                // Notes & Screenshot
-                SectionCard(label = "Notes & Screenshot") {
-                    OutlinedTextField(
-                        value = uiState.comments,
-                        onValueChange = { viewModel.onCommentsAdded(it) },
-                        textStyle = MaterialTheme.typography.bodyMedium,
-                        placeholder = {
-                            Text(
-                                "What went well? What would you do differently?",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            errorBorderColor = MaterialTheme.colorScheme.error,
-                            errorContainerColor = MaterialTheme.colorScheme.background
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        maxLines = 5
-                    )
+                // ── Card 4: Notes + Screenshot ───────────────────────────────
+                TradeCard {
+                    FieldBlock(
+                        label = "Notes",
+                        optional = true,
+                        hint = "${uiState.comments.length} / 500"
+                    ) {
+                        NotesTextArea(
+                            value = uiState.comments,
+                            onChange = { if (it.length <= 500) viewModel.onCommentsAdded(it) }
+                        )
+                    }
 
-                    ImageUploadSection(
-                        imageUri = uiState.imageUri,
-                        onImagePick = { imagePickerLauncher.launch("image/*") }
-                    )
+                    FieldBlock(label = "Screenshot", optional = true) {
+                        ScreenshotUploadButton(
+                            uri = uiState.imageUri,
+                            onPick = { imagePickerLauncher.launch("image/*") },
+                            onClear = { viewModel.onImageSelected("") }
+                        )
+                    }
                 }
 
-                // Error banner
                 if (uiState.error != null) {
                     Text(
                         text = uiState.error!!,
-                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.10f))
                             .padding(horizontal = 12.dp, vertical = 10.dp)
                     )
                 }
             }
+        }
 
-            // Date picker dialog
-            if (showDatePicker) {
-                DatePickerDialog(
-                    onDismissRequest = { showDatePicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            datePickerState.selectedDateMillis?.let { viewModel.onDateChange(it) }
-                            showDatePicker = false
-                        }) { Text("OK") }
-                    }
-                ) {
-                    DatePicker(state = datePickerState)
-                }
-            }
-
-            // Save button — pinned at the bottom
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.background,
-                shadowElevation = 8.dp
+        // ── Sticky save bar ──────────────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.95f))
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        ambientColor = PrimaryBlue.copy(alpha = 0.35f),
+                        spotColor = PrimaryBlue.copy(alpha = 0.35f)
+                    )
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(PrimaryBlue)
+                    .clickable(enabled = !uiState.isLoading) { viewModel.onSaveTrade() }
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Button(
-                    onClick = { viewModel.onSaveTrade() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .height(52.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    enabled = !uiState.isLoading
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        color = White,
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Default.Check, null, tint = White, modifier = Modifier.size(15.dp))
                         Text(
                             text = "Save Trade",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.5.sp,
+                            fontWeight = FontWeight.Bold,
                             color = White
                         )
                     }
@@ -359,97 +455,617 @@ fun LogTradeScreen(
             }
         }
     }
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { viewModel.onDateChange(it) }
+                    showDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 }
 
+// ── Card container ────────────────────────────────────────────────────────────
+
 @Composable
-private fun SectionCard(
-    label: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    val shape = RoundedCornerShape(16.dp)
+private fun TradeCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(1.dp, shape, ambientColor = Color.Black.copy(alpha = 0.15f), spotColor = Color.Black.copy(alpha = 0.15f))
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f), shape)
-            .padding(horizontal = 14.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 0.8.sp,
-            fontWeight = FontWeight.Medium
-        )
+            .shadow(1.dp, RoundedCornerShape(14.dp),
+                ambientColor = Color.Black.copy(alpha = 0.08f),
+                spotColor = Color.Black.copy(alpha = 0.10f))
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        content = content
+    )
+}
+
+// ── Field label + content wrapper ────────────────────────────────────────────
+
+@Composable
+private fun FieldBlock(
+    label: String,
+    modifier: Modifier = Modifier,
+    optional: Boolean = false,
+    hint: String? = null,
+    hintContent: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(modifier = Modifier.weight(1f, fill = false)) {
+                Text(
+                    text = label,
+                    fontSize = 11.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.1.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (optional) {
+                    Text(
+                        text = " · optional",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            when {
+                hintContent != null -> hintContent()
+                hint != null -> Text(
+                    text = hint,
+                    fontSize = 10.5.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    maxLines = 1
+                )
+            }
+        }
         content()
     }
 }
 
+// ── Text input ────────────────────────────────────────────────────────────────
+
 @Composable
-private fun AppTextField(
+private fun TradeInput(
     value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
+    onChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "",
     prefix: String? = null,
-    trailingIcon: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
-    errorMessage: String? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    trailingContent: (@Composable () -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 0.8.sp
-        )
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-            placeholder = {
-                Text(
-                    placeholder,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            leadingIcon = if (prefix != null) {
-                {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    val borderColor by animateColorAsState(
+        targetValue = when {
+            isError  -> MaterialTheme.colorScheme.error
+            isFocused -> PrimaryBlue
+            else     -> MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+        },
+        animationSpec = tween(150),
+        label = "border"
+    )
+
+    BasicTextField(
+        value = value,
+        onValueChange = onChange,
+        singleLine = true,
+        keyboardOptions = keyboardOptions,
+        interactionSource = interactionSource,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 14.5.sp,
+            fontWeight = FontWeight.Medium
+        ),
+        cursorBrush = SolidColor(PrimaryBlue),
+        modifier = modifier.fillMaxWidth(),
+        decorationBox = { innerTextField ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.5.dp, borderColor, RoundedCornerShape(10.dp))
+                    .padding(horizontal = 11.dp, vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                if (prefix != null) {
                     Text(
-                        prefix,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyMedium
+                        text = prefix,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
                 }
-            } else null,
-            trailingIcon = trailingIcon,
-            isError = isError,
-            supportingText = if (isError && errorMessage != null) {
-                { Text(errorMessage, style = MaterialTheme.typography.labelSmall) }
-            } else null,
-            keyboardOptions = keyboardOptions,
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.background,
-                unfocusedContainerColor = MaterialTheme.colorScheme.background,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                errorBorderColor = MaterialTheme.colorScheme.error,
-                errorContainerColor = MaterialTheme.colorScheme.background
-            ),
-            shape = RoundedCornerShape(12.dp)
+                Box(modifier = Modifier.weight(1f)) {
+                    if (value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    innerTextField()
+                }
+                trailingContent?.invoke()
+            }
+        }
+    )
+}
+
+// ── Direction segmented control ───────────────────────────────────────────────
+
+@Composable
+private fun DirectionSegment(
+    selected: TradeType,
+    onSelect: (TradeType) -> Unit
+) {
+    val options = listOf(
+        Triple(TradeType.LONG, "Long", SuccessGreen),
+        Triple(TradeType.SHORT, "Short", DangerRed)
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+            .padding(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        options.forEach { (type, label, color) ->
+            val isActive = selected == type
+            val icon = if (type == TradeType.LONG) Icons.Default.TrendingUp else Icons.Default.TrendingDown
+            val bgColor by animateColorAsState(
+                targetValue = if (isActive) color else Color.Transparent,
+                animationSpec = tween(150), label = "seg_bg"
+            )
+            val contentColor by animateColorAsState(
+                targetValue = if (isActive) White else MaterialTheme.colorScheme.onSurfaceVariant,
+                animationSpec = tween(150), label = "seg_text"
+            )
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(bgColor)
+                    .clickable { onSelect(type) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(icon, null, tint = contentColor, modifier = Modifier.size(13.dp))
+                    Text(
+                        text = label,
+                        fontSize = 13.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ── Trend segmented control ───────────────────────────────────────────────────
+
+@Composable
+private fun TrendSegment(
+    selected: TrendDirection?,
+    onSelect: (TrendDirection) -> Unit
+) {
+    data class TrendOpt(val dir: TrendDirection, val label: String, val icon: ImageVector, val color: Color)
+
+    val options = listOf(
+        TrendOpt(TrendDirection.UP, "Up", Icons.Default.ArrowUpward, SuccessGreen),
+        TrendOpt(TrendDirection.SIDEWAYS, "Sideways", Icons.Default.ArrowForward, TrendAmber),
+        TrendOpt(TrendDirection.DOWN, "Down", Icons.Default.ArrowDownward, DangerRed)
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
+            .padding(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        options.forEach { opt ->
+            val isActive = selected == opt.dir
+            val bgColor by animateColorAsState(
+                targetValue = if (isActive) opt.color else Color.Transparent,
+                animationSpec = tween(150), label = "trend_bg"
+            )
+            val contentColor by animateColorAsState(
+                targetValue = if (isActive) White else MaterialTheme.colorScheme.onSurfaceVariant,
+                animationSpec = tween(150), label = "trend_text"
+            )
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(bgColor)
+                    .clickable {
+                        if (selected == opt.dir) return@clickable
+                        onSelect(opt.dir)
+                    }
+                    .padding(vertical = 7.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Icon(opt.icon, null, tint = contentColor, modifier = Modifier.size(14.dp))
+                    Text(
+                        text = opt.label,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ── Live Calc strip ───────────────────────────────────────────────────────────
+
+@Composable
+private fun LiveCalcStrip(pnl: Double?, pctReturn: Double?, rrRatio: Double?) {
+    val bgColor = when {
+        pnl == null -> MaterialTheme.colorScheme.surfaceVariant
+        pnl >= 0    -> SuccessGreen.copy(alpha = 0.12f)
+        else        -> DangerRed.copy(alpha = 0.12f)
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(bgColor)
+            .padding(horizontal = 12.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CalcCell(
+            label = "P&L",
+            value = if (pnl == null) "—" else pnl.formatPnl(),
+            color = when {
+                pnl == null -> MaterialTheme.colorScheme.onSurfaceVariant
+                pnl >= 0    -> SuccessGreen
+                else        -> DangerRed
+            },
+            modifier = Modifier.weight(1f)
         )
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 2.dp)
+                .width(1.dp)
+                .height(28.dp)
+                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+        )
+        CalcCell(
+            label = "RETURN",
+            value = if (pctReturn == null) "—"
+                    else "${if (pctReturn >= 0) "+" else ""}${String.format(Locale.US, "%.2f", pctReturn)}%",
+            color = when {
+                pctReturn == null -> MaterialTheme.colorScheme.onSurfaceVariant
+                pctReturn >= 0    -> SuccessGreen
+                else              -> DangerRed
+            },
+            modifier = Modifier.weight(1f)
+        )
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 2.dp)
+                .width(1.dp)
+                .height(28.dp)
+                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+        )
+        CalcCell(
+            label = "R:R",
+            value = if (rrRatio == null) "—" else "1 : ${rrRatio.format(2)}",
+            color = if (rrRatio == null) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun CalcCell(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(horizontal = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 9.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.4.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = value,
+            fontSize = 13.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.2).sp,
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+// ── Date chip row ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun DateChipRow(
+    selected: String,
+    customLabel: String,
+    onSelect: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        listOf("today" to "Today", "yesterday" to "Yest.").forEach { (key, label) ->
+            val isActive = selected == key
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(if (isActive) PrimaryBlue else MaterialTheme.colorScheme.surfaceVariant)
+                    .border(
+                        1.5.dp,
+                        if (isActive) PrimaryBlue else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                        RoundedCornerShape(9.dp)
+                    )
+                    .clickable { onSelect(key) }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = label,
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isActive) White else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Custom date chip — grows to fill remaining space
+        val isCustom = selected == "custom"
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(9.dp))
+                .background(if (isCustom) PrimaryBlue else MaterialTheme.colorScheme.surfaceVariant)
+                .border(
+                    1.5.dp,
+                    if (isCustom) PrimaryBlue else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                    RoundedCornerShape(9.dp)
+                )
+                .clickable { onSelect("custom") }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                Icons.Default.CalendarMonth, null,
+                tint = if (isCustom) White else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(12.dp)
+            )
+            Spacer(Modifier.width(5.dp))
+            Text(
+                text = customLabel,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isCustom) White else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ── Mistake chips ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun MistakeChipSet(
+    selected: Set<String>,
+    mistakes: List<String>,
+    onToggle: (String) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        mistakes.forEach { mistake ->
+            val isActive = selected.contains(mistake)
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(if (isActive) DangerRed.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant)
+                    .border(
+                        1.5.dp,
+                        if (isActive) DangerRed else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                        RoundedCornerShape(999.dp)
+                    )
+                    .clickable { onToggle(mistake) }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                if (isActive) {
+                    Icon(Icons.Default.Check, null, tint = DangerRed, modifier = Modifier.size(11.dp))
+                }
+                Text(
+                    text = mistake,
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isActive) DangerRed else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+// ── Notes textarea ────────────────────────────────────────────────────────────
+
+@Composable
+private fun NotesTextArea(value: String, onChange: (String) -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    val borderColor by animateColorAsState(
+        targetValue = if (isFocused) PrimaryBlue else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+        animationSpec = tween(150), label = "notes_border"
+    )
+
+    BasicTextField(
+        value = value,
+        onValueChange = onChange,
+        interactionSource = interactionSource,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 13.5.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium
+        ),
+        cursorBrush = SolidColor(PrimaryBlue),
+        modifier = Modifier.fillMaxWidth(),
+        decorationBox = { innerTextField ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.5.dp, borderColor, RoundedCornerShape(10.dp))
+                    .padding(10.dp)
+                    .height(72.dp)
+            ) {
+                if (value.isEmpty()) {
+                    Text(
+                        text = "What worked? What would you change?",
+                        fontSize = 13.5.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        lineHeight = 20.sp
+                    )
+                }
+                innerTextField()
+            }
+        }
+    )
+}
+
+// ── Screenshot upload ─────────────────────────────────────────────────────────
+
+@Composable
+private fun ScreenshotUploadButton(uri: String?, onPick: () -> Unit, onClear: () -> Unit) {
+    if (uri != null && uri.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f), RoundedCornerShape(10.dp))
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(PrimaryBlue.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Image, null, tint = PrimaryBlue, modifier = Modifier.size(18.dp))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = uri.substringAfterLast("/").take(32),
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "Image selected",
+                    fontSize = 10.5.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Delete, null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp))
+            }
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(
+                    width = 1.5.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .clickable { onPick() }
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Default.Image, null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp))
+                Text(
+                    text = "Add screenshot",
+                    fontSize = 12.5.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

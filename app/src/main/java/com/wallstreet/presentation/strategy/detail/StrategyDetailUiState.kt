@@ -10,6 +10,7 @@ import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.SymbolStat
 import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.model.TradeSummary
+import com.wallstreet.domain.model.TrendPerformanceData
 
 sealed interface StrategyDetailUiState {
     data object Loading : StrategyDetailUiState
@@ -29,6 +30,7 @@ sealed interface StrategyDetailUiState {
         val totalTradesInPeriod: Int,
         val profitFactor: Double,
         val maxDrawdown: Double,
-        val winStreak: Int
+        val winStreak: Int,
+        val trendPerformance: TrendPerformanceData
     ) : StrategyDetailUiState
 }

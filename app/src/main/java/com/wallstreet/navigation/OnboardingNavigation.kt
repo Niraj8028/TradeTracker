@@ -30,7 +30,7 @@ fun OnboardingNavigation(
         when {
             otpEmail != null -> AppRoute.OnBoarding.EmailVerificationScreen(otpEmail)
             skipToLogin() -> AppRoute.OnBoarding.Login
-            else -> AppRoute.OnBoarding.Onboarding
+            else -> AppRoute.OnBoarding.Register
         }
     }
 
@@ -80,6 +80,7 @@ fun OnboardingNavigation(
 
             entry<AppRoute.OnBoarding.Onboarding> {
                 OnboardingScreen(
+                    onFinish = { onLogin() }
                     onFinish = {
                         onLogin()
                     }

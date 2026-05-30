@@ -1,6 +1,7 @@
 package com.wallstreet.presentation.log_trade
 
 import com.wallstreet.domain.model.Strategy
+import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TradeType
 
 data class LogTradeUiState(
@@ -26,5 +27,5 @@ data class LogTradeUiState(
     val entryPriceError: String? = null,
     val exitPriceError: String? = null,
     val stopLoss: String? = null,
-
-    )
+    val trendDirection: TrendDirection? = null,
+)

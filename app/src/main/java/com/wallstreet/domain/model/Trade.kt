@@ -25,6 +25,7 @@ data class Trade(
     // TODO work on mistakes model
     val mistakes: List<String> = emptyList(),
     val createAt: Long? = null,
+    val trendDirection: TrendDirection? = null,
 ) {
     fun calculateProfitLoss(): Double? {
         if (exitPrice == null) return null

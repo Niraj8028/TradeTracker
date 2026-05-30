@@ -33,6 +33,8 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.R
 import com.wallstreet.ui.theme.Gradient
+import com.wallstreet.ui.theme.SuccessGreen
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 private fun openEmailApp(context: Context) {
@@ -68,25 +70,45 @@ fun EmailVerificationScreen(
     val context = LocalContext.current
     val gradient = Gradient.current
 
+    // tracks whether the snackbar is showing an error or a success toast
+    var snackbarIsError by remember { mutableStateOf(true) }
+    // countdown seconds before user can resend again (60 s cooldown)
+    var resendCooldown by remember { mutableIntStateOf(0) }
+
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
-            kotlinx.coroutines.delay(1200)
+            delay(1200)
             onVerified()
         }
     }
 
-    LaunchedEffect(uiState.error, uiState.resendSuccess) {
-
-        if (uiState.error != null) {
-            snackbarHostState.showSnackbar(uiState.error!!)
+    // Error snackbar — red
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarIsError = true
+            snackbarHostState.showSnackbar(it)
             viewModel.clearError()
         }
+    }
 
+    // Resend-success snackbar — green; start cooldown timer
+    LaunchedEffect(uiState.resendSuccess) {
         if (uiState.resendSuccess) {
+            snackbarIsError = false
             snackbarHostState.showSnackbar(
                 context.getString(R.string.verification_email_resent)
             )
             viewModel.clearError()
+            // start 60-second cooldown
+            resendCooldown = 60
+        }
+    }
+
+    // Tick down the cooldown every second
+    LaunchedEffect(resendCooldown) {
+        if (resendCooldown > 0) {
+            delay(1000L)
+            resendCooldown--
         }
     }
 
@@ -142,10 +164,10 @@ fun EmailVerificationScreen(
                 SnackbarHost(
                     hostState = snackbarHostState
                 ) { data ->
-
                     Snackbar(
                         shape = RoundedCornerShape(14.dp),
-                        containerColor = MaterialTheme.colorScheme.error,
+                        containerColor = if (snackbarIsError)
+                            MaterialTheme.colorScheme.error else SuccessGreen,
                         contentColor = MaterialTheme.colorScheme.onError
                     ) {
                         Text(data.visuals.message)
@@ -306,44 +328,45 @@ fun EmailVerificationScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
-                            if (uiState.isResending) {
-
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(14.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-
-                            } else {
-
-                                TextButton(
-                                    onClick = {
-                                        viewModel.resendEmail()
-                                    },
-                                    contentPadding = PaddingValues(
-                                        horizontal = 4.dp
+                            when {
+                                uiState.isResending -> {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(14.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
                                     )
-                                ) {
-
+                                }
+                                resendCooldown > 0 -> {
+                                    // show greyed-out countdown so user knows when they can retry
+                                    Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        buildAnnotatedString {
-                                            withStyle(
-                                                SpanStyle(
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 13.sp
-                                                )
-                                            ) {
-                                                append(
-                                                    stringResource(
-                                                        R.string.verification_resend
-                                                    )
-                                                )
-                                            }
-                                        }
+                                        text = stringResource(R.string.verification_resend) +
+                                                " (${resendCooldown}s)",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                }
+                                else -> {
+                                    TextButton(
+                                        onClick = { viewModel.resendEmail() },
+                                        contentPadding = PaddingValues(horizontal = 4.dp)
+                                    ) {
+                                        Text(
+                                            buildAnnotatedString {
+                                                withStyle(
+                                                    SpanStyle(
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 13.sp
+                                                    )
+                                                ) {
+                                                    append(stringResource(R.string.verification_resend))
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }

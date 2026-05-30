@@ -2,6 +2,7 @@ package com.wallstreet.data.local.database
 
 import androidx.room.TypeConverter
 import com.wallstreet.data.local.entity.SyncStatus
+import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TradeType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -25,4 +26,10 @@ class Converters {
 
     @TypeConverter
     fun toSyncStatus(value: String): SyncStatus = SyncStatus.valueOf(value)
+
+    @TypeConverter
+    fun fromTrendDirection(value: TrendDirection?): String? = value?.name
+
+    @TypeConverter
+    fun toTrendDirection(value: String?): TrendDirection? = value?.let { TrendDirection.valueOf(it) }
 }

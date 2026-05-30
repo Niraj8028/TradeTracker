@@ -60,23 +60,35 @@ class GetStrategyStatsUsecase(
                 period = period
             )
         }
-        val totalPnl = trades.sumOf { it.profitLoss ?: 0.0 }
-        val wins = trades.filter { (it.profitLoss ?: 0.0) > 0 }
-        val losses = trades.filter { (it.profitLoss ?: 0.0) < 0 }
-        val winRate = wins.size.toDouble() / trades.size * 100
+        val sorted = trades.sortedBy { it.tradeDate }
+        val totalPnl = sorted.sumOf { it.profitLoss ?: 0.0 }
+        val wins = sorted.filter { (it.profitLoss ?: 0.0) > 0 }
+        val losses = sorted.filter { (it.profitLoss ?: 0.0) < 0 }
+        val winRate = wins.size.toDouble() / sorted.size * 100
         val avgWin = if (wins.isEmpty()) 0.0 else wins.sumOf { it.profitLoss ?: 0.0 } / wins.size
         val avgLoss =
             if (losses.isEmpty()) 0.0 else losses.sumOf { -(it.profitLoss ?: 0.0) } / losses.size
         val rrRatio = if (avgLoss > 0) avgWin / avgLoss else 0.0
 
+        // Cumulative P&L starting from 0 for the sparkline
+        val sparkline = buildList {
+            add(0.0)
+            var cumulative = 0.0
+            sorted.forEach { trade ->
+                cumulative += trade.profitLoss ?: 0.0
+                add(cumulative)
+            }
+        }
+
         return StrategyStats(
             strategy = strategy,
-            totalTrades = trades.size,
+            totalTrades = sorted.size,
             totalPnl = totalPnl,
             winRate = winRate,
             rrRatio = rrRatio,
-            avgProfitPerTrade = totalPnl / trades.size,
-            period = period
+            avgProfitPerTrade = totalPnl / sorted.size,
+            period = period,
+            sparkline = sparkline
         )
     }
 }

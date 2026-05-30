@@ -6,6 +6,7 @@ import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
 import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
+import com.wallstreet.domain.usecase.analytics.GetTrendPerformanceUseCase
 import com.wallstreet.domain.usecase.home.GetEquityCurveDataUsecase
 import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
@@ -40,6 +41,7 @@ class StrategyDetailViewModel(
     private val equityCurveDataUsecase: GetEquityCurveDataUsecase,
     private val mistakesAnalysisUsecase: GetMistakesAnalysisUsecase,
     private val symbolPerformanceUsecase: GetSymbolPerformanceUsecase,
+    private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase,
 ) : ViewModel() {
 
     private val _selectedPeriod = MutableStateFlow(TimePeriod.ONE_MONTH)
@@ -102,7 +104,8 @@ class StrategyDetailViewModel(
                     totalTradesInPeriod = strategyTrades.size,
                     profitFactor = profitFactor,
                     maxDrawdown = maxDrawdown,
-                    winStreak = winStreak
+                    winStreak = winStreak,
+                    trendPerformance = getTrendPerformanceUseCase(strategyTrades)
                 )
             }
         }

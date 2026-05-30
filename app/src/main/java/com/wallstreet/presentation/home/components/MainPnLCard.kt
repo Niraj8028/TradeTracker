@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.HomeStats
@@ -70,7 +71,8 @@ fun MainPnLCard(
                     text = "TOTAL P&L",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 1.sp
+                    letterSpacing = 1.sp,
+                    maxLines = 1
                 )
                 Box(
                     modifier = Modifier
@@ -82,7 +84,8 @@ fun MainPnLCard(
                         text = "${stats.totalWinningTrades}W · ${stats.totalLosingTrades}L",
                         style = MaterialTheme.typography.labelSmall,
                         color = pnlColor,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1
                     )
                 }
             }
@@ -91,13 +94,17 @@ fun MainPnLCard(
                 text = pnlText,
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                color = pnlColor
+                color = pnlColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "${stats.totalTrades} trades this period",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 

@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import com.wallstreet.domain.model.DayPerformance
 import com.wallstreet.domain.model.RecentTradeItem
 import com.wallstreet.domain.model.TradeSummary
-import timber.log.Timber
 
 @Composable
 fun OverView(
@@ -22,8 +21,6 @@ fun OverView(
     dayPerformance: DayPerformance,
     recentTrades: List<RecentTradeItem>
 ) {
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -34,6 +31,5 @@ fun OverView(
     ) {
         LongShortCard(summary = summary)
         DayWisePerformance(dayPerformance)
-
     }
 }

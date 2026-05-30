@@ -39,16 +39,16 @@ fun MistakesSection(
                 border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 else null,
                 modifier = Modifier
-                    .height(34.dp)
+                    .height(28.dp)
                     .wrapContentWidth()
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(horizontal = 14.dp)
+                    modifier = Modifier.padding(horizontal = 10.dp)
                 ) {
                     Text(
                         text = mistake,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimary
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
