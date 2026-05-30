@@ -81,9 +81,6 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Onboarding> {
                 OnboardingScreen(
                     onFinish = { onLogin() }
-                    onFinish = {
-                        onLogin()
-                    }
                 )
             }
 

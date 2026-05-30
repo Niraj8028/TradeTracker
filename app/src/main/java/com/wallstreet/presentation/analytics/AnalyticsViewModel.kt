@@ -6,8 +6,10 @@ import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.usecase.analytics.GetCalendarDataUseCase
 import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
+import com.wallstreet.domain.usecase.analytics.GetOverviewStatsUseCase
 import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
 import com.wallstreet.domain.usecase.analytics.GetTrendPerformanceUseCase
+import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +30,9 @@ class AnalyticsViewModel(
     private val getDayPerformanceUseCase: GetDayPerformanceUseCase,
     private val getCalendarDataUseCase: GetCalendarDataUseCase,
     private val getTradesUseCase: GetTradesUseCase,
-    private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase
+    private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase,
+    private val getOverviewStatsUseCase: GetOverviewStatsUseCase,
+    private val getMistakesAnalysisUsecase: GetMistakesAnalysisUsecase
 ) : ViewModel() {
 
     private val _selectedTabIndex = MutableStateFlow(0)
@@ -47,6 +51,8 @@ class AnalyticsViewModel(
             val performance = getDayPerformanceUseCase(trades)
             val calendarDays = getCalendarDataUseCase(currentMonth, trades)
             val trendPerformance = getTrendPerformanceUseCase(trades)
+            val overviewStats = getOverviewStatsUseCase(trades)
+            val mistakesAnalysis = getMistakesAnalysisUsecase(trades)
 
             AnalyticsUiState.Success(
                 selectedFilter = filter,
@@ -56,7 +62,9 @@ class AnalyticsViewModel(
                 currentMonth = currentMonth,
                 selectedTabIndex = tabIndex,
                 recentTrades = getRecentTradeData(trades),
-                trendPerformance = trendPerformance
+                trendPerformance = trendPerformance,
+                overviewStats = overviewStats,
+                mistakesAnalysis = mistakesAnalysis
             ) as AnalyticsUiState
         }
     }.onStart {

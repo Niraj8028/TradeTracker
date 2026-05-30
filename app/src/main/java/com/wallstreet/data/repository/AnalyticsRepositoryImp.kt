@@ -5,6 +5,7 @@ import com.wallstreet.core.util.calculateWinRate
 import com.wallstreet.core.util.toDayOfWeek
 import com.wallstreet.domain.model.DayPerformance
 import com.wallstreet.domain.model.DayStats
+import com.wallstreet.domain.model.OverviewStats
 import com.wallstreet.domain.model.TradeStats
 import com.wallstreet.domain.model.TradeSummary
 import com.wallstreet.domain.model.CalendarDay
@@ -33,13 +34,47 @@ class AnalyticsRepositoryImp : AnalyticsRepository {
             val pnl = filteredTrades.calculateTotalPnL()
             val winRate = filteredTrades.calculateWinRate()
             val percentage = if (totalCount > 0) (count.toDouble() / totalCount) * 100 else 0.0
-            return TradeStats(count, pnl, winRate, percentage)
+
+            // Average realised P&L per trade, from trades that have a realised P&L.
+            val realized = filteredTrades.mapNotNull { it.profitLoss ?: it.calculateProfitLoss() }
+            val avgPnl = if (realized.isEmpty()) 0.0 else realized.sum() / realized.size
+
+            return TradeStats(
+                count = count,
+                pnl = pnl,
+                winRate = winRate,
+                percentage = percentage,
+                avgPnl = avgPnl
+            )
         }
 
         return TradeSummary(
             long = calculateStats(longTrades),
             short = calculateStats(shortTrades),
             totalTrades = totalCount
+        )
+    }
+
+    override fun getOverviewStats(trades: List<Trade>): OverviewStats {
+        // Only closed trades (with a realised P&L) contribute to KPIs.
+        val closed = trades.filter { it.profitLoss != null }
+        val pnls = closed.map { it.profitLoss ?: 0.0 }
+
+        val wins = pnls.filter { it > 0 }
+        val losses = pnls.filter { it < 0 }
+
+        val netPnl = pnls.sum()
+        val winRate = if (closed.isEmpty()) 0.0 else (wins.size.toDouble() / closed.size) * 100.0
+
+        val grossProfit = wins.sum()
+        val grossLoss = abs(losses.sum())
+        val profitFactor = if (grossLoss > 0.0) grossProfit / grossLoss else null
+
+        return OverviewStats(
+            netPnl = netPnl,
+            winRate = winRate,
+            totalTrades = closed.size,
+            profitFactor = profitFactor
         )
     }
 
