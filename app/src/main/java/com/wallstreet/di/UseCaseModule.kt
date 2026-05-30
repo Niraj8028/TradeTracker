@@ -11,6 +11,7 @@ import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
+import com.wallstreet.domain.usecase.onboarding.CompleteOnboardingUseCase
 import com.wallstreet.domain.usecase.strategy.AddStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.DeleteStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
@@ -47,4 +48,5 @@ val useCaseModule = module {
     factory { GetDayPerformanceUseCase(get()) }
     factory { GetTradeSummaryUseCase(get()) }
     factory { GetTrendPerformanceUseCase(get()) }
+    factory { CompleteOnboardingUseCase(get(), get(), get()) }
 }

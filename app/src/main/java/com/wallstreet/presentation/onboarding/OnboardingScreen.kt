@@ -82,6 +82,7 @@ fun OnboardingScreen(
     }
 
     LaunchedEffect(pagerState.currentPage) {
+        viewModel.onPageSwiped(pagerState.currentPage)
         if (pagerState.currentPage == 1) {
             player.play()
             viewModel.onPlayingChanged(true)
