@@ -72,9 +72,9 @@ class MainActivity : ComponentActivity() {
         val onboardingDone = prefs.isOnboardingCompleted()
 
         val destination = when {
-            user == null && !onboardingDone -> StartDestination.Onboarding
-            user == null && onboardingDone -> StartDestination.Auth
-            user != null && !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
+            user == null -> StartDestination.Auth
+            !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
+            !onboardingDone -> StartDestination.Onboarding
             else -> {
 //                if (user != null) tradeStore.startObserving(user.uid)
                 StartDestination.Home

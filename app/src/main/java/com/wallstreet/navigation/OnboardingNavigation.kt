@@ -30,7 +30,7 @@ fun OnboardingNavigation(
         when {
             otpEmail != null -> AppRoute.OnBoarding.EmailVerificationScreen(otpEmail)
             skipToLogin() -> AppRoute.OnBoarding.Login
-            else -> AppRoute.OnBoarding.Onboarding
+            else -> AppRoute.OnBoarding.Register
         }
     }
 
@@ -80,11 +80,7 @@ fun OnboardingNavigation(
 
             entry<AppRoute.OnBoarding.Onboarding> {
                 OnboardingScreen(
-                    onFinish = {
-                        // Add first then remove to avoid empty backstack crash in NavDisplay
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Login)
-                        onBoardingBackStack.remove(AppRoute.OnBoarding.Onboarding)
-                    }
+                    onFinish = { onLogin() }
                 )
             }
 
@@ -100,7 +96,10 @@ fun OnboardingNavigation(
 
             entry<AppRoute.OnBoarding.Register> {
                 RegisterScreen(
-                    onRegisterSuccess = { onLogin() },
+                    onRegisterSuccess = {
+                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+                        onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
+                    },
                     onNavigateToLogin = {
                         if (onBoardingBackStack.size > 1) {
                             onBoardingBackStack.removeLastOrNull()
