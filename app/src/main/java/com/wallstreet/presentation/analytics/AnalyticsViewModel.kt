@@ -4,10 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.repository.AuthRepository
-import com.wallstreet.domain.usecase.analytics.GetCalendarDataUseCase
 import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
+import com.wallstreet.domain.usecase.analytics.GetOverviewStatsUseCase
 import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
 import com.wallstreet.domain.usecase.analytics.GetTrendPerformanceUseCase
+import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,44 +20,45 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import java.time.YearMonth
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AnalyticsViewModel(
     private val authRepository: AuthRepository,
     private val getTradeSummaryUseCase: GetTradeSummaryUseCase,
     private val getDayPerformanceUseCase: GetDayPerformanceUseCase,
-    private val getCalendarDataUseCase: GetCalendarDataUseCase,
     private val getTradesUseCase: GetTradesUseCase,
-    private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase
+    private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase,
+    private val getOverviewStatsUseCase: GetOverviewStatsUseCase,
+    private val getMistakesAnalysisUsecase: GetMistakesAnalysisUsecase
 ) : ViewModel() {
 
     private val _selectedTabIndex = MutableStateFlow(0)
     private val _selectedFilter = MutableStateFlow(TimePeriod.ONE_MONTH)
-    private val _currentMonth = MutableStateFlow(YearMonth.now())
 
     val uiState: StateFlow<AnalyticsUiState> = _selectedFilter.flatMapLatest { filter ->
         val userId = authRepository.getCurrentUser()?.id ?: ""
         combine(
             getTradesUseCase(userId, filter, 500),
-            _currentMonth,
+            getTradesUseCase(userId, TimePeriod.ALL, 5000),
             _selectedTabIndex
-        ) { trades, currentMonth, tabIndex ->
+        ) { trades, allTrades, tabIndex ->
 
             val summary = getTradeSummaryUseCase(trades)
             val performance = getDayPerformanceUseCase(trades)
-            val calendarDays = getCalendarDataUseCase(currentMonth, trades)
             val trendPerformance = getTrendPerformanceUseCase(trades)
+            val overviewStats = getOverviewStatsUseCase(trades)
+            val mistakesAnalysis = getMistakesAnalysisUsecase(trades)
 
             AnalyticsUiState.Success(
                 selectedFilter = filter,
                 tradeSummary = summary,
                 dayPerformance = performance,
-                calendarDays = calendarDays,
-                currentMonth = currentMonth,
+                allTrades = allTrades,
                 selectedTabIndex = tabIndex,
                 recentTrades = getRecentTradeData(trades),
-                trendPerformance = trendPerformance
+                trendPerformance = trendPerformance,
+                overviewStats = overviewStats,
+                mistakesAnalysis = mistakesAnalysis
             ) as AnalyticsUiState
         }
     }.onStart {
@@ -75,21 +77,5 @@ class AnalyticsViewModel(
 
     fun onSelectFilter(filter: TimePeriod) {
         _selectedFilter.value = filter
-    }
-
-    fun nextMonth() {
-        _currentMonth.value = _currentMonth.value.plusMonths(1)
-    }
-
-    fun prevMonth() {
-        _currentMonth.value = _currentMonth.value.minusMonths(1)
-    }
-
-    fun setMonth(month: YearMonth) {
-        _currentMonth.value = month
-    }
-
-    override fun onCleared() {
-        super.onCleared()
     }
 }

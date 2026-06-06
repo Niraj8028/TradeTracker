@@ -88,14 +88,21 @@ fun RegisterScreen(
     val googleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            try {
-                val account = GoogleSignIn
-                    .getSignedInAccountFromIntent(result.data)
-                    .getResult(ApiException::class.java)
-                account.idToken?.let { viewModel.signUpWithGoogle(it) }
-            } catch (_: ApiException) {
+        try {
+            val account = GoogleSignIn
+                .getSignedInAccountFromIntent(result.data)
+                .getResult(ApiException::class.java)
+            val token = account.idToken
+            if (token != null) {
+                viewModel.signUpWithGoogle(token)
+            } else {
+                viewModel.onGoogleSignInFailed()
             }
+        } catch (_: Exception) {
+            if (result.resultCode == Activity.RESULT_OK) {
+                viewModel.onGoogleSignInFailed()
+            }
+            // RESULT_CANCELED = user pressed back, no error needed
         }
     }
 

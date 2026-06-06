@@ -12,14 +12,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.wallstreet.domain.model.DayPerformance
+import com.wallstreet.domain.model.OverviewStats
 import com.wallstreet.domain.model.RecentTradeItem
+import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeSummary
 
 @Composable
 fun OverView(
     summary: TradeSummary,
+    overviewStats: OverviewStats,
     dayPerformance: DayPerformance,
-    recentTrades: List<RecentTradeItem>
+    recentTrades: List<RecentTradeItem>,
+    allTrades: List<Trade>
 ) {
     Column(
         modifier = Modifier
@@ -29,7 +33,12 @@ fun OverView(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        OverviewKpiStrip(stats = overviewStats)
         LongShortCard(summary = summary)
+        if (summary.totalTrades > 0) {
+            LongShortInsightsCard(summary = summary)
+        }
         DayWisePerformance(dayPerformance)
+        Calendar(allTrades = allTrades)
     }
 }

@@ -2,6 +2,7 @@ package com.wallstreet.di
 
 import com.wallstreet.domain.usecase.analytics.GetCalendarDataUseCase
 import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
+import com.wallstreet.domain.usecase.analytics.GetOverviewStatsUseCase
 import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
 import com.wallstreet.domain.usecase.analytics.GetTrendPerformanceUseCase
 import com.wallstreet.domain.usecase.auth.*
@@ -47,6 +48,7 @@ val useCaseModule = module {
     factory { GetCalendarDataUseCase(get()) }
     factory { GetDayPerformanceUseCase(get()) }
     factory { GetTradeSummaryUseCase(get()) }
+    factory { GetOverviewStatsUseCase(get()) }
     factory { GetTrendPerformanceUseCase(get()) }
     factory { CompleteOnboardingUseCase(get(), get(), get()) }
 }

@@ -1,12 +1,13 @@
 package com.wallstreet.presentation.analytics
 
 import com.wallstreet.domain.model.DayPerformance
+import com.wallstreet.domain.model.MistakesAnalysisData
+import com.wallstreet.domain.model.OverviewStats
 import com.wallstreet.domain.model.TradeSummary
-import com.wallstreet.domain.model.CalendarDay
 import com.wallstreet.domain.model.RecentTradeItem
 import com.wallstreet.domain.model.TimePeriod
+import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TrendPerformanceData
-import java.time.YearMonth
 
 sealed class AnalyticsUiState {
     data object Loading : AnalyticsUiState()
@@ -15,10 +16,11 @@ sealed class AnalyticsUiState {
         val selectedFilter: TimePeriod,
         val tradeSummary: TradeSummary,
         val dayPerformance: DayPerformance,
-        val calendarDays: List<CalendarDay>,
-        val currentMonth: YearMonth,
+        val allTrades: List<Trade>,
         val selectedTabIndex: Int,
         val recentTrades: List<RecentTradeItem>,
-        val trendPerformance: TrendPerformanceData
+        val trendPerformance: TrendPerformanceData,
+        val overviewStats: OverviewStats,
+        val mistakesAnalysis: MistakesAnalysisData
     ) : AnalyticsUiState()
 }

@@ -23,36 +23,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.R
-import com.wallstreet.domain.model.CalendarDay
+import com.wallstreet.core.util.calculateTotalPnL
 import com.wallstreet.core.util.formatPnl
+import com.wallstreet.domain.model.CalendarDay
+import com.wallstreet.domain.model.Trade
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-fun Calendar(
-    calendarDays: List<CalendarDay>,
-    currentMonth: YearMonth,
-    onNextMonth: () -> Unit,
-    onPrevMonth: () -> Unit,
-    onSetMonth: (YearMonth) -> Unit
-) {
+fun Calendar(allTrades: List<Trade>) {
     val initialPage = 500
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 1000 })
     val scope = rememberCoroutineScope()
     val baseMonth = remember { YearMonth.now() }
 
-    LaunchedEffect(pagerState.currentPage) {
-        val month = baseMonth.plusMonths((pagerState.currentPage - initialPage).toLong())
-        if (currentMonth != month) onSetMonth(month)
+    // Current display month tracks the settled page so the header + summary
+    // update only once the swipe animation finishes — no mid-swipe flicker.
+    val currentDisplayMonth by remember {
+        derivedStateOf {
+            baseMonth.plusMonths((pagerState.currentPage - initialPage).toLong())
+        }
     }
 
-    val monthlyStats = remember(calendarDays) {
-        val tradingDays = calendarDays.filter { it.isCurrentMonth && it.tradeCount > 0 }
+    val monthlyStats = remember(pagerState.currentPage, allTrades) {
+        val days = buildCalendarDays(currentDisplayMonth, allTrades)
+        val tradingDays = days.filter { it.isCurrentMonth && it.tradeCount > 0 }
         Triple(
             tradingDays.sumOf { it.pnl },
             tradingDays.count { it.pnl > 0 },
@@ -62,42 +65,95 @@ fun Calendar(
 
     val daysOfWeek = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                MonthHeader(
-                    currentMonth = currentMonth,
-                    onPrev = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
-                    onNext = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
-                )
+        Column(modifier = Modifier.padding(16.dp)) {
+            MonthHeader(
+                currentMonth = currentDisplayMonth,
+                onPrev = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
+                onNext = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                DayOfWeekHeader(days = daysOfWeek)
+            DayOfWeekHeader(days = daysOfWeek)
 
-                Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-                HorizontalPager(state = pagerState) {
-                    CalendarGrid(days = calendarDays)
+            // Each page independently computes its own month's data — no ViewModel
+            // round-trip, so the grid content is ready as soon as the page slides in.
+            HorizontalPager(state = pagerState) { page ->
+                val pageMonth = remember(page) {
+                    baseMonth.plusMonths((page - initialPage).toLong())
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                Spacer(modifier = Modifier.height(12.dp))
-
-                MonthSummary(monthlyStats)
+                val pageDays = remember(page, allTrades) {
+                    buildCalendarDays(pageMonth, allTrades)
+                }
+                CalendarGrid(days = pageDays)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            MonthSummary(monthlyStats)
+        }
+    }
+}
+
+/**
+ * Pure computation of a 42-slot calendar grid for [yearMonth] from raw trades.
+ * Called per-page so each page renders its own data without an async round-trip.
+ */
+private fun buildCalendarDays(yearMonth: YearMonth, trades: List<Trade>): List<CalendarDay> {
+    val gridSize = 42
+    val firstDay = yearMonth.atDay(1)
+    val offset = firstDay.dayOfWeek.value % 7
+    val daysInMonth = yearMonth.lengthOfMonth()
+    val today = LocalDate.now()
+
+    val tradesByDate = trades
+        .filter { it.tradeDate > 0 }
+        .groupBy {
+            Instant.ofEpochMilli(it.tradeDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+        }
+
+    return List(gridSize) { index ->
+        when {
+            index < offset -> CalendarDay(
+                date = null,
+                isCurrentMonth = false,
+                isToday = false,
+                isSelected = false,
+                pnl = 0.0,
+                tradeCount = 0
+            )
+            index < offset + daysInMonth -> {
+                val date = yearMonth.atDay(index - offset + 1)
+                val dayTrades = tradesByDate[date] ?: emptyList()
+                CalendarDay(
+                    date = date,
+                    isCurrentMonth = true,
+                    isToday = date == today,
+                    isSelected = false,
+                    pnl = dayTrades.calculateTotalPnL(),
+                    tradeCount = dayTrades.size
+                )
+            }
+            else -> CalendarDay(
+                date = null,
+                isCurrentMonth = false,
+                isToday = false,
+                isSelected = false,
+                pnl = 0.0,
+                tradeCount = 0
+            )
         }
     }
 }
@@ -227,7 +283,6 @@ private fun DayCell(day: CalendarDay, modifier: Modifier = Modifier) {
         }
     }
 }
-
 
 @Composable
 private fun MonthSummary(stats: Triple<Double, Int, Int>) {

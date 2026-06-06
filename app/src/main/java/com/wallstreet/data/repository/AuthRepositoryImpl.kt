@@ -32,10 +32,10 @@ class AuthRepositoryImpl(
             val firebaseUser = result.user!!
 
             // TODO: remove this bypass before merging
-//            if (!firebaseUser.isEmailVerified) {
-//                auth.signOut()
-//                return Result.Error("EMAIL_NOT_VERIFIED")
-//            }
+            if (!firebaseUser.isEmailVerified) {
+                auth.signOut()
+                return Result.Error("EMAIL_NOT_VERIFIED")
+            }
 
             Result.Success(firebaseUser.toUserModel())
         } catch (e: Exception) {
@@ -77,7 +77,7 @@ class AuthRepositoryImpl(
     override suspend fun verifyEmail(): Result<Boolean> = try {
         auth.currentUser?.reload()?.await()
         val isVerified = auth.currentUser?.isEmailVerified ?: false
-        Result.Success(true)
+        Result.Success(isVerified)
     } catch (e: Exception) {
         Timber.e(e, e.friendlyMessage())
         Result.Error(e.friendlyMessage(), e)

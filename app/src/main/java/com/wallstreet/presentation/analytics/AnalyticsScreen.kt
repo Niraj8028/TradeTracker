@@ -16,9 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.presentation.analytics.components.AppTabRow
-import com.wallstreet.presentation.analytics.components.Calendar
 import com.wallstreet.presentation.analytics.components.FilterOption
 import com.wallstreet.presentation.analytics.components.FilterTab
+import com.wallstreet.presentation.analytics.components.MistakesTab
 import com.wallstreet.presentation.analytics.components.OverView
 import com.wallstreet.presentation.analytics.components.TabItem
 import com.wallstreet.presentation.analytics.components.TrendTab
@@ -27,7 +27,11 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val tabList = listOf(TabItem("Overview"), TabItem("Trend"), TabItem("Calendar"))
+    val tabList = listOf(
+        TabItem("Overview"),
+        TabItem("Mistakes"),
+        TabItem("Trend"),
+    )
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -50,10 +54,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
                     state = state,
                     tabList = tabList,
                     onFilterSelect = { option -> viewModel.onSelectFilter(option.toTimePeriod()) },
-                    onTabSelect = viewModel::onTabSelect,
-                    onNextMonth = viewModel::nextMonth,
-                    onPrevMonth = viewModel::prevMonth,
-                    onSetMonth = viewModel::setMonth
+                    onTabSelect = viewModel::onTabSelect
                 )
             }
         }
@@ -65,10 +66,7 @@ private fun AnalyticsContent(
     state: AnalyticsUiState.Success,
     tabList: List<TabItem>,
     onFilterSelect: (FilterOption) -> Unit,
-    onTabSelect: (Int) -> Unit,
-    onNextMonth: () -> Unit,
-    onPrevMonth: () -> Unit,
-    onSetMonth: (java.time.YearMonth) -> Unit
+    onTabSelect: (Int) -> Unit
 ) {
     val pagerState = rememberPagerState(initialPage = state.selectedTabIndex) { tabList.size }
 
@@ -90,13 +88,11 @@ private fun AnalyticsContent(
             selectedIndex = state.selectedTabIndex,
             onTabChange = onTabSelect
         )
-        if(state.selectedTabIndex != 2) {
-            FilterTab(
-                filters = FilterOption.all,
-                selected = FilterOption.fromTimePeriod(state.selectedFilter),
-                onSelectFilter = onFilterSelect
-            )
-        }
+        FilterTab(
+            filters = FilterOption.all,
+            selected = FilterOption.fromTimePeriod(state.selectedFilter),
+            onSelectFilter = onFilterSelect
+        )
 
         HorizontalPager(
             state = pagerState,
@@ -105,17 +101,13 @@ private fun AnalyticsContent(
             when (page) {
                 0 -> OverView(
                     summary = state.tradeSummary,
+                    overviewStats = state.overviewStats,
                     dayPerformance = state.dayPerformance,
-                    recentTrades = state.recentTrades
+                    recentTrades = state.recentTrades,
+                    allTrades = state.allTrades
                 )
-                1 -> TrendTab(data = state.trendPerformance)
-                2 -> Calendar(
-                    calendarDays = state.calendarDays,
-                    currentMonth = state.currentMonth,
-                    onNextMonth = onNextMonth,
-                    onPrevMonth = onPrevMonth,
-                    onSetMonth = onSetMonth
-                )
+                1 -> MistakesTab(data = state.mistakesAnalysis)
+                2 -> TrendTab(data = state.trendPerformance)
             }
         }
     }

@@ -70,12 +70,14 @@ class GetStrategyStatsUsecase(
             if (losses.isEmpty()) 0.0 else losses.sumOf { -(it.profitLoss ?: 0.0) } / losses.size
         val rrRatio = if (avgLoss > 0) avgWin / avgLoss else 0.0
 
-        // Cumulative P&L starting from 0 for the sparkline
+        // Cumulative P&L over closed trades only — skipping null P&L avoids long
+        // flat zero-stretches from open positions that make the chart look fake.
         val sparkline = buildList {
             add(0.0)
             var cumulative = 0.0
             sorted.forEach { trade ->
-                cumulative += trade.profitLoss ?: 0.0
+                val pnl = trade.profitLoss ?: return@forEach
+                cumulative += pnl
                 add(cumulative)
             }
         }
