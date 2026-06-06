@@ -54,10 +54,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
                     state = state,
                     tabList = tabList,
                     onFilterSelect = { option -> viewModel.onSelectFilter(option.toTimePeriod()) },
-                    onTabSelect = viewModel::onTabSelect,
-                    onNextMonth = viewModel::nextMonth,
-                    onPrevMonth = viewModel::prevMonth,
-                    onSetMonth = viewModel::setMonth
+                    onTabSelect = viewModel::onTabSelect
                 )
             }
         }
@@ -69,10 +66,7 @@ private fun AnalyticsContent(
     state: AnalyticsUiState.Success,
     tabList: List<TabItem>,
     onFilterSelect: (FilterOption) -> Unit,
-    onTabSelect: (Int) -> Unit,
-    onNextMonth: () -> Unit,
-    onPrevMonth: () -> Unit,
-    onSetMonth: (java.time.YearMonth) -> Unit
+    onTabSelect: (Int) -> Unit
 ) {
     val pagerState = rememberPagerState(initialPage = state.selectedTabIndex) { tabList.size }
 
@@ -110,11 +104,7 @@ private fun AnalyticsContent(
                     overviewStats = state.overviewStats,
                     dayPerformance = state.dayPerformance,
                     recentTrades = state.recentTrades,
-                    calendarDays = state.calendarDays,
-                    currentMonth = state.currentMonth,
-                    onNextMonth = onNextMonth,
-                    onPrevMonth = onPrevMonth,
-                    onSetMonth = onSetMonth
+                    allTrades = state.allTrades
                 )
                 1 -> MistakesTab(data = state.mistakesAnalysis)
                 2 -> TrendTab(data = state.trendPerformance)

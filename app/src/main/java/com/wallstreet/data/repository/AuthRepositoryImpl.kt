@@ -32,10 +32,10 @@ class AuthRepositoryImpl(
             val firebaseUser = result.user!!
 
             // TODO: remove this bypass before merging
-//            if (!firebaseUser.isEmailVerified) {
-//                auth.signOut()
-//                return Result.Error("EMAIL_NOT_VERIFIED")
-//            }
+            if (!firebaseUser.isEmailVerified) {
+                auth.signOut()
+                return Result.Error("EMAIL_NOT_VERIFIED")
+            }
 
             Result.Success(firebaseUser.toUserModel())
         } catch (e: Exception) {

@@ -63,7 +63,7 @@ class RegisterViewModel(
     }
 
     fun onGoogleSignInFailed() {
-        _uiState.value = RegisterUiState(error = "Google sign-in failed. Please try again.")
+        _uiState.value = _uiState.value.copy(isLoading = false, error = "Google sign-in failed. Please try again.")
     }
 
     fun clearError() { _uiState.value = _uiState.value.copy(error = null) }

@@ -11,12 +11,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.wallstreet.domain.model.CalendarDay
 import com.wallstreet.domain.model.DayPerformance
 import com.wallstreet.domain.model.OverviewStats
 import com.wallstreet.domain.model.RecentTradeItem
+import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeSummary
-import java.time.YearMonth
 
 @Composable
 fun OverView(
@@ -24,11 +23,7 @@ fun OverView(
     overviewStats: OverviewStats,
     dayPerformance: DayPerformance,
     recentTrades: List<RecentTradeItem>,
-    calendarDays: List<CalendarDay>,
-    currentMonth: YearMonth,
-    onNextMonth: () -> Unit,
-    onPrevMonth: () -> Unit,
-    onSetMonth: (YearMonth) -> Unit
+    allTrades: List<Trade>
 ) {
     Column(
         modifier = Modifier
@@ -44,12 +39,6 @@ fun OverView(
             LongShortInsightsCard(summary = summary)
         }
         DayWisePerformance(dayPerformance)
-        Calendar(
-            calendarDays = calendarDays,
-            currentMonth = currentMonth,
-            onNextMonth = onNextMonth,
-            onPrevMonth = onPrevMonth,
-            onSetMonth = onSetMonth
-        )
+        Calendar(allTrades = allTrades)
     }
 }

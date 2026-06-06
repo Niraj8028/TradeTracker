@@ -98,7 +98,7 @@ fun RegisterScreen(
             } else {
                 viewModel.onGoogleSignInFailed()
             }
-        } catch (_: ApiException) {
+        } catch (_: Exception) {
             if (result.resultCode == Activity.RESULT_OK) {
                 viewModel.onGoogleSignInFailed()
             }

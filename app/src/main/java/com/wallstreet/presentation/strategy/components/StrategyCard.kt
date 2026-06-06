@@ -32,6 +32,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -258,12 +259,35 @@ private fun Sparkline(
     Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
-        val max = points.max()
-        val min = points.min()
-        val range = (max - min).takeIf { it > 0 } ?: 1.0
+
+        // Always anchor the visible range to zero and add 20% breathing room on
+        // whichever side has data. This prevents a monotonically winning/losing
+        // series from filling corner-to-corner as a straight diagonal.
+        val dataMax = points.max()
+        val dataMin = points.min()
+        val visMax = maxOf(dataMax, 0.0).let { if (it == 0.0) 1.0 else it * 1.20 }
+        val visMin = minOf(dataMin, 0.0).let { if (it == 0.0) -1.0 else it * 1.20 }
+        val range = visMax - visMin
+
+        val vPad = h * 0.08f  // 8% top/bottom so the line never hugs the edge
+        val drawH = h - vPad * 2
 
         fun xOf(i: Int) = i.toFloat() / (points.size - 1) * w
-        fun yOf(v: Double) = (h - 3f) - ((v - min) / range * (h - 6f)).toFloat()
+        fun yOf(v: Double) = vPad + ((visMax - v) / range * drawH).toFloat()
+
+        // Subtle dashed zero baseline — only draw when zero is meaningfully inside
+        // the chart (i.e. there are both positive and negative values)
+        if (dataMin < 0.0 && dataMax > 0.0) {
+            drawLine(
+                color = color.copy(alpha = 0.25f),
+                start = Offset(0f, yOf(0.0)),
+                end = Offset(w, yOf(0.0)),
+                strokeWidth = 0.8.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(
+                    floatArrayOf(3.dp.toPx(), 3.dp.toPx())
+                )
+            )
+        }
 
         // Build smooth bezier path
         val linePath = Path().apply {
@@ -276,18 +300,20 @@ private fun Sparkline(
             }
         }
 
-        // Gradient fill under the line
+        // Gradient fill anchored to the zero line, not the canvas bottom
+        val zeroY = yOf(0.0).coerceIn(0f, h)
         val fillPath = Path().apply {
             addPath(linePath)
-            lineTo(w, h)
-            lineTo(0f, h)
+            lineTo(w, zeroY)
+            lineTo(0f, zeroY)
             close()
         }
         drawPath(
             path = fillPath,
             brush = Brush.verticalGradient(
-                colors = listOf(color.copy(alpha = 0.22f), color.copy(alpha = 0f)),
-                startY = 0f, endY = h
+                colors = listOf(color.copy(alpha = 0.25f), color.copy(alpha = 0f)),
+                startY = minOf(yOf(dataMax.toFloat().toDouble()), zeroY),
+                endY = maxOf(yOf(dataMin.toFloat().toDouble()), zeroY)
             )
         )
 
@@ -296,7 +322,7 @@ private fun Sparkline(
             path = linePath,
             color = color,
             style = Stroke(
-                width = 1.8.dp.toPx(),
+                width = 2.dp.toPx(),
                 cap = StrokeCap.Round,
                 join = StrokeJoin.Round
             )
