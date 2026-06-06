@@ -84,12 +84,7 @@ fun TrendTab(data: TrendPerformanceData) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1 ── Quick-look summary strip ──────────────────────────────────────
-        TrendSummaryStrip(
-            totalTrades = totalTrades,
-            totalPnl    = totalPnl,
-            best        = best
-        )
+
 
         // 2 ── Best trend banner ──────────────────────────────────────────────
         if (best != null) {
@@ -386,6 +381,12 @@ private fun PnlComparisonCard(stats: List<TrendStat>) {
 
 @Composable
 private fun ComparisonMatrixCard(stats: List<TrendStat>, totalTrades: Int) {
+    // Always show all 3 directions; use a zero-stat for ones with no trades.
+    val statsMap = stats.associateBy { it.direction }
+    val fullStats = TrendDirection.entries.map { dir ->
+        statsMap[dir] ?: TrendStat(direction = dir, trades = 0, totalPnl = 0.0, winRate = 0.0)
+    }
+
     val shape = RoundedCornerShape(16.dp)
 
     Box(
@@ -395,7 +396,7 @@ private fun ComparisonMatrixCard(stats: List<TrendStat>, totalTrades: Int) {
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(16.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
                 text = "Direction Comparison",
                 fontSize = 15.sp,
@@ -403,109 +404,87 @@ private fun ComparisonMatrixCard(stats: List<TrendStat>, totalTrades: Int) {
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // Header row: direction icons
+            // Header row: label only, neutral color, no icons
             Row(modifier = Modifier.fillMaxWidth()) {
-                Spacer(modifier = Modifier.weight(1.2f))   // row-label column
-                stats.forEach { stat ->
-                    val meta = metaFor(stat.direction)
-                    Column(
+                Spacer(modifier = Modifier.weight(1.2f))
+                fullStats.forEach { stat ->
+                    Text(
+                        text = metaFor(stat.direction).label,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(30.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(meta.color.copy(alpha = 0.14f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = meta.icon,
-                                contentDescription = null,
-                                tint = meta.color,
-                                modifier = Modifier.size(15.dp)
-                            )
-                        }
-                        Text(
-                            text = meta.label,
-                            fontSize = 9.5.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = meta.color,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
 
-            // Metric rows
+            // Metric rows — wrapped in their own Column so the outer spacedBy(10dp)
+            // doesn't inflate the gap between every row+divider pair.
             val rowsData: List<Pair<String, (TrendStat) -> String>> = listOf(
-                "Trades"   to { s -> "${s.trades}" },
-                "Win Rate" to { s -> s.winRate.formatPercent() },
-                "Total P&L" to { s -> s.totalPnl.formatPnl() },
-                "Avg P&L"  to { s ->
-                    (if (s.trades > 0) s.totalPnl / s.trades else 0.0).formatPnl()
-                },
+                "Trades"     to { s -> if (s.trades > 0) "${s.trades}" else "—" },
+                "Win Rate"   to { s -> if (s.trades > 0) s.winRate.formatPercent() else "—" },
+                "Total P&L"  to { s -> if (s.trades > 0) s.totalPnl.formatPnl() else "—" },
+                "Avg P&L"    to { s -> if (s.trades > 0) (s.totalPnl / s.trades).formatPnl() else "—" },
                 "% of Total" to { s ->
-                    if (totalTrades > 0)
+                    if (s.trades > 0 && totalTrades > 0)
                         "${(s.trades.toFloat() / totalTrades * 100).toInt()}%"
                     else "—"
                 }
             )
 
-            rowsData.forEachIndexed { rowIndex, (rowLabel, valueFor) ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Row label
-                    Text(
-                        text = rowLabel,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1.2f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    // Values per direction
-                    stats.forEach { stat ->
-                        val value = valueFor(stat)
-                        // colour wins/losses for relevant rows
-                        val valueColor = when (rowLabel) {
-                            "Win Rate" -> when {
-                                stat.winRate >= 60 -> SuccessGreen
-                                stat.winRate < 40  -> DangerRed
-                                else               -> PrimaryBlue
-                            }
-                            "Total P&L", "Avg P&L" -> {
-                                val num = if (rowLabel == "Total P&L") stat.totalPnl
-                                else if (stat.trades > 0) stat.totalPnl / stat.trades else 0.0
-                                if (num >= 0) SuccessGreen else DangerRed
-                            }
-                            else -> MaterialTheme.colorScheme.onSurface
-                        }
+            Column {
+                rowsData.forEachIndexed { rowIndex, (rowLabel, valueFor) ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = value,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = valueColor,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center,
+                            text = rowLabel,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1.2f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        fullStats.forEach { stat ->
+                            val value = valueFor(stat)
+                            val valueColor = when {
+                                value == "—" -> MaterialTheme.colorScheme.onSurfaceVariant
+                                rowLabel == "Win Rate" -> when {
+                                    stat.winRate >= 60 -> SuccessGreen
+                                    stat.winRate < 40  -> DangerRed
+                                    else               -> PrimaryBlue
+                                }
+                                rowLabel == "Total P&L" ->
+                                    if (stat.totalPnl >= 0) SuccessGreen else DangerRed
+                                rowLabel == "Avg P&L" ->
+                                    if (stat.trades > 0 && stat.totalPnl / stat.trades >= 0) SuccessGreen else DangerRed
+                                else -> MaterialTheme.colorScheme.onSurface
+                            }
+                            Text(
+                                text = value,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = valueColor,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
-                }
-                if (rowIndex < rowsData.lastIndex) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
-                    )
+                    if (rowIndex < rowsData.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 5.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
+                        )
+                    }
                 }
             }
         }

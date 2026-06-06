@@ -62,6 +62,10 @@ class RegisterViewModel(
         }
     }
 
+    fun onGoogleSignInFailed() {
+        _uiState.value = RegisterUiState(error = "Google sign-in failed. Please try again.")
+    }
+
     fun clearError() { _uiState.value = _uiState.value.copy(error = null) }
 
     /** Consume the one-shot navigate-to-OTP event so it cannot re-fire when coming back to this screen. */

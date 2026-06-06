@@ -77,13 +77,10 @@ class MainActivity : ComponentActivity() {
             analyticsManager.setUserId(it.uid)
         }
 
-        val prefs = OnboardingPreferences(applicationContext)
-        val onboardingDone = prefs.isOnboardingCompleted()
 
         val destination = when {
             user == null -> StartDestination.Auth
             !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
-            !onboardingDone -> StartDestination.Onboarding
             else -> {
                 StartDestination.Home
             }

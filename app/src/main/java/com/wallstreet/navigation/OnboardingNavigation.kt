@@ -23,14 +23,16 @@ fun OnboardingNavigation(
     onLogout: () -> Unit = {},
     goToOtp: () -> String? = { null },
     skipToLogin: () -> Boolean = { false },
+    goToOnboarding: () -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
     val initialRoute = remember {
         val otpEmail = goToOtp()
         when {
             otpEmail != null -> AppRoute.OnBoarding.EmailVerificationScreen(otpEmail)
-            skipToLogin() -> AppRoute.OnBoarding.Login
-            else -> AppRoute.OnBoarding.Register
+            skipToLogin()    -> AppRoute.OnBoarding.Login
+            goToOnboarding() -> AppRoute.OnBoarding.Onboarding  // authenticated, onboarding not done yet
+            else             -> AppRoute.OnBoarding.Register
         }
     }
 
@@ -86,10 +88,7 @@ fun OnboardingNavigation(
 
             entry<AppRoute.OnBoarding.Login> {
                 LoginScreen(
-                    onLoginSuccess = {
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
-                        onBoardingBackStack.remove(AppRoute.OnBoarding.Login)
-                    },
+                    onLoginSuccess = { onLogin() },
                     onNavigateToRegister = { onBoardingBackStack.add(AppRoute.OnBoarding.Register) },
                     onNavigateToOtp = { email -> 
                         onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 

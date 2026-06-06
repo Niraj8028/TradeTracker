@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.presentation.analytics.components.AppTabRow
-import com.wallstreet.presentation.analytics.components.Calendar
 import com.wallstreet.presentation.analytics.components.FilterOption
 import com.wallstreet.presentation.analytics.components.FilterTab
 import com.wallstreet.presentation.analytics.components.MistakesTab
@@ -32,7 +31,6 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
         TabItem("Overview"),
         TabItem("Mistakes"),
         TabItem("Trend"),
-        TabItem("Calendar")
     )
 
     Scaffold(
@@ -96,15 +94,11 @@ private fun AnalyticsContent(
             selectedIndex = state.selectedTabIndex,
             onTabChange = onTabSelect
         )
-        // Calendar (last tab) manages its own month range, so the period filter is hidden there.
-        val calendarIndex = tabList.lastIndex
-        if (state.selectedTabIndex != calendarIndex) {
-            FilterTab(
-                filters = FilterOption.all,
-                selected = FilterOption.fromTimePeriod(state.selectedFilter),
-                onSelectFilter = onFilterSelect
-            )
-        }
+        FilterTab(
+            filters = FilterOption.all,
+            selected = FilterOption.fromTimePeriod(state.selectedFilter),
+            onSelectFilter = onFilterSelect
+        )
 
         HorizontalPager(
             state = pagerState,
@@ -115,17 +109,15 @@ private fun AnalyticsContent(
                     summary = state.tradeSummary,
                     overviewStats = state.overviewStats,
                     dayPerformance = state.dayPerformance,
-                    recentTrades = state.recentTrades
-                )
-                1 -> MistakesTab(data = state.mistakesAnalysis)
-                2 -> TrendTab(data = state.trendPerformance)
-                3 -> Calendar(
+                    recentTrades = state.recentTrades,
                     calendarDays = state.calendarDays,
                     currentMonth = state.currentMonth,
                     onNextMonth = onNextMonth,
                     onPrevMonth = onPrevMonth,
                     onSetMonth = onSetMonth
                 )
+                1 -> MistakesTab(data = state.mistakesAnalysis)
+                2 -> TrendTab(data = state.trendPerformance)
             }
         }
     }

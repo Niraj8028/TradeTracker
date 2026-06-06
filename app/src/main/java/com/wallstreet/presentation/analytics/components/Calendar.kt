@@ -62,42 +62,34 @@ fun Calendar(
 
     val daysOfWeek = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                MonthHeader(
-                    currentMonth = currentMonth,
-                    onPrev = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
-                    onNext = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
-                )
+        Column(modifier = Modifier.padding(16.dp)) {
+            MonthHeader(
+                currentMonth = currentMonth,
+                onPrev = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
+                onNext = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } }
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                DayOfWeekHeader(days = daysOfWeek)
+            DayOfWeekHeader(days = daysOfWeek)
 
-                Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-                HorizontalPager(state = pagerState) {
-                    CalendarGrid(days = calendarDays)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                Spacer(modifier = Modifier.height(12.dp))
-
-                MonthSummary(monthlyStats)
+            HorizontalPager(state = pagerState) {
+                CalendarGrid(days = calendarDays)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            MonthSummary(monthlyStats)
         }
     }
 }
