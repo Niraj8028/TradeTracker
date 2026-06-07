@@ -35,11 +35,9 @@ class GetStrategyStatsUsecase(
         val tradesByStrategy =
             trades.filter { !it.strategyId.isNullOrBlank() }.groupBy { it.strategyId }
 
-        strategies.mapNotNull { strategy ->
-            val tradesForStrategy = tradesByStrategy[strategy.id] ?: return@mapNotNull null
-
-
-            computeStatsForStrategy(strategy, tradesForStrategy, period);
+        strategies.map { strategy ->
+            val tradesForStrategy = tradesByStrategy[strategy.id] ?: emptyList()
+            computeStatsForStrategy(strategy, tradesForStrategy, period)
         }
 
     }

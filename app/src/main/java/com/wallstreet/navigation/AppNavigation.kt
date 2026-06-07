@@ -119,24 +119,22 @@ fun AppNavigation(
 @Composable
 fun MainScaffold(
     backStack: NavBackStack<NavKey>,
+    onTabNavigation: (isForward: Boolean) -> Unit = {},
     content: @Composable () -> Unit
 ) {
+    val tabKeys = remember { BottomNavItem.items.map { it.key }.toSet() }
+
     Scaffold(
         bottomBar = {
             AppBottomBar(
                 currentKey = backStack.last(),
                 onItemClick = { key ->
                     if (backStack.last() != key) {
+                        val currentIndex = BottomNavItem.items.indexOfFirst { it.key == backStack.last() }
+                        val targetIndex  = BottomNavItem.items.indexOfFirst { it.key == key }
+                        onTabNavigation(targetIndex > currentIndex)
 
-                        val homeKeys = setOf(
-                            AppRoute.Home.DashboardRoute,
-                            AppRoute.Home.TradeHistoryRoute,
-                            AppRoute.Home.EquityMetricsRoute,
-                            AppRoute.Home.StrategiesRoute,
-                            AppRoute.Home.ProfileRoute
-                        )
-
-                        while (backStack.size > 1 && backStack.last() in homeKeys) {
+                        while (backStack.size > 1 && backStack.last() in tabKeys) {
                             backStack.removeLastOrNull()
                         }
                         backStack.add(key)

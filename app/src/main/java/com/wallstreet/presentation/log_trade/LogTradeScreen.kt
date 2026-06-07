@@ -95,6 +95,7 @@ private val TrendAmber = Color(0xFFF59E0B)
 @Composable
 fun LogTradeScreen(
     onNavigateBack: () -> Unit = {},
+    onNavigateToHome: () -> Unit = onNavigateBack,
     viewModel: LogTradeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -121,7 +122,7 @@ fun LogTradeScreen(
 
     LaunchedEffect(uiState.success) {
         if (uiState.success) {
-            onNavigateBack()
+            onNavigateToHome()
             viewModel.resetSuccess()
         }
     }
@@ -345,24 +346,7 @@ fun LogTradeScreen(
                 TradeCard {
                     FieldBlock(
                         label = "Mistakes",
-                        optional = true,
-                        hintContent = if (uiState.selectedMistakes.isNotEmpty()) {
-                            {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(99.dp))
-                                        .background(DangerRed.copy(alpha = 0.15f))
-                                        .padding(horizontal = 7.dp, vertical = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "${uiState.selectedMistakes.size} selected",
-                                        fontSize = 10.5.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = DangerRed
-                                    )
-                                }
-                            }
-                        } else null
+                        optional = true
                     ) {
                         MistakeChipSet(
                             selected = uiState.selectedMistakes,

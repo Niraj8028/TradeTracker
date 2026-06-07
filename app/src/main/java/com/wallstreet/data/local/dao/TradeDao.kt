@@ -37,6 +37,9 @@ interface TradeDao {
     @Query("UPDATE trades SET syncStatus = :status, lastSyncAttempt = :timestamp, syncError = :error WHERE id = :id")
     suspend fun updateSyncStatus(id: String, status: SyncStatus, timestamp: Long, error: String?)
 
+    @Query("DELETE FROM trades WHERE id = :tradeId")
+    suspend fun deleteTradeById(tradeId: String)
+
     @Query("DELETE FROM trades WHERE userId = :userId")
     suspend fun deleteAllTrades(userId: String)
 }

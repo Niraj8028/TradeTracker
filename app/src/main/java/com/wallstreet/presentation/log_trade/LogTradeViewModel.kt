@@ -150,8 +150,8 @@ class LogTradeViewModel(
             when (result) {
                 is Result.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Result.Success -> {
-                    _uiState.value = LogTradeUiState()
-                    _uiState.value = _uiState.value.copy(success = true, isLoading = false)
+                    val strategies = _uiState.value.strategies
+                    _uiState.value = LogTradeUiState(strategies = strategies, success = true)
                 }
                 Result.Loading -> Unit
             }

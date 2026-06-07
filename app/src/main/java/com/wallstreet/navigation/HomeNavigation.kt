@@ -1,10 +1,14 @@
 package com.wallstreet.navigation
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
@@ -28,6 +32,8 @@ import kotlinx.serialization.modules.polymorphic
 
 @Composable
 fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
+
+    val slideFromRight = remember { mutableStateOf(true) }
 
     val homeBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
@@ -114,7 +120,41 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             rememberViewModelStoreNavEntryDecorator()
         ),
         transitionSpec = {
-            EnterTransition.None togetherWith ExitTransition.None
+            if (slideFromRight.value) {
+                slideInHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    initialOffsetX = { it }
+                ) togetherWith slideOutHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    targetOffsetX = { -it / 4 }
+                )
+            } else {
+                slideInHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    initialOffsetX = { -it }
+                ) togetherWith slideOutHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    targetOffsetX = { it / 4 }
+                )
+            }
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                initialOffsetX = { -it / 4 }
+            ) togetherWith slideOutHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                targetOffsetX = { it }
+            )
+        },
+        predictivePopTransitionSpec = {
+            slideInHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                initialOffsetX = { -it / 4 }
+            ) togetherWith slideOutHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                targetOffsetX = { it }
+            )
         },
 
         entryProvider = entryProvider {
@@ -122,35 +162,35 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             // ---- Bottom nav tabs (with bottom bar) ----
 
             entry<AppRoute.Home.DashboardRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     HomeScreen()
                 }
             }
             entry<AppRoute.Home.AnalyticsRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     AnalyticsScreen()
                 }
             }
             entry<AppRoute.Home.TradeHistoryRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     Text("Trade History")
                 }
             }
 
             entry<AppRoute.Home.StrategiesRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     Text("Strategies")
                 }
             }
 
             entry<AppRoute.Home.EquityMetricsRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     Text("Equity Metrics")
                 }
             }
 
             entry<AppRoute.Home.ProfileRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     ProfileScreen(
                         onLogout = onLogout,
                         onSecurityPrivacy = { homeBackStack.add(AppRoute.Home.SecurityPrivacyRoute) },
@@ -164,16 +204,20 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             // ---- Push screens (no bottom bar) ----
 
             entry<AppRoute.Home.LogTradeRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     LogTradeScreen(
                         onNavigateBack = {
                             if (homeBackStack.size > 1) {
                                 homeBackStack.removeLastOrNull()
                             }
+                        },
+                        onNavigateToHome = {
+                            while (homeBackStack.size > 1) {
+                                homeBackStack.removeLastOrNull()
+                            }
                         }
                     )
                 }
-
             }
 
             entry<AppRoute.Home.MistakeAnalysisRoute> {
@@ -181,7 +225,7 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
             }
 
             entry<AppRoute.Home.CalendarRoute> {
-                MainScaffold(homeBackStack) {
+                MainScaffold(homeBackStack, onTabNavigation = { slideFromRight.value = it }) {
                     StrategiesScreen(
                         onStrategyClick = { strategyId ->
                             homeBackStack.add(AppRoute.Home.StrategyDetailRoute(strategyId))
