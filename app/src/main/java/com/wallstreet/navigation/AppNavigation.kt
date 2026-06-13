@@ -1,14 +1,10 @@
 package com.wallstreet.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -16,7 +12,6 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.core.splash.StartDestination
-import com.wallstreet.presentation.components.AppBottomBar
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -116,40 +111,3 @@ fun AppNavigation(
     )
 }
 
-@Composable
-fun MainScaffold(
-    backStack: NavBackStack<NavKey>,
-    content: @Composable () -> Unit
-) {
-    Scaffold(
-        bottomBar = {
-            AppBottomBar(
-                currentKey = backStack.last(),
-                onItemClick = { key ->
-                    if (backStack.last() != key) {
-
-                        val homeKeys = setOf(
-                            AppRoute.Home.DashboardRoute,
-                            AppRoute.Home.TradeHistoryRoute,
-                            AppRoute.Home.EquityMetricsRoute,
-                            AppRoute.Home.StrategiesRoute,
-                            AppRoute.Home.ProfileRoute
-                        )
-
-                        while (backStack.size > 1 && backStack.last() in homeKeys) {
-                            backStack.removeLastOrNull()
-                        }
-                        backStack.add(key)
-                    }
-                },
-                onFabClick = {
-                    backStack.add(AppRoute.Home.LogTradeRoute)
-                }
-            )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            content()
-        }
-    }
-}

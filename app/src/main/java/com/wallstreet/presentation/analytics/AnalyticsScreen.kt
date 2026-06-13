@@ -1,5 +1,6 @@
 package com.wallstreet.presentation.analytics
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,7 +8,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,9 +33,11 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = koinViewModel()) {
         TabItem("Trend"),
     )
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
-    ) { _ ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         when (val state = uiState) {
             is AnalyticsUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -70,22 +72,24 @@ private fun AnalyticsContent(
 ) {
     val pagerState = rememberPagerState(initialPage = state.selectedTabIndex) { tabList.size }
 
+    // Tab click → jump instantly so currentPage never visits intermediate pages
     LaunchedEffect(state.selectedTabIndex) {
         if (pagerState.currentPage != state.selectedTabIndex) {
-            pagerState.animateScrollToPage(state.selectedTabIndex)
+            pagerState.scrollToPage(state.selectedTabIndex)
         }
     }
 
-    LaunchedEffect(pagerState.currentPage) {
-        if (state.selectedTabIndex != pagerState.currentPage) {
-            onTabSelect(pagerState.currentPage)
+    // Swipe gesture → only notify ViewModel once the pager fully settles
+    LaunchedEffect(pagerState.settledPage) {
+        if (state.selectedTabIndex != pagerState.settledPage) {
+            onTabSelect(pagerState.settledPage)
         }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
         AppTabRow(
             tabs = tabList,
-            selectedIndex = state.selectedTabIndex,
+            selectedIndex = pagerState.currentPage,
             onTabChange = onTabSelect
         )
         FilterTab(

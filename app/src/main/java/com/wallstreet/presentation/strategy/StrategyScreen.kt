@@ -36,6 +36,7 @@ import com.wallstreet.domain.model.Strategy
 import com.wallstreet.presentation.home.LoadingView
 import com.wallstreet.presentation.strategy.components.AddStrategyDialog
 import com.wallstreet.presentation.strategy.components.DeleteStrategyBottomSheet
+import com.wallstreet.presentation.strategy.components.EditStrategyDialog
 import com.wallstreet.presentation.strategy.components.StrategyErrorView
 import com.wallstreet.presentation.strategy.components.StrategySuccessView
 import com.wallstreet.ui.theme.PrimaryBlue
@@ -55,6 +56,7 @@ fun StrategiesScreen(
 
     var showAddStrategyDialog by remember { mutableStateOf(false) }
     var showDeleteStrategyConfirmDialog by remember { mutableStateOf(false) }
+    var showEditStrategyDialog by remember { mutableStateOf(false) }
     var isSelectionMode by remember { mutableStateOf(false) }
     val selectedStrategies = remember { mutableStateListOf<Strategy>() }
     var searchOpen by remember { mutableStateOf(false) }
@@ -118,6 +120,18 @@ fun StrategiesScreen(
 
             when {
                 isSelectionMode -> {
+                    if (selectedStrategies.size == 1) {
+                        IconButton(onClick = {
+                            viewModel.clearActionState()
+                            showEditStrategyDialog = true
+                        }) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Rename",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                     if (selectedStrategies.isNotEmpty()) {
                         IconButton(onClick = { showDeleteStrategyConfirmDialog = true }) {
                             Icon(
@@ -214,6 +228,22 @@ fun StrategiesScreen(
                 showDeleteStrategyConfirmDialog = false
                 if (actionState is ActionState.Success) exitSelection()
                 viewModel.clearActionState()
+            }
+        )
+    }
+
+    if (showEditStrategyDialog && selectedStrategies.size == 1) {
+        val strategy = selectedStrategies.first()
+        EditStrategyDialog(
+            currentName = strategy.name,
+            actionState = actionState,
+            onDismiss = {
+                showEditStrategyDialog = false
+                if (actionState is ActionState.Success) exitSelection()
+                viewModel.clearActionState()
+            },
+            onSaveClick = { newName ->
+                viewModel.updateStrategy(strategy.copy(name = newName))
             }
         )
     }

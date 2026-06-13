@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -46,7 +47,8 @@ class StrategyViewModel(
     ) { period, sort, dir ->
         Triple(period, sort, dir)
     }.flatMapLatest { (period, sort, dir) ->
-        val userId = authRepository.getCurrentUser()!!.id
+        val userId = authRepository.getCurrentUser()?.id
+            ?: return@flatMapLatest flowOf(StrategiesUiState.Loading)
         getStrategyStatsUsecase(userId, period).map { stats ->
             val sorted = when (sort) {
                 StrategySortOption.PNL      -> stats.sortedByDescending { it.totalPnl }
@@ -55,7 +57,9 @@ class StrategyViewModel(
                 StrategySortOption.RR_RATIO -> stats.sortedByDescending { it.rrRatio }
                 StrategySortOption.RECENT   -> stats.sortedByDescending { it.strategy.createAt ?: 0L }
             }
-            val finalList = if (dir == SortDirection.DESC) sorted else sorted.reversed()
+            val directedList = if (dir == SortDirection.DESC) sorted else sorted.reversed()
+            val finalList = directedList.filter { it.totalTrades > 0 } +
+                            directedList.filter { it.totalTrades == 0 }
             StrategiesUiState.Success(strategyStats = finalList, selectedPeriod = period) as StrategiesUiState
         }.onStart { emit(StrategiesUiState.Loading) }
             .catch { e -> emit(StrategiesUiState.Error(e.message ?: "Unknown error")) }

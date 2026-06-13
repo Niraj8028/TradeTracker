@@ -83,6 +83,15 @@ class TradeRepositoryImpl(
         return tradeDao.getPendingSyncTrades(userId).isNotEmpty()
     }
 
+    override suspend fun deleteTrade(tradeId: String): Result<Unit> {
+        return try {
+            tradeDao.deleteTradeById(tradeId)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e.toString())
+        }
+    }
+
     override suspend fun seedFromFirestore(userId: String) {
         try {
             val snapshot = tradesCollection

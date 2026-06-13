@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -53,7 +54,8 @@ class HomeViewModel(
 
     val homeUiState: StateFlow<HomeUiState> = selectedPeriod
         .flatMapLatest { period ->
-            val userId = authRepository.getCurrentUser()!!.id
+            val userId = authRepository.getCurrentUser()?.id
+                ?: return@flatMapLatest flowOf(HomeUiState.Loading)
             val heatmapPeriod = if (period == TimePeriod.ONE_WEEK) TimePeriod.ONE_MONTH else period
             combine(
                 getTradesUsecase(userId, period, 500),
@@ -81,6 +83,12 @@ class HomeViewModel(
 
     fun onPeriodSelected(period: TimePeriod) {
         selectedPeriod.value = period
+    }
+
+    fun deleteTrade(tradeId: String) {
+        viewModelScope.launch {
+            tradeRepository.deleteTrade(tradeId)
+        }
     }
 
 }

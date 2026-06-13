@@ -1,5 +1,10 @@
 package com.wallstreet.navigation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -78,6 +83,43 @@ fun OnboardingNavigation(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
         ),
+        transitionSpec = {
+            if (targetState.key !is AppRoute.OnBoarding.Register) {
+                slideInHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    initialOffsetX = { it }
+                ) togetherWith slideOutHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    targetOffsetX = { -it / 4 }
+                )
+            } else {
+                slideInHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    initialOffsetX = { -it / 4 }
+                ) togetherWith slideOutHorizontally(
+                    animationSpec = tween(300, easing = FastOutSlowInEasing),
+                    targetOffsetX = { it }
+                )
+            }
+        },
+        popTransitionSpec = {
+            slideInHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                initialOffsetX = { -it / 4 }
+            ) togetherWith slideOutHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                targetOffsetX = { it }
+            )
+        },
+        predictivePopTransitionSpec = {
+            slideInHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                initialOffsetX = { -it / 4 }
+            ) togetherWith slideOutHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                targetOffsetX = { it }
+            )
+        },
         entryProvider = entryProvider {
 
             entry<AppRoute.OnBoarding.Onboarding> {

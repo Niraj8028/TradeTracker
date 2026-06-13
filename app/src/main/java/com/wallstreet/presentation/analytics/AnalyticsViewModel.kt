@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 
@@ -36,7 +37,8 @@ class AnalyticsViewModel(
     private val _selectedFilter = MutableStateFlow(TimePeriod.ONE_MONTH)
 
     val uiState: StateFlow<AnalyticsUiState> = _selectedFilter.flatMapLatest { filter ->
-        val userId = authRepository.getCurrentUser()?.id ?: ""
+        val userId = authRepository.getCurrentUser()?.id
+            ?: return@flatMapLatest flowOf(AnalyticsUiState.Loading)
         combine(
             getTradesUseCase(userId, filter, 500),
             getTradesUseCase(userId, TimePeriod.ALL, 5000),

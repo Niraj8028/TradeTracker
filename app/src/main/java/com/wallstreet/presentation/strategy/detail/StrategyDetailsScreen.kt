@@ -154,49 +154,24 @@ private fun StrategyDetailSuccess(
             onPeriodSelected = onPeriodSelected
         )
 
-        if (state.totalTradesInPeriod == 0) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 48.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No trades yet for this strategy\nin the selected period.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else {
-            StrategyRiskRewardCard(
-                stats = state.stats,
-                profitFactor = state.profitFactor,
-                maxDrawdown = state.maxDrawdown,
-                winStreak = state.winStreak
-            )
-            EquityCurveChart(
-                equityCurveData = state.equityCurveData,
-                selectedPeriod = selectedPeriod,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
-            // Section 4 — Long vs Short
-            LongShortCard(summary = state.tradeSummary)
-
-            // Section 5 — Top Symbols
-            SymbolPerformanceCard(symbols = state.symbolPerformance)
-
-            // Section 6 — Best trading day
-            DayWisePerformance(dayPerformance = state.dayPerformance)
-
-            // Section 7 — Trend performance
-            TrendPerformanceCard(data = state.trendPerformance)
-
-            // Section 8 — Mistake summary
-            TopMistakesCard(
-                data = state.mistakesAnalysisData,
-                onViewAll = {}
-            )
-        }
+        StrategyRiskRewardCard(
+            stats = state.stats,
+            profitFactor = state.profitFactor,
+            maxDrawdown = state.maxDrawdown,
+            winStreak = state.winStreak
+        )
+        EquityCurveChart(
+            equityCurveData = state.equityCurveData,
+            selectedPeriod = selectedPeriod,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
+        LongShortCard(summary = state.tradeSummary)
+        SymbolPerformanceCard(symbols = state.symbolPerformance)
+        DayWisePerformance(dayPerformance = state.dayPerformance)
+        TrendPerformanceCard(data = state.trendPerformance)
+        TopMistakesCard(
+            data = state.mistakesAnalysisData,
+            onViewAll = {}
+        )
     }
 }

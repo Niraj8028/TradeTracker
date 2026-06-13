@@ -12,6 +12,7 @@ import com.wallstreet.domain.repository.StrategyRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.tasks.await
 
 class StrategyRepositoryImpl(
@@ -40,26 +41,27 @@ class StrategyRepositoryImpl(
         }
     }
 
-    override fun getStrategies(): Flow<List<Strategy>> = callbackFlow {
-        val userId = authRepository.getCurrentUser()!!.id
+    override fun getStrategies(): Flow<List<Strategy>> {
+        val userId = authRepository.getCurrentUser()?.id ?: return emptyFlow()
+        return callbackFlow {
+            val listener = strategyCollection
+                .whereEqualTo("userId", userId)
+                .addSnapshotListener { snapshot, error ->
 
-        val listener = strategyCollection
-            .whereEqualTo("userId", userId)
-            .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(error)
+                        return@addSnapshotListener
+                    }
 
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
+                    val strategies = snapshot?.documents?.mapNotNull { doc ->
+                        doc.toObject(strategyDto::class.java)?.toDomain()
+                    } ?: emptyList()
+
+                    trySend(strategies)
                 }
 
-                val strategies = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(strategyDto::class.java)?.toDomain()
-                } ?: emptyList()
-
-                trySend(strategies)
-            }
-
-        awaitClose { listener.remove() }
+            awaitClose { listener.remove() }
+        }
     }
 
     override suspend fun deleteStrategy(strategy: Strategy): Result<String> {

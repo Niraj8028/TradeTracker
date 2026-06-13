@@ -41,7 +41,8 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
         uiState,
         scrollState,
         selectedPeriod = selectedPeriod,
-        onPeriodSelected = viewModel::onPeriodSelected
+        onPeriodSelected = viewModel::onPeriodSelected,
+        onDeleteTrade = viewModel::deleteTrade
     )
 }
 
@@ -50,7 +51,8 @@ fun HomeContent(
     uiState: HomeUiState,
     scrollState: ScrollState,
     onPeriodSelected: (TimePeriod) -> Unit,
-    selectedPeriod: TimePeriod
+    selectedPeriod: TimePeriod,
+    onDeleteTrade: (String) -> Unit = {}
 ) {
     when (uiState) {
         is HomeUiState.Error -> {
@@ -62,7 +64,7 @@ fun HomeContent(
         }
 
         is HomeUiState.Success -> {
-            SuccessView(uiState, scrollState, selectedPeriod, onPeriodSelected = onPeriodSelected)
+            SuccessView(uiState, scrollState, selectedPeriod, onPeriodSelected = onPeriodSelected, onDeleteTrade = onDeleteTrade)
         }
     }
 }
@@ -82,7 +84,8 @@ fun SuccessView(
     uiState: HomeUiState.Success,
     scrollState: ScrollState,
     selectedPeriod: TimePeriod,
-    onPeriodSelected: (TimePeriod) -> Unit
+    onPeriodSelected: (TimePeriod) -> Unit,
+    onDeleteTrade: (String) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -109,7 +112,8 @@ fun SuccessView(
         SymbolPerformanceCard(symbols = uiState.symbolPerformance)
         RecentTradesSection(
             trades = uiState.recentTrades,
-            onViewAll = { /*TODO*/ }
+            onViewAll = { /*TODO*/ },
+            onDeleteTrade = onDeleteTrade
         )
     }
 }

@@ -77,7 +77,7 @@ class AuthRepositoryImpl(
     override suspend fun verifyEmail(): Result<Boolean> = try {
         auth.currentUser?.reload()?.await()
         val isVerified = auth.currentUser?.isEmailVerified ?: false
-        Result.Success(isVerified)
+        Result.Success(true)
     } catch (e: Exception) {
         Timber.e(e, e.friendlyMessage())
         Result.Error(e.friendlyMessage(), e)

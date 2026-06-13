@@ -11,5 +11,6 @@ interface TradeRepository {
     suspend fun syncPendingTrades(userId: String): Boolean
     suspend fun clearLocalData(userId: String)
     suspend fun hasPendingTrades(userId: String): Boolean
+    suspend fun deleteTrade(tradeId: String): Result<Unit>
     suspend fun seedFromFirestore(userId: String)
 }
