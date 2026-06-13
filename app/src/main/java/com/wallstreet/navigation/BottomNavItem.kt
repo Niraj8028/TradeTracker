@@ -2,8 +2,9 @@ package com.wallstreet.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoGraph
-import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
@@ -29,13 +30,13 @@ sealed class BottomNavItem(
     data object LogTrade : BottomNavItem(
         key = AppRoute.Home.LogTradeRoute,
         label = R.string.nav_log_trade,
-        icon = Icons.Filled.AutoGraph
+        icon = Icons.Filled.Edit
     )
 
     data object Strategies : BottomNavItem(
         key = AppRoute.Home.CalendarRoute,
         label = R.string.nav_strategies,
-        icon = Icons.Filled.CalendarMonth
+        icon = Icons.Filled.Layers
     )
 
     data object Profile : BottomNavItem(

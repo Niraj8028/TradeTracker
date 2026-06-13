@@ -40,14 +40,13 @@ fun ThemeToggle() {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline,
-                shape = RoundedCornerShape(12.dp),
-            )
+//            .border(
+//                width = 1.dp,
+//                color = MaterialTheme.colorScheme.outline,
+//                shape = RoundedCornerShape(12.dp),
+//            )
 
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(10.dp),
     ) {
         ThemeTypes.entries.forEach { theme ->
             val isSelected = theme == selectedTheme

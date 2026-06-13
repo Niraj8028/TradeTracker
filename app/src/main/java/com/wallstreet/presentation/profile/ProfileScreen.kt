@@ -16,7 +16,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,7 +28,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.wallstreet.R
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material.icons.filled.PrivacyTip
 import com.wallstreet.core.preferences.CurrencyPreferences
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
@@ -136,12 +144,6 @@ fun ProfileScreen(
         // ── Appearance ───────────────────────────────────────────────
         ProfileSection(label = "APPEARANCE") {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                Text(
-                    text = "App Theme",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.height(10.dp))
                 ThemeToggle()
             }
         }
@@ -149,7 +151,7 @@ fun ProfileScreen(
         // ── Preferences ──────────────────────────────────────────────
         ProfileSection(label = "PREFERENCES") {
             ProfileMenuItem(
-                icon = painterResource(R.drawable.globe),
+                icon = Icons.Filled.Language,
                 label = "Currency",
                 sublabel = "${LocalCurrencySymbol.current} · $currentCurrencyCode",
                 onClick = { showCurrencySheet = true }
@@ -159,7 +161,7 @@ fun ProfileScreen(
         // ── Account ──────────────────────────────────────────────────
         ProfileSection(label = "ACCOUNT") {
             ProfileMenuItem(
-                icon = painterResource(R.drawable.user_shield),
+                icon = Icons.Filled.AdminPanelSettings,
                 label = "Security & Privacy",
                 onClick = onSecurityPrivacy
             )
@@ -169,7 +171,7 @@ fun ProfileScreen(
                 thickness = 0.5.dp
             )
             ProfileMenuItem(
-                icon = painterResource(R.drawable.lock),
+                icon = Icons.Filled.PrivacyTip,
                 label = "Privacy Policy",
                 onClick = onPrivacyPolicy
             )
@@ -179,7 +181,7 @@ fun ProfileScreen(
                 thickness = 0.5.dp
             )
             ProfileMenuItem(
-                icon = painterResource(R.drawable.terms),
+                icon = Icons.Filled.Gavel,
                 label = "Terms of Service",
                 onClick = onTermsOfService
             )
@@ -188,7 +190,7 @@ fun ProfileScreen(
         // ── Danger zone ──────────────────────────────────────────────
         ProfileSection(label = "DANGER ZONE") {
             ProfileMenuItem(
-                icon = painterResource(R.drawable.delete),
+                icon = Icons.Filled.PersonRemove,
                 label = "Delete Account",
                 sublabel = "Permanently removes all your data",
                 iconTint = MaterialTheme.colorScheme.error,
@@ -213,7 +215,7 @@ fun ProfileScreen(
             )
         ) {
             Icon(
-                painter = painterResource(R.drawable.log_out),
+                imageVector = Icons.AutoMirrored.Filled.Logout,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -293,7 +295,7 @@ fun ProfileScreen(
         message = "Are you sure you want to logout?",
         confirmText = "Logout",
         isDestructive = true,
-        icon = painterResource(R.drawable.log_out),
+        icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Logout),
         onConfirm = {
             showLogoutDialog = false
             viewModel.onSignOutClicked()
@@ -330,7 +332,7 @@ private fun ProfileSection(
 
 @Composable
 private fun ProfileMenuItem(
-    icon: Painter,
+    icon: ImageVector,
     label: String,
     sublabel: String? = null,
     onClick: () -> Unit,
@@ -354,7 +356,7 @@ private fun ProfileMenuItem(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = icon,
+                imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
                 modifier = Modifier.size(20.dp)
@@ -381,10 +383,10 @@ private fun ProfileMenuItem(
             }
         }
         Icon(
-            painter = painterResource(R.drawable.scheveron_arrow),
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(20.dp)
         )
     }
 }
