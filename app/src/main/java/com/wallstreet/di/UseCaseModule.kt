@@ -19,6 +19,7 @@ import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.UpdateStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
+import com.wallstreet.domain.usecase.trade.CheckTodayTradeUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import org.koin.dsl.module
 
@@ -32,6 +33,7 @@ val useCaseModule = module {
     factory { ResendVerificationEmailUseCase(get()) }
     factory { SendPasswordResetEmailUseCase(get()) }
     factory { AddTradeUseCase(get()) }
+    factory { CheckTodayTradeUseCase(get()) }
     factory { GetTradesUseCase(get()) }
     factory { GetHomeStateUsecase() }
     factory { ComputeHeatMapDataUsecase() }

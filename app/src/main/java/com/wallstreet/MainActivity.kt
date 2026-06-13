@@ -1,10 +1,15 @@
 package com.wallstreet
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
@@ -15,9 +20,12 @@ import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
 import com.wallstreet.core.splash.SplashGate
 import com.wallstreet.core.splash.StartDestination
+import com.wallstreet.core.util.NotificationHelper
 import com.wallstreet.domain.analytics.AnalyticsManager
 import com.wallstreet.data.store.TradeStore
 import com.wallstreet.navigation.AppNavigation
+import com.wallstreet.navigation.AppRoute
+import androidx.navigation3.runtime.NavKey
 import com.wallstreet.ui.theme.WallStreetAndroidTheme
 
 import kotlinx.coroutines.launch
@@ -58,8 +66,20 @@ class MainActivity : ComponentActivity() {
             WallStreetAndroidTheme(darkTheme = isDarkMode) {
                 val destination by SplashGate.startDestination.collectAsState()
 
+                var pendingRoute by remember { mutableStateOf<NavKey?>(null) }
+
+                LaunchedEffect(intent) {
+                    val routeStr = intent?.getStringExtra(NotificationHelper.EXTRA_ROUTE)
+                    if (routeStr == NotificationHelper.ROUTE_LOG_TRADE) {
+                        pendingRoute = AppRoute.Home.LogTradeRoute
+                    }
+                }
+
                 destination?.let {
-                    AppNavigation(startDestination = it)
+                    AppNavigation(
+                        startDestination = it,
+                        initialHomeRoute = pendingRoute
+                    )
                 }
             }
         }

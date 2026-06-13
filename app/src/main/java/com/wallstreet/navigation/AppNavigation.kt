@@ -18,6 +18,7 @@ import kotlinx.serialization.modules.polymorphic
 @Composable
 fun AppNavigation(
     startDestination: StartDestination,
+    initialHomeRoute: NavKey? = null,
     onLogin: () -> Unit = {},
     onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -98,6 +99,7 @@ fun AppNavigation(
             }
             entry<AppRoute.Home> {
                 HomeNavigation(
+                    initialRoute = initialHomeRoute,
                     onLogout = {
                         isLogoutFlow = true
                         onLogout()

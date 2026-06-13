@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -42,7 +43,11 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
 @Composable
-fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
+fun HomeNavigation(
+    onLogout: () -> Unit,
+    initialRoute: NavKey? = null,
+    modifier: Modifier = Modifier
+) {
 
     val slideFromRight = remember { mutableStateOf(true) }
     val tabKeys = remember { BottomNavItem.items.map { it.key }.toSet() }
@@ -116,6 +121,15 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
         },
         AppRoute.Home.DashboardRoute
     )
+
+    // Handle initial route if provided (e.g. from notification)
+    LaunchedEffect(initialRoute) {
+        initialRoute?.let {
+            if (homeBackStack.last() != it) {
+                homeBackStack.add(it)
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier,

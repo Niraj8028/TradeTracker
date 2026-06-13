@@ -1,6 +1,9 @@
 package com.wallstreet.presentation.auth.register
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -22,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -104,6 +108,36 @@ fun RegisterScreen(
             }
             // RESULT_CANCELED = user pressed back, no error needed
         }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        onRegisterSuccess()
+    }
+
+    val requestNotificationPermission = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                onRegisterSuccess()
+            }
+        } else {
+            onRegisterSuccess()
+        }
+    }
+
+    LaunchedEffect(uiState.navigateToOtp) {
+        if (uiState.navigateToOtp) {
+            viewModel.resetNavigation()
+            onNavigateToOtp(email)
+        }
+    }
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) requestNotificationPermission()
     }
 
     // Helper: submit the form

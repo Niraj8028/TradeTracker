@@ -34,6 +34,9 @@ interface TradeDao {
     @Query("SELECT * FROM trades WHERE userId = :userId AND syncStatus != 'SYNCED'")
     suspend fun getPendingSyncTrades(userId: String): List<TradeEntity>
 
+    @Query("SELECT COUNT(*) FROM trades WHERE userId = :userId AND tradeDate >= :startOfDay AND tradeDate <= :endOfDay")
+    suspend fun getTradeCountInRange(userId: String, startOfDay: Long, endOfDay: Long): Int
+
     @Query("UPDATE trades SET syncStatus = :status, lastSyncAttempt = :timestamp, syncError = :error WHERE id = :id")
     suspend fun updateSyncStatus(id: String, status: SyncStatus, timestamp: Long, error: String?)
 
