@@ -37,7 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.RecentTradeItem
 import com.wallstreet.domain.model.TradeType
+import com.wallstreet.core.util.formatPnl
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.White
@@ -172,7 +174,7 @@ private fun TradeRow(trade: RecentTradeItem, onDelete: (String) -> Unit) {
         val pnl = trade.profitLoss
         val isPnlPositive = pnl >= 0
         val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
-        val pnlText = if (isPnlPositive) "+$${"%.0f".format(pnl)}" else "-$${"%.0f".format(-pnl)}"
+        val pnlText = pnl.formatPnl(LocalCurrencySymbol.current)
 
         val shape = RoundedCornerShape(12.dp)
         Row(

@@ -30,13 +30,13 @@ fun formatAmount(value: Double): String {
     return absValue.toString()
 }
 
-/** Formats a dollar amount with prefix (+/-) and suffixes (K/M) for large values. */
-fun Double.formatPnl(): String {
+/** Formats a PnL amount with prefix (+/-), currency symbol, and suffixes (K/M) for large values. */
+fun Double.formatPnl(symbol: String = "$"): String {
     val value = this
     val prefix = if (value >= 0) "+" else "-"
     val abs = kotlin.math.abs(value)
     return when {
-        abs >= 1_000_000 -> "$prefix\$${String.format(Locale.US, "%.2f", abs / 1_000_000)}M"
+        abs >= 1_000_000 -> "$prefix$symbol${String.format(Locale.US, "%.2f", abs / 1_000_000)}M"
         abs >= 1_000 -> {
             val formatted = String.format(Locale.US, "%.0f", abs)
             val withCommas = buildString {
@@ -45,10 +45,10 @@ fun Double.formatPnl(): String {
                     append(c)
                 }
             }.reversed()
-            "$prefix\$$withCommas"
+            "$prefix$symbol$withCommas"
         }
 
-        else -> "$prefix\$${String.format(Locale.US, "%.0f", abs)}"
+        else -> "$prefix$symbol${String.format(Locale.US, "%.0f", abs)}"
     }
 }
 

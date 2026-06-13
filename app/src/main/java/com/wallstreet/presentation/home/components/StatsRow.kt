@@ -24,11 +24,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.HomeStats
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 
 @Composable
 fun StatsRow(stats: HomeStats) {
+    val symbol = LocalCurrencySymbol.current
     val winRateColor = when {
         stats.winRate >= 60 -> SuccessGreen
         stats.winRate < 40  -> DangerRed
@@ -39,8 +41,8 @@ fun StatsRow(stats: HomeStats) {
         stats.riskRewardRatio >= 1.0 -> PrimaryBlue
         else                         -> DangerRed
     }
-    val avgWinText = "+$${"%.0f".format(stats.avgProfit)}"
-    val avgLossText = "$${"%.0f".format(stats.avgLoss)}"
+    val avgWinText = "+$symbol${"%.0f".format(stats.avgProfit)}"
+    val avgLossText = "$symbol${"%.0f".format(stats.avgLoss)}"
     val rrText = "${"%.1f".format(stats.riskRewardRatio)}x"
     val winRateText = "${"%.1f".format(stats.winRate)}%"
 

@@ -26,13 +26,20 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.wallstreet.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import com.wallstreet.core.preferences.CurrencyPreferences
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
+import com.wallstreet.core.preferences.currencySymbols
 import com.wallstreet.presentation.profile.components.ConfirmationDialog
 import com.wallstreet.presentation.profile.components.ThemeToggle
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
@@ -46,6 +53,10 @@ fun ProfileScreen(
     val isLoggedOut by viewModel.isLoggedOut.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val themePrefs = remember { ThemePreferences(context) }
+    val currencyPrefs = remember { CurrencyPreferences(context) }
+    val currentCurrencyCode by currencyPrefs.currencyCode.collectAsState(initial = "USD")
+    var showCurrencySheet by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoggedOut) {
@@ -135,6 +146,16 @@ fun ProfileScreen(
             }
         }
 
+        // ── Preferences ──────────────────────────────────────────────
+        ProfileSection(label = "PREFERENCES") {
+            ProfileMenuItem(
+                icon = painterResource(R.drawable.globe),
+                label = "Currency",
+                sublabel = "${LocalCurrencySymbol.current} · $currentCurrencyCode",
+                onClick = { showCurrencySheet = true }
+            )
+        }
+
         // ── Account ──────────────────────────────────────────────────
         ProfileSection(label = "ACCOUNT") {
             ProfileMenuItem(
@@ -201,6 +222,69 @@ fun ProfileScreen(
         }
 
         Spacer(Modifier.height(8.dp))
+    }
+
+    if (showCurrencySheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showCurrencySheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                Text(
+                    text = "Select Currency",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                currencySymbols.entries.forEachIndexed { index, (code, symbol) ->
+                    val isSelected = code == currentCurrencyCode
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { currencyPrefs.setCurrency(code) }
+                                showCurrencySheet = false
+                            }
+                            .padding(vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$symbol  $code",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface
+                        )
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    if (index < currencySymbols.size - 1) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            thickness = 0.5.dp
+                        )
+                    }
+                }
+            }
+        }
     }
 
     ConfirmationDialog(

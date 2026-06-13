@@ -28,6 +28,7 @@ import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.CalendarDay
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlinx.coroutines.launch
@@ -294,7 +295,7 @@ private fun MonthSummary(stats: Triple<Double, Int, Int>) {
     ) {
         SummaryItem(
             label = "Monthly P&L",
-            value = totalPnl.formatPnl(),
+            value = totalPnl.formatPnl(LocalCurrencySymbol.current),
             color = if (totalPnl >= 0) SuccessGreen else DangerRed
         )
         Box(

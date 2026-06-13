@@ -27,6 +27,7 @@ import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.TradeStats
 import com.wallstreet.domain.model.TradeSummary
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlin.math.abs
@@ -38,7 +39,8 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun LongShortInsightsCard(summary: TradeSummary) {
-    val insights = buildLongShortInsights(summary)
+    val symbol = LocalCurrencySymbol.current
+    val insights = buildLongShortInsights(summary, symbol)
     if (insights.isEmpty()) return
 
     Box(
@@ -115,7 +117,7 @@ private data class LongShortInsight(val text: String, val isWarning: Boolean = f
  * Builds a prioritised list of insights (capped at 3) from the long/short split.
  * Returns empty when there isn't enough data to say anything meaningful.
  */
-private fun buildLongShortInsights(summary: TradeSummary): List<LongShortInsight> {
+private fun buildLongShortInsights(summary: TradeSummary, symbol: String = "$"): List<LongShortInsight> {
     val long = summary.long
     val short = summary.short
 
@@ -140,7 +142,7 @@ private fun buildLongShortInsights(summary: TradeSummary): List<LongShortInsight
         val (loser, winner) = if (longBleeds) "Long" to "short" else "Short" to "long"
         val loserPnl = if (longBleeds) long.pnl else short.pnl
         result += LongShortInsight(
-            "$loser trades are net negative (${loserPnl.formatPnl()}) while your $winner side is green. " +
+            "$loser trades are net negative (${loserPnl.formatPnl(symbol)}) while your $winner side is green. " +
                 "Tighten $loser entries or trade them smaller until they turn around.",
             isWarning = true
         )
@@ -165,7 +167,7 @@ private fun buildLongShortInsights(summary: TradeSummary): List<LongShortInsight
         val betterAvg = if (longBetter) long.avgPnl else short.avgPnl
         val worseAvg = if (longBetter) short.avgPnl else long.avgPnl
         result += LongShortInsight(
-            "$better trades are more efficient at ${betterAvg.formatPnl()} per trade vs ${worseAvg.formatPnl()} the other way."
+            "$better trades are more efficient at ${betterAvg.formatPnl(symbol)} per trade vs ${worseAvg.formatPnl(symbol)} the other way."
         )
     }
 

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -154,7 +155,7 @@ fun HeatMapCard(
                         fontSize = 9.sp
                     )
                     Text(
-                        text = bestDay.totalPnl.formatPnl(),
+                        text = bestDay.totalPnl.formatPnl(LocalCurrencySymbol.current),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = SuccessGreen
@@ -189,7 +190,7 @@ private fun SelectedCellDetail(cell: HeatMapCell) {
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             DetailItem(value = "${cell.noOfTrades}", label = "trades")
             DetailItem(
-                value = cell.totalPnl.formatPnl(),
+                value = cell.totalPnl.formatPnl(LocalCurrencySymbol.current),
                 label = "P&L",
                 valueColor = accentColor
             )

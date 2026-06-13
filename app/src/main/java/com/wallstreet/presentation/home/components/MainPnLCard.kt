@@ -29,7 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.HomeStats
 import com.wallstreet.domain.model.TimePeriod
+import com.wallstreet.core.util.formatPnl
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.White
@@ -42,10 +44,7 @@ fun MainPnLCard(
 ) {
     val isPnlPositive = stats.totalPnl >= 0
     val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
-    val pnlText = if (isPnlPositive)
-        "+$${"%.2f".format(stats.totalPnl)}"
-    else
-        "-$${"%.2f".format(-stats.totalPnl)}"
+    val pnlText = stats.totalPnl.formatPnl(LocalCurrencySymbol.current)
 
     val shape = RoundedCornerShape(20.dp)
     Column(

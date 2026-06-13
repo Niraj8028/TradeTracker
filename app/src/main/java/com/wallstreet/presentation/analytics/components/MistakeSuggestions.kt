@@ -35,7 +35,7 @@ private fun adviceFor(name: String): String =
  * Combines real per-mistake statistics with curated coaching advice. The result is
  * ordered most-impactful first so the worst leaks surface at the top.
  */
-fun buildMistakeSuggestions(data: MistakesAnalysisData): List<MistakeSuggestion> {
+fun buildMistakeSuggestions(data: MistakesAnalysisData, symbol: String = "$"): List<MistakeSuggestion> {
     val tagged = data.topMistakes.filter { it.count > 0 }
     if (tagged.isEmpty()) return emptyList()
 
@@ -53,15 +53,15 @@ fun buildMistakeSuggestions(data: MistakesAnalysisData): List<MistakeSuggestion>
 
     // One coaching line per mistake, worst financial impact first.
     tagged.sortedBy { it.totalPnlImpact }.forEach { stat ->
-        result += stat.toSuggestion()
+        result += stat.toSuggestion(symbol)
     }
 
     return result
 }
 
-private fun MistakeStat.toSuggestion(): MistakeSuggestion {
+private fun MistakeStat.toSuggestion(symbol: String): MistakeSuggestion {
     val impactClause = if (totalPnlImpact < 0) {
-        "cost you ${totalPnlImpact.formatPnl()} across $count ${tradeWord(count)} (${winRate.formatPercent()} win rate)."
+        "cost you ${totalPnlImpact.formatPnl(symbol)} across $count ${tradeWord(count)} (${winRate.formatPercent()} win rate)."
     } else {
         "appeared in $count ${tradeWord(count)} (${winRate.formatPercent()} win rate)."
     }

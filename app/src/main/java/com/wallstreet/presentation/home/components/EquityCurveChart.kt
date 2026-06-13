@@ -45,8 +45,10 @@ import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.wallstreet.domain.model.EquityCurveData
+import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.EquityPoint
 import com.wallstreet.domain.model.TimePeriod
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -128,10 +130,7 @@ fun EquityCurveChart(
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = if (isPositive)
-                            "+$${String.format("%.0f", totalPnL)}"
-                        else
-                            "-$${String.format("%.0f", -totalPnL)}",
+                        text = totalPnL.formatPnl(LocalCurrencySymbol.current),
                         color = lineColor,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold

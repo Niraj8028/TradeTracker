@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.core.util.format
 import com.wallstreet.core.util.formatPnl
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.domain.model.TrendDirection
@@ -259,7 +260,7 @@ fun LogTradeScreen(
                                 value = uiState.entryPrice,
                                 onChange = { viewModel.onEntryPriceChanged(it) },
                                 placeholder = "0.00",
-                                prefix = "$",
+                                prefix = LocalCurrencySymbol.current,
                                 isError = uiState.entryPriceError != null,
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Decimal,
@@ -278,7 +279,7 @@ fun LogTradeScreen(
                                 value = uiState.exitPrice,
                                 onChange = { viewModel.onExitPriceChanged(it) },
                                 placeholder = "0.00",
-                                prefix = "$",
+                                prefix = LocalCurrencySymbol.current,
                                 isError = uiState.exitPriceError != null,
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Decimal,
@@ -299,7 +300,7 @@ fun LogTradeScreen(
                             value = uiState.stopLoss ?: "",
                             onChange = { viewModel.onStopLossChanged(it) },
                             placeholder = "0.00",
-                            prefix = "$",
+                            prefix = LocalCurrencySymbol.current,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Decimal,
                                 imeAction = ImeAction.Next
@@ -746,7 +747,7 @@ private fun LiveCalcStrip(pnl: Double?, pctReturn: Double?, rrRatio: Double?) {
     ) {
         CalcCell(
             label = "P&L",
-            value = if (pnl == null) "—" else pnl.formatPnl(),
+            value = if (pnl == null) "—" else pnl.formatPnl(LocalCurrencySymbol.current),
             color = when {
                 pnl == null -> MaterialTheme.colorScheme.onSurfaceVariant
                 pnl >= 0    -> SuccessGreen
