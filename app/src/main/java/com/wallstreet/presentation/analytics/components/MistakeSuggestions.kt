@@ -23,7 +23,9 @@ private val curatedAdvice: Map<String, String> = mapOf(
     "Large Size" to "Oversized positions amplify emotional decisions. Size every trade to a fixed % risk of your account.",
     "Revenge Trade" to "Trading to win back a loss rarely works. Step away after a losing streak and reset before re-entering.",
     "No Stop Loss" to "Trading without a stop exposes you to uncapped losses. Define your exit before you enter the trade.",
-    "No Setup" to "You're entering without a defined edge. Only take trades that match a rule from your playbook."
+    "No Setup" to "You're entering without a defined edge. Only take trades that match a rule from your playbook.",
+    "SL Trailed" to "You trailed your stop too aggressively and got shaken out before the move completed. Give price enough room to breathe while still protecting profit.",
+    "Small SL" to "Your stop was too tight relative to the setup's natural volatility, leading to an early stop-out. Size the stop to the structure, then adjust position size to fit your risk."
 )
 
 private fun adviceFor(name: String): String =
