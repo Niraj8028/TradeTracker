@@ -12,6 +12,8 @@ object AppConstants {
         "Revenge Trade",
         "No Stop Loss",
         "No Setup",
+        "SL Trailed",
+        "Small SL",
     )
 
 
