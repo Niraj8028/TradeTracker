@@ -6,6 +6,9 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -283,7 +286,11 @@ private fun HomeBottomBar(
     slideFromRight: MutableState<Boolean>
 ) {
     val currentKey by remember { derivedStateOf { backStack.last() } }
-    if (currentKey !in tabKeys) return
+
+    if (currentKey !in tabKeys) {
+        Spacer(modifier = Modifier.fillMaxWidth().navigationBarsPadding())
+        return
+    }
 
     AppBottomBar(
         currentKey = currentKey,
