@@ -7,7 +7,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -70,8 +69,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wallstreet.core.util.HapticStyle
 import com.wallstreet.core.util.format
 import com.wallstreet.core.util.formatPnl
+import com.wallstreet.core.util.hapticClickable
 import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.TradeType
@@ -172,7 +173,7 @@ fun LogTradeScreen(
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface)
                         .shadow(1.dp, CircleShape)
-                        .clickable { onNavigateBack() },
+                        .hapticClickable(HapticStyle.Light) { onNavigateBack() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Default.Close, null,
@@ -413,7 +414,7 @@ fun LogTradeScreen(
                     )
                     .clip(RoundedCornerShape(12.dp))
                     .background(PrimaryBlue)
-                    .clickable(enabled = !uiState.isLoading) { viewModel.onSaveTrade() }
+                    .hapticClickable(HapticStyle.Medium, enabled = !uiState.isLoading) { viewModel.onSaveTrade() }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -642,7 +643,7 @@ private fun DirectionSegment(
                     .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
                     .background(bgColor)
-                    .clickable { onSelect(type) }
+                    .hapticClickable(HapticStyle.Light) { onSelect(type) }
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -703,8 +704,8 @@ private fun TrendSegment(
                     .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
                     .background(bgColor)
-                    .clickable {
-                        if (selected == opt.dir) return@clickable
+                    .hapticClickable(HapticStyle.Light) {
+                        if (selected == opt.dir) return@hapticClickable
                         onSelect(opt.dir)
                     }
                     .padding(vertical = 7.dp),
@@ -840,7 +841,7 @@ private fun DateChipRow(
                         if (isActive) PrimaryBlue else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
                         RoundedCornerShape(9.dp)
                     )
-                    .clickable { onSelect(key) }
+                    .hapticClickable(HapticStyle.Light) { onSelect(key) }
                     .padding(horizontal = 14.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -865,7 +866,7 @@ private fun DateChipRow(
                     if (isCustom) PrimaryBlue else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
                     RoundedCornerShape(9.dp)
                 )
-                .clickable { onSelect("custom") }
+                .hapticClickable(HapticStyle.Light) { onSelect("custom") }
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -910,7 +911,7 @@ private fun MistakeChipSet(
                         if (isActive) DangerRed else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
                         RoundedCornerShape(999.dp)
                     )
-                    .clickable { onToggle(mistake) }
+                    .hapticClickable(HapticStyle.Light) { onToggle(mistake) }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -1033,7 +1034,7 @@ private fun ScreenshotUploadButton(uri: String?, onPick: () -> Unit, onClear: ()
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
                     shape = RoundedCornerShape(10.dp)
                 )
-                .clickable { onPick() }
+                .hapticClickable(HapticStyle.Light) { onPick() }
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {

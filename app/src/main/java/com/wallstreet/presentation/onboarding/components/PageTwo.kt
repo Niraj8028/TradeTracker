@@ -10,7 +10,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -109,7 +110,7 @@ fun PageTwo(
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
                 .clip(RoundedCornerShape(24.dp))
-                .clickable {
+                .hapticClickable(HapticStyle.Light) {
                     if (isPlaying) {
                         player.pause()
                     } else player.play()

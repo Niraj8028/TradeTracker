@@ -2,7 +2,6 @@ package com.wallstreet.presentation.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +18,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +40,9 @@ import com.wallstreet.core.preferences.CurrencyPreferences
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
 import com.wallstreet.core.preferences.currencySymbols
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
+import com.wallstreet.core.util.hapticClickable
 import com.wallstreet.presentation.profile.components.ConfirmationDialog
 import com.wallstreet.presentation.profile.components.ThemeToggle
 import com.wallstreet.ui.theme.DangerRed
@@ -60,6 +63,7 @@ fun ProfileScreen(
     val user = viewModel.user
     val isLoggedOut by viewModel.isLoggedOut.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val view = LocalView.current
     val themePrefs = remember { ThemePreferences(context) }
     val currencyPrefs = remember { CurrencyPreferences(context) }
     val currentCurrencyCode by currencyPrefs.currencyCode.collectAsState(initial = "USD")
@@ -202,7 +206,7 @@ fun ProfileScreen(
 
         // ── Logout button ────────────────────────────────────────────
         OutlinedButton(
-            onClick = { showLogoutDialog = true },
+            onClick = { view.haptic(HapticStyle.Medium); showLogoutDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -254,7 +258,7 @@ fun ProfileScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
+                            .hapticClickable(HapticStyle.Light) {
                                 scope.launch { currencyPrefs.setCurrency(code) }
                                 showCurrencySheet = false
                             }
@@ -297,6 +301,7 @@ fun ProfileScreen(
         isDestructive = true,
         icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Logout),
         onConfirm = {
+            view.haptic(HapticStyle.Strong)
             showLogoutDialog = false
             viewModel.onSignOutClicked()
         },
@@ -343,7 +348,7 @@ private fun ProfileMenuItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .hapticClickable(HapticStyle.Light, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)

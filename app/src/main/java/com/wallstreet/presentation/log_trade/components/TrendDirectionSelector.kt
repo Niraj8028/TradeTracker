@@ -2,7 +2,8 @@ package com.wallstreet.presentation.log_trade.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,7 +74,7 @@ fun TrendDirectionSelector(
                             else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                             shape = RoundedCornerShape(10.dp)
                         )
-                        .clickable { onSelected(dir) }
+                        .hapticClickable(HapticStyle.Light) { onSelected(dir) }
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {

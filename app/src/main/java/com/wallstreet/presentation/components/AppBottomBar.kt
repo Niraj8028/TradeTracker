@@ -10,7 +10,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +37,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import com.wallstreet.navigation.BottomNavItem
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.White
@@ -134,7 +135,7 @@ private fun PulsingFab(onClick: () -> Unit) {
             )
             .clip(CircleShape)
             .background(PrimaryBlue)
-            .clickable { onClick() },
+            .hapticClickable(HapticStyle.Medium) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -165,7 +166,7 @@ private fun NavIcon(
 
     Column(
         modifier = Modifier
-            .clickable { onClick() }
+            .hapticClickable(HapticStyle.Light) { onClick() }
             .padding(horizontal = 10.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(3.dp)

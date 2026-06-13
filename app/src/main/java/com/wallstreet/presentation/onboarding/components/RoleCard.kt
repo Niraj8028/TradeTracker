@@ -8,7 +8,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -53,7 +54,7 @@ fun RoleCard(
                 color = if (isSelected) primaryColor else Color.Transparent,
                 shape = shape
             )
-            .clickable { onClick() },
+            .hapticClickable(HapticStyle.Medium) { onClick() },
     ) {
         Image(
             painter = painterResource(imageRes),

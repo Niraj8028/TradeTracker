@@ -5,7 +5,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -293,7 +294,7 @@ fun HeatMapDay(
                 if (isSelected) Modifier.border(1.5.dp, White.copy(alpha = 0.7f), RoundedCornerShape(5.dp))
                 else Modifier
             )
-            .then(if (isActive) Modifier.clickable { onSelect() } else Modifier),
+            .then(if (isActive) Modifier.hapticClickable(HapticStyle.Light) { onSelect() } else Modifier),
         contentAlignment = Alignment.Center
     ) {
         if (cell != null && cell.noOfTrades > 0) {

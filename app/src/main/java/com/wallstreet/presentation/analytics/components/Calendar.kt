@@ -3,7 +3,8 @@ package com.wallstreet.presentation.analytics.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -195,7 +196,7 @@ private fun NavButton(rotated: Boolean, onClick: () -> Unit) {
             .size(36.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surface)
-            .clickable(onClick = onClick),
+            .hapticClickable(HapticStyle.Light, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Image(

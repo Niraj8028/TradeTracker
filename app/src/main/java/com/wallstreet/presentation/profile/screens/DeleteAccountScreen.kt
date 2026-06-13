@@ -33,10 +33,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallstreet.R
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import com.wallstreet.presentation.profile.ProfileViewModel
 import com.wallstreet.presentation.profile.components.ConfirmationDialog
 import com.wallstreet.presentation.profile.components.DeleteReasonOption
@@ -59,6 +62,7 @@ fun DeleteAccountScreen(
     viewModel: ProfileViewModel = koinViewModel(),
     onDelete: () -> Unit
 ) {
+    val view = LocalView.current
     var selectedReason by remember { mutableStateOf<DeleteReason?>(null) }
     var text by remember { mutableStateOf<String>("") }
     var showDeleteAccontDialog by remember { mutableStateOf<Boolean>(false) }
@@ -74,7 +78,7 @@ fun DeleteAccountScreen(
             TopAppBar(
                 title = { Text("Delete Account") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { view.haptic(HapticStyle.Light); onBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
@@ -157,7 +161,7 @@ fun DeleteAccountScreen(
                 Spacer(modifier = Modifier.height(15.dp))
 
                 OutlinedButton(
-                    onClick = { showDeleteAccontDialog = true },
+                    onClick = { view.haptic(HapticStyle.Strong); showDeleteAccontDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),

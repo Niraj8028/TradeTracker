@@ -2,6 +2,9 @@ package com.wallstreet.presentation.analytics.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.platform.LocalView
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -64,6 +67,7 @@ fun FilterTab(
     onSelectFilter: (FilterOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val view = LocalView.current
     LazyRow(
         modifier = modifier
             .fillMaxWidth()
@@ -74,7 +78,7 @@ fun FilterTab(
         items(filters, key = { it.label }) { filter ->
             FilterChip(
                 selected = filter == selected,
-                onClick = { onSelectFilter(filter) },
+                onClick = { view.haptic(HapticStyle.Light); onSelectFilter(filter) },
                 label = { Text(filter.label, style = MaterialTheme.typography.labelMedium) },
                 shape = RoundedCornerShape(16.dp),
                 colors = FilterChipDefaults.filterChipColors(

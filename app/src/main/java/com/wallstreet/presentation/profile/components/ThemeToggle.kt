@@ -20,10 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import com.wallstreet.ui.theme.White
 import kotlinx.coroutines.launch
 
@@ -32,6 +35,7 @@ import kotlinx.coroutines.launch
 fun ThemeToggle() {
 
     val context = LocalContext.current
+    val view = LocalView.current
     val themePrefs = remember { ThemePreferences(context) }
     val selectedTheme by themePrefs.theme.collectAsState(initial = ThemeTypes.SYSTEM)
     val scope = rememberCoroutineScope()
@@ -73,6 +77,7 @@ fun ThemeToggle() {
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
+                        view.haptic(HapticStyle.Light)
                         scope.launch {
                             themePrefs.setTheme(theme)
                         }
