@@ -29,7 +29,7 @@ private val curatedAdvice: Map<String, String> = mapOf(
 )
 
 private fun adviceFor(name: String): String =
-    curatedAdvice[name] ?: "Review the trades tagged with “$name” and define a rule to avoid repeating it."
+    curatedAdvice[name] ?: "Look back at the trades you tagged “$name” and write one rule that stops it happening again."
 
 /**
  * Combines real per-mistake statistics with curated coaching advice. The result is
@@ -45,8 +45,8 @@ fun buildMistakeSuggestions(data: MistakesAnalysisData, symbol: String = "$"): L
     if (data.cleanTradeWinRate > 0.0) {
         result += MistakeSuggestion(
             title = "Discipline pays off",
-            detail = "Trades with no mistakes tagged win ${data.cleanTradeWinRate.formatPercent()} of the time. " +
-                "Sticking to your rules is your highest-leverage edge.",
+            detail = "Your clean trades — none tagged with a mistake — win ${data.cleanTradeWinRate.formatPercent()} of the time. " +
+                "Following your own rules is the biggest edge you have, so protect it.",
             isWarning = false
         )
     }

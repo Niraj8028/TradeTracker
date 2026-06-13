@@ -1,6 +1,5 @@
 package com.wallstreet.presentation.analytics.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import com.wallstreet.core.util.HapticStyle
@@ -10,20 +9,19 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.wallstreet.R
 import com.wallstreet.core.util.calculateTotalPnL
 import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.CalendarDay
@@ -199,13 +197,11 @@ private fun NavButton(rotated: Boolean, onClick: () -> Unit) {
             .hapticClickable(HapticStyle.Light, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.scheveron_arrow),
-            contentDescription = null,
-            modifier = Modifier
-                .size(14.dp)
-                .then(if (rotated) Modifier.rotate(180f) else Modifier),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+        Icon(
+            imageVector = if (rotated) Icons.Default.ChevronLeft else Icons.Default.ChevronRight,
+            contentDescription = if (rotated) "Previous month" else "Next month",
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.onSurface
         )
     }
 }

@@ -170,15 +170,18 @@ fun LogTradeScreen(
                 Box(
                     modifier = Modifier
                         .size(36.dp)
+                        .shadow(2.dp, CircleShape)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surface)
-                        .shadow(1.dp, CircleShape)
                         .hapticClickable(HapticStyle.Light) { onNavigateBack() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Close, null,
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(16.dp))
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
                 Text(
                     text = "Log Trade",

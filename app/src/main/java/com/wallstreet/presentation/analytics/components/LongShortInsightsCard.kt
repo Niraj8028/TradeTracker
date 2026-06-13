@@ -128,7 +128,7 @@ private fun buildLongShortInsights(summary: TradeSummary, symbol: String = "$"):
         val other = if (onlySide == "long") "short" else "long"
         return listOf(
             LongShortInsight(
-                "All of your trades are $onlySide. Log a few $other trades to reveal which direction your edge favours."
+                "Every trade you've logged is $onlySide. Try a few $other trades to see whether your edge holds both ways."
             )
         )
     }
@@ -142,8 +142,8 @@ private fun buildLongShortInsights(summary: TradeSummary, symbol: String = "$"):
         val (loser, winner) = if (longBleeds) "Long" to "short" else "Short" to "long"
         val loserPnl = if (longBleeds) long.pnl else short.pnl
         result += LongShortInsight(
-            "$loser trades are net negative (${loserPnl.formatPnl(symbol)}) while your $winner side is green. " +
-                "Tighten $loser entries or trade them smaller until they turn around.",
+            "Your $loser trades are in the red (${loserPnl.formatPnl(symbol)}) while $winner is green. " +
+                "Trade $loser setups smaller — or skip them — until they turn around.",
             isWarning = true
         )
     }
@@ -155,8 +155,8 @@ private fun buildLongShortInsights(summary: TradeSummary, symbol: String = "$"):
         val betterWr = if (wrGap > 0) long.winRate else short.winRate
         val worseWr = if (wrGap > 0) short.winRate else long.winRate
         result += LongShortInsight(
-            "You win ${betterWr.formatPercent()} on ${better} trades vs ${worseWr.formatPercent()} the other way — " +
-                "a ${abs(wrGap).roundToInt()}pp edge. Lean into $better setups."
+            "You win ${betterWr.formatPercent()} going $better vs ${worseWr.formatPercent()} the other way — " +
+                "a clear directional edge. Favour $better setups."
         )
     }
 
@@ -167,7 +167,7 @@ private fun buildLongShortInsights(summary: TradeSummary, symbol: String = "$"):
         val betterAvg = if (longBetter) long.avgPnl else short.avgPnl
         val worseAvg = if (longBetter) short.avgPnl else long.avgPnl
         result += LongShortInsight(
-            "$better trades are more efficient at ${betterAvg.formatPnl(symbol)} per trade vs ${worseAvg.formatPnl(symbol)} the other way."
+            "$better trades pull more per trade — ${betterAvg.formatPnl(symbol)} vs ${worseAvg.formatPnl(symbol)} the other way. Each one does more work."
         )
     }
 
@@ -176,12 +176,12 @@ private fun buildLongShortInsights(summary: TradeSummary, symbol: String = "$"):
     val majorityIsShort = short.percentage >= 65
     if (majorityIsLong && short.avgPnl > long.avgPnl) {
         result += LongShortInsight(
-            "${long.percentage.roundToInt()}% of your trades are long, yet shorts earn more per trade — consider rebalancing.",
+            "${long.percentage.roundToInt()}% of your trades are long, yet shorts earn more each — you may be under-trading your stronger side.",
             isWarning = true
         )
     } else if (majorityIsShort && long.avgPnl > short.avgPnl) {
         result += LongShortInsight(
-            "${short.percentage.roundToInt()}% of your trades are short, yet longs earn more per trade — consider rebalancing.",
+            "${short.percentage.roundToInt()}% of your trades are short, yet longs earn more each — you may be under-trading your stronger side.",
             isWarning = true
         )
     }
@@ -189,7 +189,7 @@ private fun buildLongShortInsights(summary: TradeSummary, symbol: String = "$"):
     // Fallback when both sides look similar and nothing above fired.
     if (result.isEmpty()) {
         result += LongShortInsight(
-            "Your long and short trades are performing similarly — no strong directional bias right now."
+            "Longs and shorts are performing about the same — no clear directional bias to exploit yet."
         )
     }
 

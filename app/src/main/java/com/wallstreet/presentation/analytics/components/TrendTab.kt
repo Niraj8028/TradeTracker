@@ -594,9 +594,9 @@ private fun buildInsights(
             val bestMeta  = metaFor(best.direction)
             val worstMeta = metaFor(worst.direction)
             result += Insight(
-                "Your win rate in ${bestMeta.label} (${best.winRate.formatPercent()}) " +
-                "is ${diff.toInt()}pp higher than ${worstMeta.label} " +
-                "(${worst.winRate.formatPercent()}) — lean into ${bestMeta.label} conditions.",
+                "You're sharpest in ${bestMeta.label} markets — ${best.winRate.formatPercent()} win rate " +
+                "vs just ${worst.winRate.formatPercent()} in ${worstMeta.label}. " +
+                "Prioritise ${bestMeta.label} setups and stay patient elsewhere.",
                 isWarning = false
             )
         }
@@ -610,8 +610,9 @@ private fun buildInsights(
         val avg = bestAvg.totalPnl / bestAvg.trades
         if (avg > 0) {
             result += Insight(
-                "Your highest avg P&L per trade (${avg.formatPnl(symbol)}) comes from " +
-                "${metaFor(bestAvg.direction).label} conditions — ${bestAvg.trades} trades logged."
+                "${metaFor(bestAvg.direction).label} trades are your most profitable — " +
+                "${avg.formatPnl(symbol)} on average across ${bestAvg.trades} trades. " +
+                "This is where your edge is strongest."
             )
         }
     }
@@ -622,9 +623,9 @@ private fun buildInsights(
         .minByOrNull { it.winRate }
     if (poorStat != null && poorStat.winRate < 45) {
         result += Insight(
-            "${metaFor(poorStat.direction).label} markets show only " +
+            "${metaFor(poorStat.direction).label} is your weak spot — only " +
             "${poorStat.winRate.formatPercent()} win rate over ${poorStat.trades} trades. " +
-            "Consider tightening risk management in these conditions.",
+            "Trade these smaller or wait for cleaner setups.",
             isWarning = true
         )
     }
@@ -636,8 +637,8 @@ private fun buildInsights(
             val pct = (dominant.trades.toFloat() / totalTrades * 100).toInt()
             if (pct >= 55) {
                 result += Insight(
-                    "$pct% of your tagged trades are taken in ${metaFor(dominant.direction).label} " +
-                    "conditions — make sure you're also tracking other market environments."
+                    "$pct% of your trades happen in ${metaFor(dominant.direction).label} markets. " +
+                    "Make sure that's where your edge is — not just where you're most comfortable."
                 )
             }
         }
@@ -647,8 +648,8 @@ private fun buildInsights(
     val loser = stats.filter { it.trades >= 2 }.minByOrNull { it.totalPnl }
     if (loser != null && loser.totalPnl < 0) {
         result += Insight(
-            "${metaFor(loser.direction).label} trades have produced ${loser.totalPnl.formatPnl(symbol)} " +
-            "total loss. Review your entries and exits in these conditions.",
+            "${metaFor(loser.direction).label} trades are bleeding ${loser.totalPnl.formatPnl(symbol)} overall. " +
+            "These conditions are working against you — sit them out until you find an edge.",
             isWarning = true
         )
     }
