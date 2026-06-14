@@ -1,12 +1,9 @@
 package com.wallstreet.presentation.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,7 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.NavKey
+import kotlinx.coroutines.launch
 import com.wallstreet.core.util.HapticStyle
 import com.wallstreet.core.util.hapticClickable
 import com.wallstreet.navigation.BottomNavItem
@@ -97,34 +97,29 @@ fun AppBottomBar(
 
 @Composable
 private fun PulsingFab(onClick: () -> Unit) {
-    val pulse = rememberInfiniteTransition(label = "fab_pulse")
+    // Pulse a few times to draw attention, then settle — no continuous distraction.
+    val ringScale = remember { Animatable(1f) }
+    val ringAlpha = remember { Animatable(0f) }
 
-    val ringAlpha by pulse.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1400, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "ring_alpha"
-    )
-    val ringScale by pulse.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.65f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1400, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "ring_scale"
-    )
+    LaunchedEffect(Unit) {
+        repeat(3) {
+            ringScale.snapTo(1f)
+            ringAlpha.snapTo(0.4f)
+            launch {
+                ringScale.animateTo(1.65f, tween(1400, easing = LinearOutSlowInEasing))
+            }
+            ringAlpha.animateTo(0f, tween(1400, easing = LinearEasing))
+        }
+        ringAlpha.snapTo(0f)
+    }
 
     Box(
         modifier = Modifier
             .size(50.dp)
             .drawBehind {
                 drawCircle(
-                    color = PrimaryBlue.copy(alpha = ringAlpha),
-                    radius = size.minDimension / 2 * ringScale
+                    color = PrimaryBlue.copy(alpha = ringAlpha.value),
+                    radius = size.minDimension / 2 * ringScale.value
                 )
             }
             .shadow(
@@ -158,33 +153,20 @@ private fun NavIcon(
         animationSpec = tween(200),
         label = "icon_tint"
     )
-    val pillColor by animateColorAsState(
-        targetValue = if (isSelected) PrimaryBlue.copy(alpha = 0.13f) else MaterialTheme.colorScheme.surfaceVariant,
-        animationSpec = tween(200),
-        label = "pill_color"
-    )
 
     Column(
         modifier = Modifier
             .hapticClickable(HapticStyle.Light) { onClick() }
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(width = 56.dp, height = 30.dp)
-                .clip(RoundedCornerShape(15.dp))
-                .background(pillColor),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = stringResource(item.label),
-                tint = iconTint,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        Icon(
+            imageVector = item.icon,
+            contentDescription = stringResource(item.label),
+            tint = iconTint,
+            modifier = Modifier.size(22.dp)
+        )
         Text(
             text = stringResource(item.label),
             fontSize = 10.sp,
