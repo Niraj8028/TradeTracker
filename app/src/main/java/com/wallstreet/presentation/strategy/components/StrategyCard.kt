@@ -3,7 +3,8 @@ package com.wallstreet.presentation.strategy.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import com.wallstreet.core.util.formatPercent
 import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.strategy.StrategyStats
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.White
@@ -72,7 +74,7 @@ fun StrategyCard(
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.28f), RoundedCornerShape(16.dp))
-            .clickable { if (isSelectionMode) onSelectionChanged(!isSelected) else onStrategyClick() }
+            .hapticClickable(HapticStyle.Light) { if (isSelectionMode) onSelectionChanged(!isSelected) else onStrategyClick() }
     ) {
         // ── Name row: checkbox? + name (left) + rank badge (right) ──
         Row(
@@ -98,7 +100,7 @@ fun StrategyCard(
                                 RoundedCornerShape(4.dp)
                             )
                             .background(if (isSelected) PrimaryBlue else Color.Transparent)
-                            .clickable { onSelectionChanged(!isSelected) },
+                            .hapticClickable(HapticStyle.Light) { onSelectionChanged(!isSelected) },
                         contentAlignment = Alignment.Center
                     ) {
                         if (isSelected) Icon(Icons.Default.Check, null, tint = White, modifier = Modifier.size(13.dp))
@@ -128,7 +130,7 @@ fun StrategyCard(
             verticalAlignment = Alignment.Bottom
         ) {
             Text(
-                text = stats.totalPnl.formatPnl(),
+                text = stats.totalPnl.formatPnl(LocalCurrencySymbol.current),
                 fontWeight = FontWeight.ExtraBold,
                 color = pnlColor,
                 fontSize = 26.sp,
@@ -204,7 +206,7 @@ fun StrategyCard(
             )
             StatCell(
                 label = "AVG P&L",
-                value = stats.avgProfitPerTrade.formatPnl(),
+                value = stats.avgProfitPerTrade.formatPnl(LocalCurrencySymbol.current),
                 valueColor = if (stats.avgProfitPerTrade >= 0) SuccessGreen else DangerRed,
                 modifier = Modifier.weight(1f)
             )

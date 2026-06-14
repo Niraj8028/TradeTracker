@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.SuccessGreen
 
 @Composable
@@ -43,7 +44,7 @@ fun PnlPreviewCard(pnl: Double) {
             letterSpacing = 0.8.sp
         )
         Text(
-            text = "$sign$${"%.2f".format(pnl)}",
+            text = "$sign${LocalCurrencySymbol.current}${"%.2f".format(pnl)}",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = color

@@ -2,6 +2,9 @@ package com.wallstreet.presentation.analytics.components
 
 import androidx.compose.foundation.background
 import androidx.compose.material3.Divider
+import androidx.compose.ui.platform.LocalView
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +21,7 @@ data class TabItem(val name: String)
 
 @Composable
 fun AppTabRow(tabs: List<TabItem>, selectedIndex: Int, onTabChange: (Int) -> Unit) {
+    val view = LocalView.current
 
 
     TabRow(
@@ -41,7 +45,7 @@ fun AppTabRow(tabs: List<TabItem>, selectedIndex: Int, onTabChange: (Int) -> Uni
         tabs.forEachIndexed { index, tab ->
             Tab(
                 selected = index == selectedIndex,
-                onClick = { onTabChange(index) },
+                onClick = { view.haptic(HapticStyle.Light); onTabChange(index) },
                 text = {
                     Text(
                         tab.name,

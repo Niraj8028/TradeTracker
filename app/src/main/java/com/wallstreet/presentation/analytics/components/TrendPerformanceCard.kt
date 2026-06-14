@@ -32,6 +32,7 @@ import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TrendPerformanceData
 import com.wallstreet.domain.model.TrendStat
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 
@@ -120,7 +121,7 @@ private fun TrendRow(stat: TrendStat) {
 
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = stat.totalPnl.formatPnl(),
+                text = stat.totalPnl.formatPnl(LocalCurrencySymbol.current),
                 fontWeight = FontWeight.ExtraBold,
                 color = pnlColor,
                 fontSize = 14.sp,

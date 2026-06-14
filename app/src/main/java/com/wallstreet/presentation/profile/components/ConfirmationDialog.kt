@@ -2,6 +2,9 @@ package com.wallstreet.presentation.profile.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.platform.LocalView
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +30,7 @@ fun ConfirmationDialog(
 ) {
     if (!show) return
 
+    val view = LocalView.current
     val actionColor = if (isDestructive)
         MaterialTheme.colorScheme.error
     else
@@ -59,7 +63,7 @@ fun ConfirmationDialog(
             )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(onClick = { view.haptic(HapticStyle.Light); onDismiss() }) {
                 Text(
                     "Cancel",
                     style = MaterialTheme.typography.labelLarge
@@ -67,7 +71,7 @@ fun ConfirmationDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
+            TextButton(onClick = { view.haptic(HapticStyle.Strong); onConfirm() }) {
                 Text(
                     confirmText,
                     color = actionColor,

@@ -2,7 +2,8 @@ package com.wallstreet.presentation.home.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.HomeStats
 import com.wallstreet.domain.model.TimePeriod
+import com.wallstreet.core.util.formatPnl
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.White
@@ -42,10 +45,7 @@ fun MainPnLCard(
 ) {
     val isPnlPositive = stats.totalPnl >= 0
     val pnlColor = if (isPnlPositive) SuccessGreen else DangerRed
-    val pnlText = if (isPnlPositive)
-        "+$${"%.2f".format(stats.totalPnl)}"
-    else
-        "-$${"%.2f".format(-stats.totalPnl)}"
+    val pnlText = stats.totalPnl.formatPnl(LocalCurrencySymbol.current)
 
     val shape = RoundedCornerShape(20.dp)
     Column(
@@ -146,7 +146,7 @@ fun PeriodChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(if (isSelected) PrimaryBlue else MaterialTheme.colorScheme.surface)
-            .clickable(onClick = onClick)
+            .hapticClickable(HapticStyle.Light, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {

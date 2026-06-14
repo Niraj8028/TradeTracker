@@ -7,12 +7,17 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.wallstreet.core.preferences.CurrencyPreferences
 
 
 val LightBorderPrimary = DarkTextTertiary
@@ -103,6 +108,8 @@ val Gradient = compositionLocalOf<Brush> {
     error("No gradient provided")
 }
 
+val LocalCurrencySymbol = compositionLocalOf { "$" }
+
 @Composable
 fun WallStreetAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -121,9 +128,11 @@ fun WallStreetAndroidTheme(
         )
     }
 
-    val gradient =
-        if (darkTheme) DarkGradient else LightGradient
+    val gradient = if (darkTheme) DarkGradient else LightGradient
 
+    val context = LocalContext.current
+    val currencyPrefs = remember { CurrencyPreferences(context) }
+    val currencySymbol by currencyPrefs.currencySymbol.collectAsState(initial = "$")
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -136,8 +145,8 @@ fun WallStreetAndroidTheme(
     }
     androidx.compose.runtime.CompositionLocalProvider(
         BorderColors provides borderColors,
-        Gradient provides gradient
-
+        Gradient provides gradient,
+        LocalCurrencySymbol provides currencySymbol
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

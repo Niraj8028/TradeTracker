@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -179,7 +180,7 @@ private fun MistakeRankedRow(
             verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             Text(
-                text = stat.totalPnlImpact.formatPnl(),
+                text = stat.totalPnlImpact.formatPnl(LocalCurrencySymbol.current),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = accentColor,

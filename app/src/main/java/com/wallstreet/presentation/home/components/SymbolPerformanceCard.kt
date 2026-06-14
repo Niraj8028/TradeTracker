@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -157,7 +158,7 @@ private fun SymbolRow(stat: SymbolStat, rank: Int, maxAbsPnl: Double) {
             }
 
             Text(
-                text = stat.totalPnl.formatPnl(),
+                text = stat.totalPnl.formatPnl(LocalCurrencySymbol.current),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = pnlColor,

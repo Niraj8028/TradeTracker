@@ -18,13 +18,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import com.wallstreet.presentation.profile.screens.DeleteReason
 import com.wallstreet.ui.theme.BorderColors
 
 
 @Composable
 fun DeleteReasonOption(reason: DeleteReason, selected: Boolean, onSelect: () -> Unit) {
+    val view = LocalView.current
     Spacer(modifier = Modifier.height(10.dp))
 
     Row(
@@ -41,6 +45,7 @@ fun DeleteReasonOption(reason: DeleteReason, selected: Boolean, onSelect: () -> 
                 indication = null,
                 interactionSource = remember
                 { MutableInteractionSource() }) {
+                view.haptic(HapticStyle.Light)
                 onSelect()
             },
         verticalAlignment = Alignment.CenterVertically

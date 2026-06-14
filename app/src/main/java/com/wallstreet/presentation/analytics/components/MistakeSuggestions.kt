@@ -29,13 +29,13 @@ private val curatedAdvice: Map<String, String> = mapOf(
 )
 
 private fun adviceFor(name: String): String =
-    curatedAdvice[name] ?: "Review the trades tagged with “$name” and define a rule to avoid repeating it."
+    curatedAdvice[name] ?: "Look back at the trades you tagged “$name” and write one rule that stops it happening again."
 
 /**
  * Combines real per-mistake statistics with curated coaching advice. The result is
  * ordered most-impactful first so the worst leaks surface at the top.
  */
-fun buildMistakeSuggestions(data: MistakesAnalysisData): List<MistakeSuggestion> {
+fun buildMistakeSuggestions(data: MistakesAnalysisData, symbol: String = "$"): List<MistakeSuggestion> {
     val tagged = data.topMistakes.filter { it.count > 0 }
     if (tagged.isEmpty()) return emptyList()
 
@@ -45,23 +45,23 @@ fun buildMistakeSuggestions(data: MistakesAnalysisData): List<MistakeSuggestion>
     if (data.cleanTradeWinRate > 0.0) {
         result += MistakeSuggestion(
             title = "Discipline pays off",
-            detail = "Trades with no mistakes tagged win ${data.cleanTradeWinRate.formatPercent()} of the time. " +
-                "Sticking to your rules is your highest-leverage edge.",
+            detail = "Your clean trades — none tagged with a mistake — win ${data.cleanTradeWinRate.formatPercent()} of the time. " +
+                "Following your own rules is the biggest edge you have, so protect it.",
             isWarning = false
         )
     }
 
     // One coaching line per mistake, worst financial impact first.
     tagged.sortedBy { it.totalPnlImpact }.forEach { stat ->
-        result += stat.toSuggestion()
+        result += stat.toSuggestion(symbol)
     }
 
     return result
 }
 
-private fun MistakeStat.toSuggestion(): MistakeSuggestion {
+private fun MistakeStat.toSuggestion(symbol: String): MistakeSuggestion {
     val impactClause = if (totalPnlImpact < 0) {
-        "cost you ${totalPnlImpact.formatPnl()} across $count ${tradeWord(count)} (${winRate.formatPercent()} win rate)."
+        "cost you ${totalPnlImpact.formatPnl(symbol)} across $count ${tradeWord(count)} (${winRate.formatPercent()} win rate)."
     } else {
         "appeared in $count ${tradeWord(count)} (${winRate.formatPercent()} win rate)."
     }

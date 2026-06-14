@@ -30,9 +30,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import com.wallstreet.presentation.strategy.ActionState
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.White
@@ -45,6 +48,7 @@ fun DeleteStrategyBottomSheet(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val view = LocalView.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isLoading = actionState is ActionState.Loading
 
@@ -114,7 +118,7 @@ fun DeleteStrategyBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 OutlinedButton(
-                    onClick = onDismiss,
+                    onClick = { view.haptic(HapticStyle.Light); onDismiss() },
                     enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
@@ -129,7 +133,7 @@ fun DeleteStrategyBottomSheet(
                 }
 
                 Button(
-                    onClick = onConfirm,
+                    onClick = { view.haptic(HapticStyle.Strong); onConfirm() },
                     enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)

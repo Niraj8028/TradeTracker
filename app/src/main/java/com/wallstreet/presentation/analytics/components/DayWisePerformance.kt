@@ -38,7 +38,9 @@ import com.patrykandpatrick.vico.core.common.Insets
 import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape
+import com.wallstreet.core.util.formatPnl
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -158,8 +160,7 @@ fun DayWisePerformance(dayPerformance: DayPerformance) {
                 dayPerformance.days.forEach { day ->
                     val (labelText, labelColor) = when {
                         day.pnl == 0.0 -> "—" to MaterialTheme.colorScheme.onSurfaceVariant
-                        day.pnl > 0 -> "+\$${formatAmount(day.pnl)}" to SuccessGreen
-                        else -> "\$${formatAmount(day.pnl)}" to DangerRed
+                        else -> day.pnl.formatPnl(LocalCurrencySymbol.current) to if (day.pnl > 0) SuccessGreen else DangerRed
                     }
                     Text(
                         modifier = Modifier.weight(1f),

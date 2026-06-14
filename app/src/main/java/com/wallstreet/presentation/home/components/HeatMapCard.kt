@@ -5,7 +5,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -154,7 +156,7 @@ fun HeatMapCard(
                         fontSize = 9.sp
                     )
                     Text(
-                        text = bestDay.totalPnl.formatPnl(),
+                        text = bestDay.totalPnl.formatPnl(LocalCurrencySymbol.current),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = SuccessGreen
@@ -189,7 +191,7 @@ private fun SelectedCellDetail(cell: HeatMapCell) {
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             DetailItem(value = "${cell.noOfTrades}", label = "trades")
             DetailItem(
-                value = cell.totalPnl.formatPnl(),
+                value = cell.totalPnl.formatPnl(LocalCurrencySymbol.current),
                 label = "P&L",
                 valueColor = accentColor
             )
@@ -292,7 +294,7 @@ fun HeatMapDay(
                 if (isSelected) Modifier.border(1.5.dp, White.copy(alpha = 0.7f), RoundedCornerShape(5.dp))
                 else Modifier
             )
-            .then(if (isActive) Modifier.clickable { onSelect() } else Modifier),
+            .then(if (isActive) Modifier.hapticClickable(HapticStyle.Light) { onSelect() } else Modifier),
         contentAlignment = Alignment.Center
     ) {
         if (cell != null && cell.noOfTrades > 0) {

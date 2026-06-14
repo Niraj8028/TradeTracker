@@ -2,7 +2,6 @@ package com.wallstreet.presentation.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,8 +15,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,13 +27,30 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.wallstreet.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material.icons.filled.PrivacyTip
+import com.wallstreet.core.preferences.CurrencyPreferences
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
+import com.wallstreet.core.preferences.currencySymbols
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
+import com.wallstreet.core.util.hapticClickable
 import com.wallstreet.presentation.profile.components.ConfirmationDialog
 import com.wallstreet.presentation.profile.components.ThemeToggle
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
@@ -45,7 +63,12 @@ fun ProfileScreen(
     val user = viewModel.user
     val isLoggedOut by viewModel.isLoggedOut.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val view = LocalView.current
     val themePrefs = remember { ThemePreferences(context) }
+    val currencyPrefs = remember { CurrencyPreferences(context) }
+    val currentCurrencyCode by currencyPrefs.currencyCode.collectAsState(initial = "USD")
+    var showCurrencySheet by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoggedOut) {
@@ -125,20 +148,24 @@ fun ProfileScreen(
         // ── Appearance ───────────────────────────────────────────────
         ProfileSection(label = "APPEARANCE") {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                Text(
-                    text = "App Theme",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.height(10.dp))
                 ThemeToggle()
             }
+        }
+
+        // ── Preferences ──────────────────────────────────────────────
+        ProfileSection(label = "PREFERENCES") {
+            ProfileMenuItem(
+                icon = Icons.Filled.Language,
+                label = "Currency",
+                sublabel = "${LocalCurrencySymbol.current} · $currentCurrencyCode",
+                onClick = { showCurrencySheet = true }
+            )
         }
 
         // ── Account ──────────────────────────────────────────────────
         ProfileSection(label = "ACCOUNT") {
             ProfileMenuItem(
-                icon = painterResource(R.drawable.user_shield),
+                icon = Icons.Filled.AdminPanelSettings,
                 label = "Security & Privacy",
                 onClick = onSecurityPrivacy
             )
@@ -148,7 +175,7 @@ fun ProfileScreen(
                 thickness = 0.5.dp
             )
             ProfileMenuItem(
-                icon = painterResource(R.drawable.lock),
+                icon = Icons.Filled.PrivacyTip,
                 label = "Privacy Policy",
                 onClick = onPrivacyPolicy
             )
@@ -158,7 +185,7 @@ fun ProfileScreen(
                 thickness = 0.5.dp
             )
             ProfileMenuItem(
-                icon = painterResource(R.drawable.terms),
+                icon = Icons.Filled.Gavel,
                 label = "Terms of Service",
                 onClick = onTermsOfService
             )
@@ -167,7 +194,7 @@ fun ProfileScreen(
         // ── Danger zone ──────────────────────────────────────────────
         ProfileSection(label = "DANGER ZONE") {
             ProfileMenuItem(
-                icon = painterResource(R.drawable.delete),
+                icon = Icons.Filled.PersonRemove,
                 label = "Delete Account",
                 sublabel = "Permanently removes all your data",
                 iconTint = MaterialTheme.colorScheme.error,
@@ -179,7 +206,7 @@ fun ProfileScreen(
 
         // ── Logout button ────────────────────────────────────────────
         OutlinedButton(
-            onClick = { showLogoutDialog = true },
+            onClick = { view.haptic(HapticStyle.Medium); showLogoutDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -192,7 +219,7 @@ fun ProfileScreen(
             )
         ) {
             Icon(
-                painter = painterResource(R.drawable.log_out),
+                imageVector = Icons.AutoMirrored.Filled.Logout,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -203,14 +230,78 @@ fun ProfileScreen(
         Spacer(Modifier.height(8.dp))
     }
 
+    if (showCurrencySheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showCurrencySheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                Text(
+                    text = "Select Currency",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                currencySymbols.entries.forEachIndexed { index, (code, symbol) ->
+                    val isSelected = code == currentCurrencyCode
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .hapticClickable(HapticStyle.Light) {
+                                scope.launch { currencyPrefs.setCurrency(code) }
+                                showCurrencySheet = false
+                            }
+                            .padding(vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$symbol  $code",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface
+                        )
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    if (index < currencySymbols.size - 1) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            thickness = 0.5.dp
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     ConfirmationDialog(
         show = showLogoutDialog,
         title = "Logout",
         message = "Are you sure you want to logout?",
         confirmText = "Logout",
         isDestructive = true,
-        icon = painterResource(R.drawable.log_out),
+        icon = rememberVectorPainter(Icons.AutoMirrored.Filled.Logout),
         onConfirm = {
+            view.haptic(HapticStyle.Strong)
             showLogoutDialog = false
             viewModel.onSignOutClicked()
         },
@@ -246,7 +337,7 @@ private fun ProfileSection(
 
 @Composable
 private fun ProfileMenuItem(
-    icon: Painter,
+    icon: ImageVector,
     label: String,
     sublabel: String? = null,
     onClick: () -> Unit,
@@ -257,7 +348,7 @@ private fun ProfileMenuItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .hapticClickable(HapticStyle.Light, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
@@ -270,7 +361,7 @@ private fun ProfileMenuItem(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = icon,
+                imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
                 modifier = Modifier.size(20.dp)
@@ -297,10 +388,10 @@ private fun ProfileMenuItem(
             }
         }
         Icon(
-            painter = painterResource(R.drawable.scheveron_arrow),
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(20.dp)
         )
     }
 }

@@ -38,6 +38,7 @@ import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.MistakeStat
 import com.wallstreet.domain.model.MistakesAnalysisData
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.WarningOrange
@@ -101,7 +102,7 @@ private fun MistakeSummaryStrip(data: MistakesAnalysisData) {
         )
         MistakeChip(
             label = "COSTLIEST",
-            value = if (costly.count > 0) costly.totalPnlImpact.formatPnl() else "—",
+            value = if (costly.count > 0) costly.totalPnlImpact.formatPnl(LocalCurrencySymbol.current) else "—",
             valueColor = if (costly.count > 0 && costly.totalPnlImpact < 0) DangerRed
             else MaterialTheme.colorScheme.onSurface,
             accentColor = DangerRed,
@@ -326,7 +327,7 @@ private fun MistakeRow(
                 )
             }
             Text(
-                text = "avg ${stat.avgPnlImpact.formatPnl()} · ${stat.winRate.formatPercent()} WR",
+                text = "avg ${stat.avgPnlImpact.formatPnl(LocalCurrencySymbol.current)} · ${stat.winRate.formatPercent()} WR",
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -339,7 +340,7 @@ private fun MistakeRow(
             verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             Text(
-                text = stat.totalPnlImpact.formatPnl(),
+                text = stat.totalPnlImpact.formatPnl(LocalCurrencySymbol.current),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = impactColor,
@@ -362,7 +363,7 @@ private fun MistakeRow(
 
 @Composable
 private fun SuggestionsCard(data: MistakesAnalysisData) {
-    val suggestions = buildMistakeSuggestions(data)
+    val suggestions = buildMistakeSuggestions(data, LocalCurrencySymbol.current)
     if (suggestions.isEmpty()) return
 
     Box(

@@ -1,7 +1,8 @@
 package com.wallstreet.presentation.strategy.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.hapticClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -146,7 +147,7 @@ private fun SortFilterBar(
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { sortMenuOpen = true }
+                        .hapticClickable(HapticStyle.Light) { sortMenuOpen = true }
                         .padding(horizontal = 14.dp, vertical = 7.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)

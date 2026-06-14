@@ -36,8 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import com.wallstreet.presentation.strategy.ActionState
 import com.wallstreet.ui.theme.White
 
@@ -48,6 +51,7 @@ fun AddStrategyDialog(
     onDismiss: () -> Unit,
     onAddClick: (String, String) -> Unit
 ) {
+    val view = LocalView.current
     var name by remember { mutableStateOf("") }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isError = actionState is ActionState.ValidationError || actionState is ActionState.Error
@@ -125,7 +129,7 @@ fun AddStrategyDialog(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 OutlinedButton(
-                    onClick = onDismiss,
+                    onClick = { view.haptic(HapticStyle.Light); onDismiss() },
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp),
@@ -138,7 +142,7 @@ fun AddStrategyDialog(
                     Text("Cancel", style = MaterialTheme.typography.labelLarge)
                 }
                 Button(
-                    onClick = { onAddClick(name, "") },
+                    onClick = { view.haptic(HapticStyle.Medium); onAddClick(name, "") },
                     modifier = Modifier
                         .weight(1f)
                         .height(46.dp),

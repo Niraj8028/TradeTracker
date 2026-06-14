@@ -29,6 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalView
+import com.wallstreet.core.util.HapticStyle
+import com.wallstreet.core.util.haptic
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +57,7 @@ fun StrategiesScreen(
     val sortDirection by viewModel.sortDirection.collectAsState()
     val actionState by viewModel.actionState.collectAsState()
 
+    val view = LocalView.current
     var showAddStrategyDialog by remember { mutableStateOf(false) }
     var showDeleteStrategyConfirmDialog by remember { mutableStateOf(false) }
     var showEditStrategyDialog by remember { mutableStateOf(false) }
@@ -122,6 +126,7 @@ fun StrategiesScreen(
                 isSelectionMode -> {
                     if (selectedStrategies.size == 1) {
                         IconButton(onClick = {
+                            view.haptic(HapticStyle.Light)
                             viewModel.clearActionState()
                             showEditStrategyDialog = true
                         }) {
@@ -133,7 +138,7 @@ fun StrategiesScreen(
                         }
                     }
                     if (selectedStrategies.isNotEmpty()) {
-                        IconButton(onClick = { showDeleteStrategyConfirmDialog = true }) {
+                        IconButton(onClick = { view.haptic(HapticStyle.Strong); showDeleteStrategyConfirmDialog = true }) {
                             Icon(
                                 Icons.Default.DeleteForever,
                                 contentDescription = "Delete",
@@ -141,17 +146,17 @@ fun StrategiesScreen(
                             )
                         }
                     }
-                    IconButton(onClick = { exitSelection() }) {
+                    IconButton(onClick = { view.haptic(HapticStyle.Light); exitSelection() }) {
                         Icon(Icons.Default.Close, contentDescription = "Cancel")
                     }
                 }
                 searchOpen -> {
-                    IconButton(onClick = { exitSearch() }) {
+                    IconButton(onClick = { view.haptic(HapticStyle.Light); exitSearch() }) {
                         Icon(Icons.Default.Close, contentDescription = "Close search")
                     }
                 }
                 else -> {
-                    IconButton(onClick = { exitSelection(); searchOpen = true }) {
+                    IconButton(onClick = { view.haptic(HapticStyle.Light); exitSelection(); searchOpen = true }) {
                         Icon(
                             Icons.Default.Search,
                             contentDescription = "Search",
@@ -159,6 +164,7 @@ fun StrategiesScreen(
                         )
                     }
                     IconButton(onClick = {
+                        view.haptic(HapticStyle.Light)
                         viewModel.clearActionState()
                         showAddStrategyDialog = true
                     }) {
@@ -168,7 +174,7 @@ fun StrategiesScreen(
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
-                    IconButton(onClick = { exitSearch(); isSelectionMode = true }) {
+                    IconButton(onClick = { view.haptic(HapticStyle.Light); exitSearch(); isSelectionMode = true }) {
                         Icon(
                             Icons.Default.Edit,
                             contentDescription = "Edit",

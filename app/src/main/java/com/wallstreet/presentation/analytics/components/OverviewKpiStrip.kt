@@ -24,6 +24,7 @@ import com.wallstreet.core.util.formatPercent
 import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.OverviewStats
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import java.util.Locale
@@ -51,7 +52,7 @@ fun OverviewKpiStrip(stats: OverviewStats) {
         ) {
             KpiChip(
                 label = "NET P&L",
-                value = stats.netPnl.formatPnl(),
+                value = stats.netPnl.formatPnl(LocalCurrencySymbol.current),
                 valueColor = pnlColor,
                 accentColor = pnlColor,
                 modifier = Modifier.weight(1f)

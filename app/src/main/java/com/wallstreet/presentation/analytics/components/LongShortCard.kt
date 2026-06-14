@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.BorderColors
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.domain.model.TradeSummary
 import com.wallstreet.core.util.formatPnl
@@ -187,7 +188,7 @@ private fun DirectionDetail(
     accentColor: Color,
     paddingEnd: Boolean
 ) {
-    val pnlFormatted = pnl.formatPnl()
+    val pnlFormatted = pnl.formatPnl(LocalCurrencySymbol.current)
     val pnlColor = if (pnl >= 0) SuccessGreen else DangerRed
 
     Column(

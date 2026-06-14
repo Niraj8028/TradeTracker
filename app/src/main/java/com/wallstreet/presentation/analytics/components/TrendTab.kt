@@ -44,6 +44,7 @@ import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TrendPerformanceData
 import com.wallstreet.domain.model.TrendStat
 import com.wallstreet.ui.theme.DangerRed
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import kotlin.math.abs
@@ -137,7 +138,7 @@ private fun TrendSummaryStrip(
         )
         SummaryChip(
             label = "Total P&L",
-            value = totalPnl.formatPnl(),
+            value = totalPnl.formatPnl(LocalCurrencySymbol.current),
             valueColor = pnlColor,
             modifier = Modifier.weight(1f)
         )
@@ -261,7 +262,7 @@ private fun BestTrendBanner(stat: TrendStat, totalTrades: Int) {
                     maxLines = 1
                 )
                 Text(
-                    text = "${stat.winRate.formatPercent()} win rate · ${stat.totalPnl.formatPnl()} P&L · ${stat.trades} trades",
+                    text = "${stat.winRate.formatPercent()} win rate · ${stat.totalPnl.formatPnl(LocalCurrencySymbol.current)} P&L · ${stat.trades} trades",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -340,7 +341,7 @@ private fun PnlComparisonCard(stats: List<TrendStat>) {
                             )
                         }
                         Text(
-                            text = stat.totalPnl.formatPnl(),
+                            text = stat.totalPnl.formatPnl(LocalCurrencySymbol.current),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = pnlColor,
@@ -366,7 +367,7 @@ private fun PnlComparisonCard(stats: List<TrendStat>) {
                     // Sub-label
                     Text(
                         text = "${stat.trades} trades · avg ${
-                            (if (stat.trades > 0) stat.totalPnl / stat.trades else 0.0).formatPnl()
+                            (if (stat.trades > 0) stat.totalPnl / stat.trades else 0.0).formatPnl(LocalCurrencySymbol.current)
                         } per trade",
                         fontSize = 10.5.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -381,6 +382,7 @@ private fun PnlComparisonCard(stats: List<TrendStat>) {
 
 @Composable
 private fun ComparisonMatrixCard(stats: List<TrendStat>, totalTrades: Int) {
+    val symbol = LocalCurrencySymbol.current
     // Always show all 3 directions; use a zero-stat for ones with no trades.
     val statsMap = stats.associateBy { it.direction }
     val fullStats = TrendDirection.entries.map { dir ->
@@ -428,8 +430,8 @@ private fun ComparisonMatrixCard(stats: List<TrendStat>, totalTrades: Int) {
             val rowsData: List<Pair<String, (TrendStat) -> String>> = listOf(
                 "Trades"     to { s -> if (s.trades > 0) "${s.trades}" else "—" },
                 "Win Rate"   to { s -> if (s.trades > 0) s.winRate.formatPercent() else "—" },
-                "Total P&L"  to { s -> if (s.trades > 0) s.totalPnl.formatPnl() else "—" },
-                "Avg P&L"    to { s -> if (s.trades > 0) (s.totalPnl / s.trades).formatPnl() else "—" },
+                "Total P&L"  to { s -> if (s.trades > 0) s.totalPnl.formatPnl(symbol) else "—" },
+                "Avg P&L"    to { s -> if (s.trades > 0) (s.totalPnl / s.trades).formatPnl(symbol) else "—" },
                 "% of Total" to { s ->
                     if (s.trades > 0 && totalTrades > 0)
                         "${(s.trades.toFloat() / totalTrades * 100).toInt()}%"
@@ -502,7 +504,7 @@ private fun TrendInsightsCard(
     best: TrendStat?,
     worst: TrendStat?
 ) {
-    val insights = buildInsights(stats, totalTrades, best, worst)
+    val insights = buildInsights(stats, totalTrades, best, worst, LocalCurrencySymbol.current)
     if (insights.isEmpty()) return
 
     Box(
@@ -580,7 +582,8 @@ private fun buildInsights(
     stats: List<TrendStat>,
     totalTrades: Int,
     best: TrendStat?,
-    worst: TrendStat?
+    worst: TrendStat?,
+    symbol: String = "$"
 ): List<Insight> {
     val result = mutableListOf<Insight>()
 
@@ -591,9 +594,9 @@ private fun buildInsights(
             val bestMeta  = metaFor(best.direction)
             val worstMeta = metaFor(worst.direction)
             result += Insight(
-                "Your win rate in ${bestMeta.label} (${best.winRate.formatPercent()}) " +
-                "is ${diff.toInt()}pp higher than ${worstMeta.label} " +
-                "(${worst.winRate.formatPercent()}) — lean into ${bestMeta.label} conditions.",
+                "You're sharpest in ${bestMeta.label} markets — ${best.winRate.formatPercent()} win rate " +
+                "vs just ${worst.winRate.formatPercent()} in ${worstMeta.label}. " +
+                "Prioritise ${bestMeta.label} setups and stay patient elsewhere.",
                 isWarning = false
             )
         }
@@ -607,8 +610,9 @@ private fun buildInsights(
         val avg = bestAvg.totalPnl / bestAvg.trades
         if (avg > 0) {
             result += Insight(
-                "Your highest avg P&L per trade (${avg.formatPnl()}) comes from " +
-                "${metaFor(bestAvg.direction).label} conditions — ${bestAvg.trades} trades logged."
+                "${metaFor(bestAvg.direction).label} trades are your most profitable — " +
+                "${avg.formatPnl(symbol)} on average across ${bestAvg.trades} trades. " +
+                "This is where your edge is strongest."
             )
         }
     }
@@ -619,9 +623,9 @@ private fun buildInsights(
         .minByOrNull { it.winRate }
     if (poorStat != null && poorStat.winRate < 45) {
         result += Insight(
-            "${metaFor(poorStat.direction).label} markets show only " +
+            "${metaFor(poorStat.direction).label} is your weak spot — only " +
             "${poorStat.winRate.formatPercent()} win rate over ${poorStat.trades} trades. " +
-            "Consider tightening risk management in these conditions.",
+            "Trade these smaller or wait for cleaner setups.",
             isWarning = true
         )
     }
@@ -633,8 +637,8 @@ private fun buildInsights(
             val pct = (dominant.trades.toFloat() / totalTrades * 100).toInt()
             if (pct >= 55) {
                 result += Insight(
-                    "$pct% of your tagged trades are taken in ${metaFor(dominant.direction).label} " +
-                    "conditions — make sure you're also tracking other market environments."
+                    "$pct% of your trades happen in ${metaFor(dominant.direction).label} markets. " +
+                    "Make sure that's where your edge is — not just where you're most comfortable."
                 )
             }
         }
@@ -644,8 +648,8 @@ private fun buildInsights(
     val loser = stats.filter { it.trades >= 2 }.minByOrNull { it.totalPnl }
     if (loser != null && loser.totalPnl < 0) {
         result += Insight(
-            "${metaFor(loser.direction).label} trades have produced ${loser.totalPnl.formatPnl()} " +
-            "total loss. Review your entries and exits in these conditions.",
+            "${metaFor(loser.direction).label} trades are bleeding ${loser.totalPnl.formatPnl(symbol)} overall. " +
+            "These conditions are working against you — sit them out until you find an edge.",
             isWarning = true
         )
     }
@@ -789,7 +793,7 @@ private fun TrendDirectionCard(stat: TrendStat, totalTrades: Int) {
                     }
                 }
                 Text(
-                    text = stat.totalPnl.formatPnl(),
+                    text = stat.totalPnl.formatPnl(LocalCurrencySymbol.current),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = pnlColor,
@@ -807,7 +811,7 @@ private fun TrendDirectionCard(stat: TrendStat, totalTrades: Int) {
             ) {
                 StatColumn(label = "WIN RATE", value = stat.winRate.formatPercent(), color = meta.color)
                 StatColumn(label = "TRADES",   value = "${stat.trades}",             color = MaterialTheme.colorScheme.onSurface)
-                StatColumn(label = "AVG P&L",  value = avgPnl.formatPnl(),           color = if (avgPnl >= 0) SuccessGreen else DangerRed)
+                StatColumn(label = "AVG P&L",  value = avgPnl.formatPnl(LocalCurrencySymbol.current),           color = if (avgPnl >= 0) SuccessGreen else DangerRed)
             }
 
             // Win rate bar

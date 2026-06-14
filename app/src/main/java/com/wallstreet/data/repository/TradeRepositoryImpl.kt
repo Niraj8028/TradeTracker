@@ -86,6 +86,7 @@ class TradeRepositoryImpl(
     override suspend fun deleteTrade(tradeId: String): Result<Unit> {
         return try {
             tradeDao.deleteTradeById(tradeId)
+            tradesCollection.document(tradeId).delete().await()
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e.toString())
