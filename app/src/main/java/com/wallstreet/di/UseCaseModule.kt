@@ -13,6 +13,7 @@ import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
 import com.wallstreet.domain.usecase.onboarding.CompleteOnboardingUseCase
+import com.wallstreet.domain.usecase.onboarding.GetOnboardingStatusUseCase
 import com.wallstreet.domain.usecase.strategy.AddStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.DeleteStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
@@ -53,4 +54,5 @@ val useCaseModule = module {
     factory { GetOverviewStatsUseCase(get()) }
     factory { GetTrendPerformanceUseCase(get()) }
     factory { CompleteOnboardingUseCase(get(), get(), get()) }
+    factory { GetOnboardingStatusUseCase(get(), get()) }
 }

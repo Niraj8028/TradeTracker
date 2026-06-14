@@ -6,6 +6,7 @@ import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
 import com.wallstreet.domain.repository.StrategyRepository
+import timber.log.Timber
 
 class SignInUseCase(private val repo: AuthRepository) {
     suspend operator fun invoke(email: String, password: String): Result<User> {
@@ -37,8 +38,11 @@ class SignUpUseCase(
     ): Result<User> {
         val result = repo.signUp(fullName, email, password)
         if (result is Result.Error) return result
-        runCatching {
+        
+        try {
             defaultStrategies.forEach { strategyRepository.addStrategy(it) }
+        } catch (e: Exception) {
+            Timber.e(e, "SignUpUseCase: Failed to initialize default strategies")
         }
 
         return result

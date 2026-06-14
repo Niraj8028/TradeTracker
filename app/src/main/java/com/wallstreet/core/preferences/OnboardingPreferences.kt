@@ -21,4 +21,8 @@ class OnboardingPreferences(private val context: Context) {
     suspend fun setOnboardingCompleted() {
         context.dataStore.edit { it[ONBOARDING_KEY] = true }
     }
+
+    suspend fun clearOnboardingCompleted() {
+        context.dataStore.edit { it[ONBOARDING_KEY] = false }
+    }
 }

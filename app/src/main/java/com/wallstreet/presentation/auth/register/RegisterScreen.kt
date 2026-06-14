@@ -110,26 +110,6 @@ fun RegisterScreen(
         }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { _ ->
-        onRegisterSuccess()
-    }
-
-    val requestNotificationPermission = {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-                PackageManager.PERMISSION_GRANTED
-            ) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                onRegisterSuccess()
-            }
-        } else {
-            onRegisterSuccess()
-        }
-    }
-
     LaunchedEffect(uiState.navigateToOtp) {
         if (uiState.navigateToOtp) {
             viewModel.resetNavigation()
@@ -137,7 +117,7 @@ fun RegisterScreen(
         }
     }
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) requestNotificationPermission()
+        if (uiState.isSuccess) onRegisterSuccess()
     }
 
     // Helper: submit the form

@@ -6,6 +6,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -19,8 +20,14 @@ import com.wallstreet.presentation.auth.login.LoginScreen
 import com.wallstreet.presentation.auth.verification.EmailVerificationScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
 import com.wallstreet.presentation.onboarding.OnboardingScreen
+import com.wallstreet.domain.usecase.onboarding.GetOnboardingStatusUseCase
+import com.wallstreet.presentation.auth.login.LoginViewModel
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import org.koin.compose.koinInject
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import com.wallstreet.domain.repository.AuthRepository
 
 @Composable
 fun OnboardingNavigation(
@@ -31,7 +38,11 @@ fun OnboardingNavigation(
     goToOnboarding: () -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
-    val initialRoute = remember {
+    val getOnboardingStatusUseCase: GetOnboardingStatusUseCase = koinInject()
+    val authRepository: AuthRepository = koinInject()
+    val scope = rememberCoroutineScope()
+
+    val initialRoute = remember(goToOtp(), skipToLogin(), goToOnboarding()) {
         val otpEmail = goToOtp()
         when {
             otpEmail != null -> AppRoute.OnBoarding.EmailVerificationScreen(otpEmail)
@@ -42,31 +53,33 @@ fun OnboardingNavigation(
     }
 
 
-    val onBoardingBackStack = rememberNavBackStack(
-        configuration = SavedStateConfiguration {
-            serializersModule = SerializersModule {
-                polymorphic(NavKey::class) {
-                    subclass(
-                        AppRoute.OnBoarding.Onboarding::class,
-                        AppRoute.OnBoarding.Onboarding.serializer()
-                    )
-                    subclass(
-                        AppRoute.OnBoarding.Login::class,
-                        AppRoute.OnBoarding.Login.serializer()
-                    )
-                    subclass(
-                        AppRoute.OnBoarding.Register::class,
-                        AppRoute.OnBoarding.Register.serializer()
-                    )
-                    subclass(
-                        AppRoute.OnBoarding.EmailVerificationScreen::class,
-                        AppRoute.OnBoarding.EmailVerificationScreen.serializer()
-                    )
+    val onBoardingBackStack = key(initialRoute) {
+        rememberNavBackStack(
+            SavedStateConfiguration {
+                serializersModule = SerializersModule {
+                    polymorphic(NavKey::class) {
+                        subclass(
+                            AppRoute.OnBoarding.Onboarding::class,
+                            AppRoute.OnBoarding.Onboarding.serializer()
+                        )
+                        subclass(
+                            AppRoute.OnBoarding.Login::class,
+                            AppRoute.OnBoarding.Login.serializer()
+                        )
+                        subclass(
+                            AppRoute.OnBoarding.Register::class,
+                            AppRoute.OnBoarding.Register.serializer()
+                        )
+                        subclass(
+                            AppRoute.OnBoarding.EmailVerificationScreen::class,
+                            AppRoute.OnBoarding.EmailVerificationScreen.serializer()
+                        )
+                    }
                 }
-            }
-        },
-        initialRoute
-    )
+            },
+            initialRoute
+        )
+    }
 
     // ✅ No LaunchedEffect blocks — they caused the 1-frame flash
     // initialRoute already handles all three cases correctly
@@ -130,7 +143,21 @@ fun OnboardingNavigation(
 
             entry<AppRoute.OnBoarding.Login> {
                 LoginScreen(
-                    onLoginSuccess = { onLogin() },
+                    onLoginSuccess = {
+                        scope.launch {
+                            val userId = authRepository.getCurrentUser()?.id
+                            val completed = if (userId != null) {
+                                getOnboardingStatusUseCase(userId)
+                            } else false
+                            
+                            if (completed) {
+                                onLogin()
+                            } else {
+                                onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+                                onBoardingBackStack.remove(AppRoute.OnBoarding.Login)
+                            }
+                        }
+                    },
                     onNavigateToRegister = { onBoardingBackStack.add(AppRoute.OnBoarding.Register) },
                     onNavigateToOtp = { email -> 
                         onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 
@@ -141,8 +168,19 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Register> {
                 RegisterScreen(
                     onRegisterSuccess = {
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
-                        onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
+                        scope.launch {
+                            val userId = authRepository.getCurrentUser()?.id
+                            val completed = if (userId != null) {
+                                getOnboardingStatusUseCase(userId)
+                            } else false
+                            
+                            if (completed) {
+                                onLogin()
+                            } else {
+                                onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+                                onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
+                            }
+                        }
                     },
                     onNavigateToLogin = {
                         if (onBoardingBackStack.size > 1) {
@@ -162,8 +200,19 @@ fun OnboardingNavigation(
                 EmailVerificationScreen(
                     email = route.email,
                     onVerified = {
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
-                        onBoardingBackStack.remove(route)
+                        scope.launch {
+                            val userId = authRepository.getCurrentUser()?.id
+                            val completed = if (userId != null) {
+                                getOnboardingStatusUseCase(userId)
+                            } else false
+                            
+                            if (completed) {
+                                onLogin()
+                            } else {
+                                onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+                                onBoardingBackStack.remove(route)
+                            }
+                        }
                     },
                     onBack = {
                         // viewModel.abandon() in EmailVerify.kt has already:

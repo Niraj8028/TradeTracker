@@ -118,29 +118,6 @@ fun LoginScreen(
         }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { _ ->
-        onLoginSuccess()
-    }
-
-    val requestNotificationPermission = {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) !=
-                PackageManager.PERMISSION_GRANTED
-            ) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                onLoginSuccess()
-            }
-        } else {
-            onLoginSuccess()
-        }
-    }
-
     LaunchedEffect(uiState.navigateToOtp) {
         if (uiState.navigateToOtp) {
             viewModel.resetNavigation()
@@ -148,7 +125,7 @@ fun LoginScreen(
         }
     }
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) requestNotificationPermission()
+        if (uiState.isSuccess) onLoginSuccess()
     }
 
     // ── Forgot-password dialog ──────────────────────────────────────────────

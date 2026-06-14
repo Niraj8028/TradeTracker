@@ -21,7 +21,8 @@ object NotificationHelper {
     const val ROUTE_LOG_TRADE = "home/log_trade"
 
     fun showTradeReminderNotification(context: Context) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -48,7 +49,7 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Use default icon for now
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Have you logged your trades today?")
             .setContentText("Don't forget to keep your trading journal updated!")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

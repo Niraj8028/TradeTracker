@@ -27,6 +27,7 @@ import com.wallstreet.navigation.AppNavigation
 import com.wallstreet.navigation.AppRoute
 import androidx.navigation3.runtime.NavKey
 import com.wallstreet.ui.theme.WallStreetAndroidTheme
+import timber.log.Timber
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
 
     private val analyticsManager: AnalyticsManager by inject()
     private val tradeStore: TradeStore by inject()
+    private val onboardingPreferences: OnboardingPreferences by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enable Firestore debug logging
@@ -49,7 +51,8 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
+        // next line will use as debug notification
+        //NotificationHelper.showTradeReminderNotification(this)
         lifecycleScope.launch {
             decideStartDestination()
         }
@@ -78,6 +81,8 @@ class MainActivity : ComponentActivity() {
                 destination?.let {
                     AppNavigation(
                         startDestination = it,
+                        onLogin = { SplashGate.resolve(StartDestination.Home) },
+                        onLogout = { SplashGate.resolve(StartDestination.Auth) },
                         initialHomeRoute = pendingRoute
                     )
                 }
@@ -86,21 +91,31 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun decideStartDestination() {
-        val user = FirebaseAuth.getInstance().currentUser
-        try {
-            user?.reload()?.await() // Properly await the refresh
-        } catch (e: Exception) {
-            // If reload fails (e.g. no network), we still proceed with cached state
+        var user = FirebaseAuth.getInstance().currentUser
+        
+        // If we have a user, try to reload their state to get the latest emailVerification status.
+        // We try up to 3 times with a short delay in case the network is just warming up.
+        if (user != null && !user.isEmailVerified) {
+            for (i in 1..3) {
+                try {
+                    user?.reload()?.await()
+                    user = FirebaseAuth.getInstance().currentUser // Re-fetch after reload
+                    if (user?.isEmailVerified == true) break
+                } catch (e: Exception) {
+                    Timber.w(e, "MainActivity: reload attempt $i failed")
+                }
+                if (i < 3) kotlinx.coroutines.delay(500L)
+            }
         }
 
         user?.let {
             analyticsManager.setUserId(it.uid)
         }
 
-
         val destination = when {
             user == null -> StartDestination.Auth
             !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
+            !onboardingPreferences.isOnboardingCompleted() -> StartDestination.Onboarding
             else -> {
                 StartDestination.Home
             }
