@@ -9,6 +9,7 @@ import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TrendDirection
 import com.wallstreet.domain.model.TradeType
 import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.core.perf.withTrace
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -146,7 +147,13 @@ class LogTradeViewModel(
                 mistakes = state.selectedMistakes.toList(),
                 trendDirection = state.trendDirection
             )
-            val result = addTradeUseCase(trade)
+            val result = withTrace("log_trade_save") { trace ->
+                trace.putAttribute("has_image", (state.imageUri != null).toString())
+                trace.putAttribute("trade_type", state.tradeType.name)
+                val r = addTradeUseCase(trade)
+                trace.putAttribute("result", if (r is Result.Success) "success" else "error")
+                r
+            }
             when (result) {
                 is Result.Error -> _uiState.update { it.copy(error = result.message, isLoading = false) }
                 is Result.Success -> {

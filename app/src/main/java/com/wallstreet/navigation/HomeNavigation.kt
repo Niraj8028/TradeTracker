@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.wallstreet.domain.analytics.AnalyticsManager
+import org.koin.compose.koinInject
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -116,6 +119,30 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
         },
         AppRoute.Home.DashboardRoute
     )
+
+    val analyticsManager: AnalyticsManager = koinInject()
+    val currentRoute by remember { derivedStateOf { homeBackStack.last() } }
+    LaunchedEffect(currentRoute) {
+        val screenName = when (val key = currentRoute) {
+            AppRoute.Home.DashboardRoute      -> "home_dashboard"
+            AppRoute.Home.AnalyticsRoute      -> "analytics"
+            AppRoute.Home.TradeHistoryRoute   -> "trade_history"
+            AppRoute.Home.StrategiesRoute     -> "strategies"
+            AppRoute.Home.ProfileRoute        -> "profile"
+            AppRoute.Home.LogTradeRoute       -> "log_trade"
+            AppRoute.Home.CalendarRoute       -> "calendar"
+            AppRoute.Home.EquityMetricsRoute  -> "equity_metrics"
+            AppRoute.Home.MistakeAnalysisRoute -> "mistake_analysis"
+            AppRoute.Home.SecurityPrivacyRoute -> "security_privacy"
+            AppRoute.Home.PrivacyPolicyRoute  -> "privacy_policy"
+            AppRoute.Home.TermsOfServiceRoute -> "terms_of_service"
+            AppRoute.Home.DeleteAccountRoute  -> "delete_account"
+            is AppRoute.Home.JournalDetailRoute   -> "journal_detail"
+            is AppRoute.Home.StrategyDetailRoute  -> "strategy_detail"
+            else -> key::class.simpleName ?: "unknown"
+        }
+        analyticsManager.logScreenView(screenName)
+    }
 
     Scaffold(
         modifier = modifier,

@@ -8,6 +8,7 @@ import com.wallstreet.domain.usecase.analytics.GetDayPerformanceUseCase
 import com.wallstreet.domain.usecase.analytics.GetOverviewStatsUseCase
 import com.wallstreet.domain.usecase.analytics.GetTradeSummaryUseCase
 import com.wallstreet.domain.usecase.analytics.GetTrendPerformanceUseCase
+import com.wallstreet.core.perf.withTrace
 import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
@@ -44,24 +45,28 @@ class AnalyticsViewModel(
             getTradesUseCase(userId, TimePeriod.ALL, 5000),
             _selectedTabIndex
         ) { trades, allTrades, tabIndex ->
+            withTrace("analytics_compute") { trace ->
+                trace.putAttribute("period", filter.name)
+                trace.putAttribute("trade_count", trades.size.toString())
 
-            val summary = getTradeSummaryUseCase(trades)
-            val performance = getDayPerformanceUseCase(trades)
-            val trendPerformance = getTrendPerformanceUseCase(trades)
-            val overviewStats = getOverviewStatsUseCase(trades)
-            val mistakesAnalysis = getMistakesAnalysisUsecase(trades)
+                val summary = getTradeSummaryUseCase(trades)
+                val performance = getDayPerformanceUseCase(trades)
+                val trendPerformance = getTrendPerformanceUseCase(trades)
+                val overviewStats = getOverviewStatsUseCase(trades)
+                val mistakesAnalysis = getMistakesAnalysisUsecase(trades)
 
-            AnalyticsUiState.Success(
-                selectedFilter = filter,
-                tradeSummary = summary,
-                dayPerformance = performance,
-                allTrades = allTrades,
-                selectedTabIndex = tabIndex,
-                recentTrades = getRecentTradeData(trades),
-                trendPerformance = trendPerformance,
-                overviewStats = overviewStats,
-                mistakesAnalysis = mistakesAnalysis
-            ) as AnalyticsUiState
+                AnalyticsUiState.Success(
+                    selectedFilter = filter,
+                    tradeSummary = summary,
+                    dayPerformance = performance,
+                    allTrades = allTrades,
+                    selectedTabIndex = tabIndex,
+                    recentTrades = getRecentTradeData(trades),
+                    trendPerformance = trendPerformance,
+                    overviewStats = overviewStats,
+                    mistakesAnalysis = mistakesAnalysis
+                ) as AnalyticsUiState
+            }
         }
     }.onStart {
         emit(AnalyticsUiState.Loading)

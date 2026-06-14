@@ -14,6 +14,7 @@ import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
+import com.wallstreet.core.perf.withTrace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -61,15 +62,19 @@ class HomeViewModel(
                 getTradesUsecase(userId, period, 500),
                 getTradesUsecase(userId, heatmapPeriod, 500)
             ) { trades, heatmapTrades ->
-                HomeUiState.Success(
-                    stats = getHomeStateUsecase(trades),
-                    recentTrades = getRecentTradeData(heatmapTrades),
-                    heatMapData = heatMapDataUsecase(heatmapTrades, 4),
-                    selectedPeriod = period,
-                    equityCurveData = equityCurveDataUsecase(trades),
-                    mistakesAnalysisData = mistakesAnalysisUsecase(trades),
-                    symbolPerformance = symbolPerformanceUsecase(trades)
-                ) as HomeUiState
+                withTrace("home_dashboard_compute") { trace ->
+                    trace.putAttribute("period", period.name)
+                    trace.putAttribute("trade_count", trades.size.toString())
+                    HomeUiState.Success(
+                        stats = getHomeStateUsecase(trades),
+                        recentTrades = getRecentTradeData(heatmapTrades),
+                        heatMapData = heatMapDataUsecase(heatmapTrades, 4),
+                        selectedPeriod = period,
+                        equityCurveData = equityCurveDataUsecase(trades),
+                        mistakesAnalysisData = mistakesAnalysisUsecase(trades),
+                        symbolPerformance = symbolPerformanceUsecase(trades)
+                    ) as HomeUiState
+                }
             }
                 .flowOn(Dispatchers.Default)
                 .catch { e ->

@@ -18,6 +18,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import com.wallstreet.core.perf.withTrace
 import timber.log.Timber
 
 class AuthRepositoryImpl(
@@ -26,47 +27,57 @@ class AuthRepositoryImpl(
     private val syncScheduler: SyncScheduler
 ) : AuthRepository {
 
-    override suspend fun signInWithEmail(email: String, password: String): Result<User> {
-        return try {
-            val result = auth.signInWithEmailAndPassword(email, password).await()
-            val firebaseUser = result.user!!
+    override suspend fun signInWithEmail(email: String, password: String): Result<User> =
+        withTrace("auth_email_sign_in") { trace ->
+            try {
+                val result = auth.signInWithEmailAndPassword(email, password).await()
+                val firebaseUser = result.user!!
 
-            // TODO: remove this bypass before merging
-            if (!firebaseUser.isEmailVerified) {
-                auth.signOut()
-                return Result.Error("EMAIL_NOT_VERIFIED")
+                // TODO: remove this bypass before merging
+                if (!firebaseUser.isEmailVerified) {
+                    auth.signOut()
+                    trace.putAttribute("result", "unverified")
+                    return@withTrace Result.Error("EMAIL_NOT_VERIFIED")
+                }
+
+                trace.putAttribute("result", "success")
+                Result.Success(firebaseUser.toUserModel())
+            } catch (e: Exception) {
+                trace.putAttribute("result", "error")
+                Result.Error(e.friendlyMessage(), e)
             }
-
-            Result.Success(firebaseUser.toUserModel())
-        } catch (e: Exception) {
-            Result.Error(e.friendlyMessage(), e)
         }
-    }
 
-    override suspend fun signInWithGoogle(idToken: String): Result<User> = try {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        val result = auth.signInWithCredential(credential).await()
-        val user = result.user!!.toUserModel()
-        saveUserToFirestore(user)
-        Result.Success(user)
-    } catch (e: Exception) {
-        Result.Error(e.friendlyMessage(), e)
-    }
+    override suspend fun signInWithGoogle(idToken: String): Result<User> =
+        withTrace("auth_google_sign_in") { trace ->
+            try {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                val result = auth.signInWithCredential(credential).await()
+                val user = result.user!!.toUserModel()
+                saveUserToFirestore(user)
+                trace.putAttribute("result", "success")
+                Result.Success(user)
+            } catch (e: Exception) {
+                trace.putAttribute("result", "error")
+                Result.Error(e.friendlyMessage(), e)
+            }
+        }
 
     override suspend fun signUp(fullName: String, email: String, password: String): Result<User> =
-        try {
-            //1 create account
-            val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = result.user!!
-            firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
-            val user = User(id = firebaseUser.uid, name = fullName, email = email)
-            //save User to fire store
-            verifyEmail(firebaseUser)
-
-            saveUserToFirestore(user)
-            Result.Success(user)
-        } catch (e: Exception) {
-            Result.Error(e.friendlyMessage(), e)
+        withTrace("auth_sign_up") { trace ->
+            try {
+                val result = auth.createUserWithEmailAndPassword(email, password).await()
+                val firebaseUser = result.user!!
+                firebaseUser.updateProfile(userProfileChangeRequest { displayName = fullName }).await()
+                val user = User(id = firebaseUser.uid, name = fullName, email = email)
+                verifyEmail(firebaseUser)
+                saveUserToFirestore(user)
+                trace.putAttribute("result", "success")
+                Result.Success(user)
+            } catch (e: Exception) {
+                trace.putAttribute("result", "error")
+                Result.Error(e.friendlyMessage(), e)
+            }
         }
 
     private suspend fun verifyEmail(firebaseUser: FirebaseUser) {

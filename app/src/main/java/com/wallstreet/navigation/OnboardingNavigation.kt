@@ -6,8 +6,13 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.wallstreet.domain.analytics.AnalyticsManager
+import org.koin.compose.koinInject
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -68,8 +73,18 @@ fun OnboardingNavigation(
         initialRoute
     )
 
-    // ✅ No LaunchedEffect blocks — they caused the 1-frame flash
-    // initialRoute already handles all three cases correctly
+    val analyticsManager: AnalyticsManager = koinInject()
+    val currentRoute by remember { derivedStateOf { onBoardingBackStack.last() } }
+    LaunchedEffect(currentRoute) {
+        val screenName = when (currentRoute) {
+            AppRoute.OnBoarding.Register             -> "register"
+            AppRoute.OnBoarding.Login                -> "login"
+            AppRoute.OnBoarding.Onboarding           -> "onboarding"
+            is AppRoute.OnBoarding.EmailVerificationScreen -> "email_verification"
+            else -> currentRoute::class.simpleName ?: "unknown"
+        }
+        analyticsManager.logScreenView(screenName)
+    }
 
     NavDisplay(
         backStack = onBoardingBackStack,

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.perf)
 }
 
 android {
@@ -78,6 +79,7 @@ dependencies {
     implementation(libs.firebase.storage)                    // journal images
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.perf)
     implementation(libs.kotlinx.coroutines.play.services)
 
     // Google Sign-In                                        //   OAuth2
