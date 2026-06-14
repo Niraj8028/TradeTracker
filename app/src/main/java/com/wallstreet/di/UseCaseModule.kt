@@ -13,12 +13,14 @@ import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.RecentTradesDataUsecase
 import com.wallstreet.domain.usecase.onboarding.CompleteOnboardingUseCase
+import com.wallstreet.domain.usecase.onboarding.GetOnboardingStatusUseCase
 import com.wallstreet.domain.usecase.strategy.AddStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.DeleteStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.UpdateStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
+import com.wallstreet.domain.usecase.trade.CheckTodayTradeUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import org.koin.dsl.module
 
@@ -32,6 +34,7 @@ val useCaseModule = module {
     factory { ResendVerificationEmailUseCase(get()) }
     factory { SendPasswordResetEmailUseCase(get()) }
     factory { AddTradeUseCase(get()) }
+    factory { CheckTodayTradeUseCase(get()) }
     factory { GetTradesUseCase(get()) }
     factory { GetHomeStateUsecase() }
     factory { ComputeHeatMapDataUsecase() }
@@ -51,4 +54,5 @@ val useCaseModule = module {
     factory { GetOverviewStatsUseCase(get()) }
     factory { GetTrendPerformanceUseCase(get()) }
     factory { CompleteOnboardingUseCase(get(), get(), get()) }
+    factory { GetOnboardingStatusUseCase(get(), get()) }
 }

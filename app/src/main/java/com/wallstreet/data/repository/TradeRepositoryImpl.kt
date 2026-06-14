@@ -12,6 +12,7 @@ import com.wallstreet.data.remote.FirebaseService
 import com.wallstreet.data.sync.SyncScheduler
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.repository.TradeRepository
+import java.util.Calendar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
@@ -81,6 +82,23 @@ class TradeRepositoryImpl(
 
     override suspend fun hasPendingTrades(userId: String): Boolean {
         return tradeDao.getPendingSyncTrades(userId).isNotEmpty()
+    }
+
+    override suspend fun hasTradeToday(userId: String): Boolean {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startOfDay = calendar.timeInMillis
+
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        val endOfDay = calendar.timeInMillis
+
+        return tradeDao.getTradeCountInRange(userId, startOfDay, endOfDay) > 0
     }
 
     override suspend fun deleteTrade(tradeId: String): Result<Unit> {

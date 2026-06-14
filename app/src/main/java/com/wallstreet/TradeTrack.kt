@@ -5,12 +5,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.initialize
 import com.wallstreet.core.logging.CrashlyticsTree
+import com.wallstreet.data.reminder.ReminderScheduler
 import com.wallstreet.di.appModule
 import com.wallstreet.di.databaseModule
 import com.wallstreet.di.firebaseModule
 import com.wallstreet.di.repositoryModule
 import com.wallstreet.di.useCaseModule
 import com.wallstreet.di.viewModelModule
+import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -40,5 +42,8 @@ class TradeTrack: Application() {
                 viewModelModule
             )
         }
+
+        val reminderScheduler: ReminderScheduler by inject()
+        reminderScheduler.scheduleDailyReminder()
     }
 }

@@ -5,6 +5,7 @@ data class User(
     val name: String,
     val email: String,
     val photoUrl: String? = null,
+    val onboardingCompleted: Boolean = false,
 //    val createdAt: Long,
     // TODO work on userSettings
     //    val settings: UserSettings

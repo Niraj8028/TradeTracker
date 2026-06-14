@@ -48,7 +48,7 @@ class EmailVerifyViewModel(
             while (true) {
                 delay(3000L) // check every 3 seconds
 
-                when (val r = verifyOtp.invoke()) {
+                when (val r = try { verifyOtp.invoke() } catch (e: Exception) { Result.Error(e.message ?: "Unknown") }) {
                     is Result.Success -> {
                         if (r.data == true) {
                             _uiState.value = _uiState.value.copy(isSuccess = true, isLoading = false)
@@ -58,8 +58,9 @@ class EmailVerifyViewModel(
                     }
 
                     is Result.Error -> {
-                        _uiState.value = _uiState.value.copy(error = r.message, isLoading = false)
-                        break // stop on error
+                        // Don't break on error, just log and wait for next poll.
+                        // Network errors are common when app is backgrounded.
+                        Timber.w("EmailVerifyViewModel: Polling error: ${r.message}")
                     }
 
                     else -> {}

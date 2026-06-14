@@ -8,12 +8,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.wallstreet.core.constants.AppConstants
 import com.wallstreet.core.result.AuthState
 import com.wallstreet.core.result.Result
+import com.wallstreet.core.preferences.OnboardingPreferences
 import com.wallstreet.data.mapper.toDomain
 import com.wallstreet.data.model.UserDto
 import com.wallstreet.data.remote.FirebaseService
 import com.wallstreet.data.sync.SyncScheduler
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.domain.repository.UserRepository
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -23,7 +25,9 @@ import timber.log.Timber
 class AuthRepositoryImpl(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val syncScheduler: SyncScheduler
+    private val syncScheduler: SyncScheduler,
+    private val onboardingPreferences: OnboardingPreferences,
+    private val userRepository: UserRepository
 ) : AuthRepository {
 
     override suspend fun signInWithEmail(email: String, password: String): Result<User> {
@@ -37,7 +41,15 @@ class AuthRepositoryImpl(
                 return Result.Error("EMAIL_NOT_VERIFIED")
             }
 
-            Result.Success(firebaseUser.toUserModel())
+            val user = firebaseUser.toUserModel()
+            // Sync onboarding status from Firestore for returning users
+            userRepository.getOnboardingStatus(user.id).let { result ->
+                if (result is Result.Success && result.data) {
+                    onboardingPreferences.setOnboardingCompleted()
+                }
+            }
+
+            Result.Success(user)
         } catch (e: Exception) {
             Result.Error(e.friendlyMessage(), e)
         }
@@ -47,7 +59,17 @@ class AuthRepositoryImpl(
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         val result = auth.signInWithCredential(credential).await()
         val user = result.user!!.toUserModel()
-        saveUserToFirestore(user)
+        // Check if user exists in Firestore first to avoid overwriting onboarding status
+        val doc = firestore.collection(AppConstants.COLLECTION_USERS).document(user.id).get().await()
+        if (!doc.exists()) {
+            saveUserToFirestore(user)
+        } else {
+            // Sync local onboarding state for returning users
+            val completed = doc.getBoolean("onboardingCompleted") ?: false
+            if (completed) {
+                onboardingPreferences.setOnboardingCompleted()
+            }
+        }
         Result.Success(user)
     } catch (e: Exception) {
         Result.Error(e.friendlyMessage(), e)
@@ -77,7 +99,7 @@ class AuthRepositoryImpl(
     override suspend fun verifyEmail(): Result<Boolean> = try {
         auth.currentUser?.reload()?.await()
         val isVerified = auth.currentUser?.isEmailVerified ?: false
-        Result.Success(true)
+        Result.Success(isVerified)
     } catch (e: Exception) {
         Timber.e(e, e.friendlyMessage())
         Result.Error(e.friendlyMessage(), e)
@@ -93,6 +115,7 @@ class AuthRepositoryImpl(
 
     override suspend fun signOut() {
         syncScheduler.cancelSync(auth.currentUser?.uid ?: "")
+        onboardingPreferences.clearOnboardingCompleted()
         auth.signOut()
     }
 
@@ -114,8 +137,10 @@ class AuthRepositoryImpl(
             .set(
                 mapOf(
                     "id" to user.id, "name" to user.name,
-                    "email" to user.email, "photoUrl" to user.photoUrl
-                )
+                    "email" to user.email, "photoUrl" to user.photoUrl,
+                    "onboardingCompleted" to user.onboardingCompleted
+                ),
+                com.google.firebase.firestore.SetOptions.merge()
             )
             .await()
     }

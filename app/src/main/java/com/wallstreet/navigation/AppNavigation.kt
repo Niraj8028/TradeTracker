@@ -1,6 +1,7 @@
 package com.wallstreet.navigation
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.key
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import com.google.firebase.auth.FirebaseAuth
@@ -18,6 +19,7 @@ import kotlinx.serialization.modules.polymorphic
 @Composable
 fun AppNavigation(
     startDestination: StartDestination,
+    initialHomeRoute: NavKey? = null,
     onLogin: () -> Unit = {},
     onLogout: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -38,7 +40,7 @@ fun AppNavigation(
     // Once the user deliberately abandons email verification (taps "Wrong email? Go back"),
     // we must not re-route them back to the OTP screen even if startDestination is still Otp.
     // This flag starts as true only for Otp destinations and is cleared on abandon/logout.
-    var goToOtp by rememberSaveable {
+    var goToOtp by rememberSaveable(startDestination) {
         mutableStateOf((startDestination is StartDestination.Otp) && !isLogoutFlow)
     }
     
@@ -53,10 +55,12 @@ fun AppNavigation(
         }
     }
 
-    val backStack = rememberNavBackStack(
-        navConfig,
-        initialRoute
-    )
+    val backStack = key(startDestination) {
+        rememberNavBackStack(
+            navConfig,
+            initialRoute
+        )
+    }
 
     NavDisplay(
         modifier = modifier,
@@ -98,6 +102,7 @@ fun AppNavigation(
             }
             entry<AppRoute.Home> {
                 HomeNavigation(
+                    initialRoute = initialHomeRoute,
                     onLogout = {
                         isLogoutFlow = true
                         onLogout()

@@ -1,6 +1,9 @@
 package com.wallstreet.presentation.auth.login
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -25,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -76,12 +80,12 @@ fun LoginScreen(
         uiState.error?.let { error ->
             val message = when (error) {
                 "ERROR_EMAIL_ALREADY_IN_USE" -> context.getString(R.string.error_email_already_in_use)
-                "ERROR_INVALID_PASSWORD"     -> context.getString(R.string.error_invalid_password)
-                "ERROR_USER_NOT_FOUND"       -> context.getString(R.string.error_user_not_found)
-                "ERROR_NETWORK_CONNECTION"   -> context.getString(R.string.error_network_connection)
-                "EMAIL_NOT_VERIFIED"         -> context.getString(R.string.error_email_not_verified)
-                "ERROR_EMAIL_EMPTY"          -> context.getString(R.string.error_email_empty)
-                "ERROR_PASSWORD_TOO_SHORT"   -> context.getString(R.string.error_password_too_short)
+                "ERROR_INVALID_PASSWORD" -> context.getString(R.string.error_invalid_password)
+                "ERROR_USER_NOT_FOUND" -> context.getString(R.string.error_user_not_found)
+                "ERROR_NETWORK_CONNECTION" -> context.getString(R.string.error_network_connection)
+                "EMAIL_NOT_VERIFIED" -> context.getString(R.string.error_email_not_verified)
+                "ERROR_EMAIL_EMPTY" -> context.getString(R.string.error_email_empty)
+                "ERROR_PASSWORD_TOO_SHORT" -> context.getString(R.string.error_password_too_short)
                 else -> error
             }
             snackbarIsError = true
@@ -114,6 +118,16 @@ fun LoginScreen(
         }
     }
 
+    LaunchedEffect(uiState.navigateToOtp) {
+        if (uiState.navigateToOtp) {
+            viewModel.resetNavigation()
+            onNavigateToOtp(email)
+        }
+    }
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) onLoginSuccess()
+    }
+
     // ── Forgot-password dialog ──────────────────────────────────────────────
     if (showForgotDialog) {
         AlertDialog(
@@ -136,7 +150,11 @@ fun LoginScreen(
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
-                            onDone = { if (resetEmail.isNotBlank()) viewModel.forgotPassword(resetEmail) }
+                            onDone = {
+                                if (resetEmail.isNotBlank()) viewModel.forgotPassword(
+                                    resetEmail
+                                )
+                            }
                         ),
                         singleLine = true,
                         shape = RoundedCornerShape(8.dp),
