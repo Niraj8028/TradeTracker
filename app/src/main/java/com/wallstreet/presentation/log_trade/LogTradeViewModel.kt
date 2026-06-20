@@ -2,7 +2,7 @@ package com.wallstreet.presentation.log_trade
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wallstreet.core.constants.AppConstants
+import com.wallstreet.core.config.RemoteConfigManager
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.Trade
@@ -21,13 +21,16 @@ import kotlinx.coroutines.launch
 class LogTradeViewModel(
     private val addTradeUseCase: AddTradeUseCase,
     private val authRepository: AuthRepository,
-    private val getStrategyUseCase: GetStrategyUseCase
+    private val getStrategyUseCase: GetStrategyUseCase,
+    private val remoteConfigManager: RemoteConfigManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogTradeUiState())
     val uiState: StateFlow<LogTradeUiState> = _uiState.asStateFlow()
 
-    val mistakes = AppConstants.mistakes
+    val mistakes = remoteConfigManager.getMistakeTags()
+
+    private val defaultStrategies = remoteConfigManager.getDefaultStrategies()
 
     init {
         observeStrategies()
@@ -36,7 +39,9 @@ class LogTradeViewModel(
     private fun observeStrategies() {
         viewModelScope.launch {
             getStrategyUseCase().collect { list ->
-                _uiState.update { it.copy(strategies = list) }
+                // User strategies take precedence; remote defaults fill in the rest.
+                val merged = (list + defaultStrategies).distinctBy { it.name }
+                _uiState.update { it.copy(strategies = merged) }
             }
         }
     }
