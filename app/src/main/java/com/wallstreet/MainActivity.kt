@@ -31,8 +31,8 @@ class MainActivity : ComponentActivity() {
     private val onboardingPreferences: OnboardingPreferences by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Enable Firestore debug logging
-        FirebaseFirestore.setLoggingEnabled(true)
+        // Verbose Firestore logging in debug builds only.
+        FirebaseFirestore.setLoggingEnabled(BuildConfig.DEBUG)
 
         val splashScreen = installSplashScreen()
 

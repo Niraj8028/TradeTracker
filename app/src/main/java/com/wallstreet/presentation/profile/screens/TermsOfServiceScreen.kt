@@ -83,7 +83,7 @@ fun TermsOfServiceScreen(onBack: () -> Unit) {
 
             Text("Contact", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(4.dp))
-            Text("support@tradetrap.com", style = MaterialTheme.typography.bodyMedium)
+            Text("support@tradecoach.app", style = MaterialTheme.typography.bodyMedium)
 
             Spacer(Modifier.height(32.dp))
         }
