@@ -64,22 +64,36 @@ class OnboardingViewModel(
 
     fun finish() {
         if (_uiState.value.isFinishing) return
-        _uiState.update { it.copy(isFinishing = true) }
+        _uiState.update { it.copy(isFinishing = true, error = null) }
 
         viewModelScope.launch {
             val state = _uiState.value
 
-            currencyPreferences.setCurrency(state.selectedCurrency)
             analyticsManager.setUserProperty("user_roles", state.selectedRoles.joinToString(","))
             analyticsManager.logEvent(
                 "onboarding_complete",
                 mapOf("roles_count" to state.selectedRoles.size)
             )
 
-            when (completeOnboardingUseCase(state.selectedRoles.toSet(), state.selectedCurrency)) {
-                is Result.Error -> _uiState.update { it.copy(isFinishing = false) }
-                else -> _uiState.update { it.copy(finished = true) }
+            when (val result =
+                completeOnboardingUseCase(state.selectedRoles.toSet(), state.selectedCurrency)) {
+                is Result.Error -> _uiState.update {
+                    it.copy(
+                        isFinishing = false,
+                        error = result.message.ifBlank { "Couldn't finish setup. Please try again." },
+                    )
+                }
+
+                else -> {
+                    // Only mirror the choice into the local cache once the account write landed.
+                    currencyPreferences.setCurrency(state.selectedCurrency)
+                    _uiState.update { it.copy(finished = true) }
+                }
             }
         }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 }

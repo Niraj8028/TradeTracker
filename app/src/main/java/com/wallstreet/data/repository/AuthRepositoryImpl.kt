@@ -48,10 +48,16 @@ class AuthRepositoryImpl(
         val result = auth.signInWithCredential(credential).await()
         val user = result.user!!.toUserModel()
         // Only seed the Firestore profile for a brand-new account — a returning user may
-        // have edited their name/photo, so don't overwrite it on every sign-in.
-        val docRef = firestore.collection(AppConstants.COLLECTION_USERS).document(user.id)
-        if (!docRef.get().await().exists()) {
-            saveUserToFirestore(user)
+        // have edited their name/photo, so don't overwrite it on every sign-in. This is
+        // best-effort: a transient read/write failure here must not fail an otherwise
+        // successful sign-in (auth already succeeded and the session is live).
+        try {
+            val docRef = firestore.collection(AppConstants.COLLECTION_USERS).document(user.id)
+            if (!docRef.get().await().exists()) {
+                saveUserToFirestore(user)
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Could not seed Google user profile; continuing sign-in")
         }
         Result.Success(user)
     } catch (e: Exception) {

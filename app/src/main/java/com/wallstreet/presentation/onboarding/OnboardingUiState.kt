@@ -6,4 +6,5 @@ data class OnboardingUiState(
     val selectedCurrency: String = "USD",
     val isFinishing: Boolean = false,
     val finished: Boolean = false,
+    val error: String? = null,
 )

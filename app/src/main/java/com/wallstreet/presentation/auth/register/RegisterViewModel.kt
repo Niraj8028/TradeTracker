@@ -36,9 +36,16 @@ class RegisterViewModel(
     /** Same account-aware seeding as LoginViewModel — used for the Google sign-up path. */
     private suspend fun googleSuccessState(user: User): RegisterUiState {
         val uid = user.id
-        val prefs = (userRepository.getAccountPrefs(uid) as? Result.Success)?.data
-        val done = onboardingPreferences.isOnboardingCompleted(uid) || prefs?.onboardingCompleted == true
-        prefs?.currencyCode?.let { currencyPreferences.setCurrency(it) }
+        val accountDone = when (val prefs = userRepository.getAccountPrefs(uid)) {
+            is Result.Success -> {
+                prefs.data.currencyCode?.let { currencyPreferences.setCurrency(it) }
+                prefs.data.onboardingCompleted
+            }
+            // Read failed (offline / transient). Don't force onboarding on a failed read —
+            // re-running it would overwrite the account currency; the cold-start gate re-checks.
+            else -> true
+        }
+        val done = onboardingPreferences.isOnboardingCompleted(uid) || accountDone
         if (done) onboardingPreferences.setOnboardingCompleted(uid)
         return RegisterUiState(isSuccess = true, needsOnboarding = !done)
     }

@@ -34,9 +34,17 @@ class LoginViewModel(
      */
     private suspend fun successState(user: User): LoginUiState {
         val uid = user.id
-        val prefs = (userRepository.getAccountPrefs(uid) as? Result.Success)?.data
-        val done = onboardingPreferences.isOnboardingCompleted(uid) || prefs?.onboardingCompleted == true
-        prefs?.currencyCode?.let { currencyPreferences.setCurrency(it) }
+        val accountDone = when (val prefs = userRepository.getAccountPrefs(uid)) {
+            is Result.Success -> {
+                prefs.data.currencyCode?.let { currencyPreferences.setCurrency(it) }
+                prefs.data.onboardingCompleted
+            }
+            // Read failed (offline / transient). A returning user has almost certainly
+            // finished onboarding, and re-running it would overwrite their account currency,
+            // so don't force onboarding on a failed read — the cold-start gate re-checks.
+            else -> true
+        }
+        val done = onboardingPreferences.isOnboardingCompleted(uid) || accountDone
         if (done) onboardingPreferences.setOnboardingCompleted(uid)
         return LoginUiState(isSuccess = true, needsOnboarding = !done)
     }

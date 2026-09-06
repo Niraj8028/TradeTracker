@@ -83,6 +83,16 @@ fun OnboardingNavigation(
         onBoardingBackStack.add(route)
     }
 
+    /**
+     * Enter onboarding as the sole back-stack root. The user is authenticated at this point,
+     * so Back must not walk them into Welcome/Login — this matches the cold-start
+     * needsOnboarding() stack (listOf(Onboarding)).
+     */
+    fun goToOnboardingRoot() {
+        onBoardingBackStack.clear()
+        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
+    }
+
     NavDisplay(
         backStack = onBoardingBackStack,
         modifier = modifier,
@@ -141,7 +151,7 @@ fun OnboardingNavigation(
                 LoginScreen(
                     onLoginSuccess = { onLogin() },
                     onNavigateToRegister = { replaceTop(AppRoute.OnBoarding.Register) },
-                    onNavigateToOnboarding = { replaceTop(AppRoute.OnBoarding.Onboarding) },
+                    onNavigateToOnboarding = { goToOnboardingRoot() },
                     onNavigateToOtp = { email ->
                         onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email))
                     }
@@ -151,7 +161,7 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Register> {
                 RegisterScreen(
                     onRegisterSuccess = { onLogin() },
-                    onNavigateToOnboarding = { replaceTop(AppRoute.OnBoarding.Onboarding) },
+                    onNavigateToOnboarding = { goToOnboardingRoot() },
                     onNavigateToLogin = { replaceTop(AppRoute.OnBoarding.Login) },
                     onNavigateToOtp = { email ->
                         onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email))
@@ -162,7 +172,7 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.EmailVerificationScreen> { route ->
                 EmailVerificationScreen(
                     email = route.email,
-                    onVerified = { replaceTop(AppRoute.OnBoarding.Onboarding) },
+                    onVerified = { goToOnboardingRoot() },
                     onBack = {
                         // viewModel.abandon() in EmailVerify.kt has already cancelled polling,
                         // deleted the unverified account, and signed out. Here we only fix nav.
