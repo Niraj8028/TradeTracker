@@ -10,16 +10,17 @@ class CompleteOnboardingUseCase(
     private val userRepository: UserRepository,
     private val onboardingPreferences: OnboardingPreferences
 ) {
-    suspend operator fun invoke(roles: Set<String>): Result<Unit> {
+    suspend operator fun invoke(roles: Set<String>, currencyCode: String): Result<Unit> {
         return try {
-            // 1. Update Firestore if user is authenticated
-            authRepository.getCurrentUser()?.id?.let { userId ->
+            val userId = authRepository.getCurrentUser()?.id
+            if (userId != null) {
                 userRepository.saveUserRoles(userId, roles.toList())
+                userRepository.setCurrencyCode(userId, currencyCode)
+                // Source of truth so onboarding never re-appears on another device / reinstall.
+                userRepository.setOnboardingCompleted(userId)
+                // Local per-user cache to skip the Firestore read on later logins here.
+                onboardingPreferences.setOnboardingCompleted(userId)
             }
-
-            // 2. Mark onboarding as completed
-            onboardingPreferences.setOnboardingCompleted()
-            
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e.message ?: "Failed to complete onboarding", e)

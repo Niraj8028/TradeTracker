@@ -2,7 +2,11 @@ package com.wallstreet.presentation.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.preferences.CurrencyPreferences
+import com.wallstreet.core.preferences.OnboardingPreferences
 import com.wallstreet.core.result.Result
+import com.wallstreet.domain.model.User
+import com.wallstreet.domain.repository.UserRepository
 import com.wallstreet.domain.usecase.auth.SendPasswordResetEmailUseCase
 import com.wallstreet.domain.usecase.auth.SignInUseCase
 import com.wallstreet.domain.usecase.auth.SignInWithGoogleUseCase
@@ -16,10 +20,26 @@ class LoginViewModel(
     private val signIn: SignInUseCase,
     private val signInWithGoogle: SignInWithGoogleUseCase,
     private val sendPasswordResetEmail: SendPasswordResetEmailUseCase,
+    private val onboardingPreferences: OnboardingPreferences,
+    private val currencyPreferences: CurrencyPreferences,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    /**
+     * On sign-in, seed local caches from the account's Firestore doc: skip onboarding if the
+     * account already did it (explicit flag or saved roles), and pull the account currency.
+     */
+    private suspend fun successState(user: User): LoginUiState {
+        val uid = user.id
+        val prefs = (userRepository.getAccountPrefs(uid) as? Result.Success)?.data
+        val done = onboardingPreferences.isOnboardingCompleted(uid) || prefs?.onboardingCompleted == true
+        prefs?.currencyCode?.let { currencyPreferences.setCurrency(it) }
+        if (done) onboardingPreferences.setOnboardingCompleted(uid)
+        return LoginUiState(isSuccess = true, needsOnboarding = !done)
+    }
 
     fun signIn(email: String, password: String) = viewModelScope.launch {
         if (email.isBlank()) {
@@ -33,7 +53,7 @@ class LoginViewModel(
         _uiState.value = LoginUiState(isLoading = true)
         when (val r = signIn.invoke(email, password)) {
             is Result.Success -> {
-                _uiState.value = LoginUiState(isSuccess = true)
+                _uiState.value = successState(r.data)
             }
 
             is Result.Error -> {
@@ -52,13 +72,18 @@ class LoginViewModel(
     fun signInWithGoogle(idToken: String) = viewModelScope.launch {
         _uiState.value = LoginUiState(isLoading = true)
         _uiState.value = when (val r = signInWithGoogle.invoke(idToken)) {
-            is Result.Success -> {
-                LoginUiState(isSuccess = true)
-            }
-
+            is Result.Success -> successState(r.data)
             is Result.Error -> LoginUiState(error = r.message)
             is Result.Loading -> LoginUiState(isLoading = true)
         }
+    }
+
+    /** Google account picker returned an unusable result (API failure / missing token). */
+    fun onGoogleSignInFailed() {
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            error = "Google sign-in failed. Please try again."
+        )
     }
 
     fun forgotPassword(email: String) = viewModelScope.launch {

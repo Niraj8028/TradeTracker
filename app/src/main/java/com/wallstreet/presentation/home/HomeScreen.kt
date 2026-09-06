@@ -1,6 +1,7 @@
 package com.wallstreet.presentation.home
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,13 +38,20 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     val scrollState = rememberScrollState()
 
-    HomeContent(
-        uiState,
-        scrollState,
-        selectedPeriod = selectedPeriod,
-        onPeriodSelected = viewModel::onPeriodSelected,
-        onDeleteTrade = viewModel::deleteTrade
-    )
+    // Opaque root so tab-switch slide transitions don't bleed through to the adjacent screen.
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        HomeContent(
+            uiState,
+            scrollState,
+            selectedPeriod = selectedPeriod,
+            onPeriodSelected = viewModel::onPeriodSelected,
+            onDeleteTrade = viewModel::deleteTrade
+        )
+    }
 }
 
 @Composable

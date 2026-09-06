@@ -32,7 +32,9 @@ fun AppNavigation(
         StartDestination.Unknown -> AppRoute.OnBoarding
     }
 
-    val skipToLogin = (startDestination == StartDestination.Auth) || isLogoutFlow
+    // Only a deliberate logout drops the user straight onto Login. A fresh / killed-app
+    // launch with no session falls through to the Welcome screen.
+    val skipToLogin = isLogoutFlow
     val otpEmail = (startDestination as? StartDestination.Otp)?.email ?: ""
 
     // Once the user deliberately abandons email verification (taps "Wrong email? Go back"),
@@ -77,6 +79,7 @@ fun AppNavigation(
             entry<AppRoute.OnBoarding> {
                 OnboardingNavigation(
                     skipToLogin = { skipToLogin },
+                    needsOnboarding = { startDestination == StartDestination.Onboarding },
                     goToOtp = { if (goToOtp) otpEmail else null },
                     onLogin = {
                         isLogoutFlow = false

@@ -19,3 +19,5 @@ google-services.json
 **/google-services.json
 .idea/deviceManager.xml
 /.kotlin
+# QA evidence (local only)
+/.qa-evidence/

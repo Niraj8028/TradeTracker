@@ -12,12 +12,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
 data class OtpUiState(
     val isLoading: Boolean = false,
+    val isChecking: Boolean = false,
     val error: String? = null,
     val isSuccess: Boolean = false,
     val isResending: Boolean = false,
@@ -33,33 +35,31 @@ class EmailVerifyViewModel(
     private val _uiState = MutableStateFlow(OtpUiState())
     val uiState: StateFlow<OtpUiState> = _uiState.asStateFlow()
 
-    /** Holds a reference to the active polling coroutine so we can cancel it on demand. */
+    /** Reference to the active polling coroutine so it can be paused/cancelled on demand. */
     private var pollingJob: Job? = null
 
-    init {
-        startPolling()
-    }
-
-    private fun startPolling() {
-        pollingJob?.cancel()
+    /**
+     * Start (or resume) the background verification poll. Idempotent — safe to call from a
+     * lifecycle observer on every ON_START.
+     */
+    fun startPolling() {
+        if (pollingJob?.isActive == true || _uiState.value.isSuccess) return
         pollingJob = viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-
-            while (true) {
+            while (isActive) {
                 delay(3000L) // check every 3 seconds
-
                 when (val r = verifyOtp.invoke()) {
                     is Result.Success -> {
                         if (r.data == true) {
                             _uiState.value = _uiState.value.copy(isSuccess = true, isLoading = false)
-                            break // stop polling, navigate away
+                            break
                         }
-                        // not verified yet, keep polling silently
+                        // not verified yet — keep polling silently
                     }
 
                     is Result.Error -> {
                         _uiState.value = _uiState.value.copy(error = r.message, isLoading = false)
-                        break // stop on error
+                        break
                     }
 
                     else -> {}
@@ -68,15 +68,44 @@ class EmailVerifyViewModel(
         }
     }
 
-    /**
-     * Called when the user deliberately taps "Wrong email? Go back".
-     * Stops the polling loop, deletes the unverified Firebase account, and signs out
-     * so the auth-state listener cannot push the app back to this screen.
-     */
-    fun abandon() {
+    /** Pause the poll while the screen is not visible; [startPolling] resumes it. */
+    fun stopPolling() {
         pollingJob?.cancel()
         pollingJob = null
+    }
 
+    /** One-shot check triggered by the "I've verified" button — no waiting for the 3s cycle. */
+    fun checkNow() = viewModelScope.launch {
+        if (_uiState.value.isChecking || _uiState.value.isSuccess) return@launch
+        _uiState.value = _uiState.value.copy(isChecking = true)
+        when (val r = verifyOtp.invoke()) {
+            is Result.Success -> {
+                if (r.data == true) {
+                    stopPolling()
+                    _uiState.value = _uiState.value.copy(
+                        isSuccess = true, isChecking = false, isLoading = false
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isChecking = false, error = "NOT_VERIFIED_YET"
+                    )
+                }
+            }
+
+            is Result.Error ->
+                _uiState.value = _uiState.value.copy(isChecking = false, error = r.message)
+
+            else -> _uiState.value = _uiState.value.copy(isChecking = false)
+        }
+    }
+
+    /**
+     * Called when the user deliberately taps "Wrong email? Go back".
+     * Stops polling, deletes the unverified Firebase account, and signs out so the
+     * auth-state listener cannot push the app back to this screen.
+     */
+    fun abandon() {
+        stopPolling()
         viewModelScope.launch {
             try {
                 deleteAccount()

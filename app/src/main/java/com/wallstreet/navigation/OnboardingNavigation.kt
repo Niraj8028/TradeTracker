@@ -16,8 +16,9 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.wallstreet.presentation.auth.login.LoginScreen
-import com.wallstreet.presentation.auth.verification.EmailVerificationScreen
 import com.wallstreet.presentation.auth.register.RegisterScreen
+import com.wallstreet.presentation.auth.verification.EmailVerificationScreen
+import com.wallstreet.presentation.auth.welcome.WelcomeScreen
 import com.wallstreet.presentation.onboarding.OnboardingScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -28,24 +29,32 @@ fun OnboardingNavigation(
     onLogout: () -> Unit = {},
     goToOtp: () -> String? = { null },
     skipToLogin: () -> Boolean = { false },
-    goToOnboarding: () -> Boolean = { false },
+    needsOnboarding: () -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
-    val initialRoute = remember {
+    // The whole initial back stack is built up front (no LaunchedEffect — those caused a
+    // 1-frame flash). Welcome is the stable root for logged-out users; Login/Register are
+    // pushed on top of it so Back is always predictable.
+    val initialStack: List<NavKey> = remember {
         val otpEmail = goToOtp()
         when {
-            otpEmail != null -> AppRoute.OnBoarding.EmailVerificationScreen(otpEmail)
-            skipToLogin()    -> AppRoute.OnBoarding.Login
-            goToOnboarding() -> AppRoute.OnBoarding.Onboarding  // authenticated, onboarding not done yet
-            else             -> AppRoute.OnBoarding.Register
+            otpEmail != null -> listOf(AppRoute.OnBoarding.EmailVerificationScreen(otpEmail))
+            // A logout always returns to Login, even if the frozen startDestination still
+            // says onboarding is pending (e.g. user finished onboarding then logged out).
+            skipToLogin() -> listOf(AppRoute.OnBoarding.Welcome, AppRoute.OnBoarding.Login)
+            needsOnboarding() -> listOf(AppRoute.OnBoarding.Onboarding)
+            else -> listOf(AppRoute.OnBoarding.Welcome)
         }
     }
-
 
     val onBoardingBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
+                    subclass(
+                        AppRoute.OnBoarding.Welcome::class,
+                        AppRoute.OnBoarding.Welcome.serializer()
+                    )
                     subclass(
                         AppRoute.OnBoarding.Onboarding::class,
                         AppRoute.OnBoarding.Onboarding.serializer()
@@ -65,11 +74,14 @@ fun OnboardingNavigation(
                 }
             }
         },
-        initialRoute
+        *initialStack.toTypedArray()
     )
 
-    // ✅ No LaunchedEffect blocks — they caused the 1-frame flash
-    // initialRoute already handles all three cases correctly
+    /** Swap the current top entry for [route] — used for Login↔Register↔Welcome switches. */
+    fun replaceTop(route: NavKey) {
+        onBoardingBackStack.removeLastOrNull()
+        onBoardingBackStack.add(route)
+    }
 
     NavDisplay(
         backStack = onBoardingBackStack,
@@ -84,23 +96,13 @@ fun OnboardingNavigation(
             rememberViewModelStoreNavEntryDecorator()
         ),
         transitionSpec = {
-            if (targetState.key !is AppRoute.OnBoarding.Register) {
-                slideInHorizontally(
-                    animationSpec = tween(300, easing = FastOutSlowInEasing),
-                    initialOffsetX = { it }
-                ) togetherWith slideOutHorizontally(
-                    animationSpec = tween(300, easing = FastOutSlowInEasing),
-                    targetOffsetX = { -it / 4 }
-                )
-            } else {
-                slideInHorizontally(
-                    animationSpec = tween(300, easing = FastOutSlowInEasing),
-                    initialOffsetX = { -it / 4 }
-                ) togetherWith slideOutHorizontally(
-                    animationSpec = tween(300, easing = FastOutSlowInEasing),
-                    targetOffsetX = { it }
-                )
-            }
+            slideInHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                initialOffsetX = { it }
+            ) togetherWith slideOutHorizontally(
+                animationSpec = tween(300, easing = FastOutSlowInEasing),
+                targetOffsetX = { -it / 4 }
+            )
         },
         popTransitionSpec = {
             slideInHorizontally(
@@ -122,6 +124,13 @@ fun OnboardingNavigation(
         },
         entryProvider = entryProvider {
 
+            entry<AppRoute.OnBoarding.Welcome> {
+                WelcomeScreen(
+                    onSignUp = { onBoardingBackStack.add(AppRoute.OnBoarding.Register) },
+                    onLogin = { onBoardingBackStack.add(AppRoute.OnBoarding.Login) }
+                )
+            }
+
             entry<AppRoute.OnBoarding.Onboarding> {
                 OnboardingScreen(
                     onFinish = { onLogin() }
@@ -131,29 +140,21 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.Login> {
                 LoginScreen(
                     onLoginSuccess = { onLogin() },
-                    onNavigateToRegister = { onBoardingBackStack.add(AppRoute.OnBoarding.Register) },
-                    onNavigateToOtp = { email -> 
-                        onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 
+                    onNavigateToRegister = { replaceTop(AppRoute.OnBoarding.Register) },
+                    onNavigateToOnboarding = { replaceTop(AppRoute.OnBoarding.Onboarding) },
+                    onNavigateToOtp = { email ->
+                        onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email))
                     }
                 )
             }
 
             entry<AppRoute.OnBoarding.Register> {
                 RegisterScreen(
-                    onRegisterSuccess = {
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
-                        onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
-                    },
-                    onNavigateToLogin = {
-                        if (onBoardingBackStack.size > 1) {
-                            onBoardingBackStack.removeLastOrNull()
-                        } else {
-                            onBoardingBackStack.add(AppRoute.OnBoarding.Login)
-                            onBoardingBackStack.remove(AppRoute.OnBoarding.Register)
-                        }
-                    },
-                    onNavigateToOtp = { email -> 
-                        onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email)) 
+                    onRegisterSuccess = { onLogin() },
+                    onNavigateToOnboarding = { replaceTop(AppRoute.OnBoarding.Onboarding) },
+                    onNavigateToLogin = { replaceTop(AppRoute.OnBoarding.Login) },
+                    onNavigateToOtp = { email ->
+                        onBoardingBackStack.add(AppRoute.OnBoarding.EmailVerificationScreen(email))
                     }
                 )
             }
@@ -161,30 +162,16 @@ fun OnboardingNavigation(
             entry<AppRoute.OnBoarding.EmailVerificationScreen> { route ->
                 EmailVerificationScreen(
                     email = route.email,
-                    onVerified = {
-                        onBoardingBackStack.add(AppRoute.OnBoarding.Onboarding)
-                        onBoardingBackStack.remove(route)
-                    },
+                    onVerified = { replaceTop(AppRoute.OnBoarding.Onboarding) },
                     onBack = {
-                        // viewModel.abandon() in EmailVerify.kt has already:
-                        //   - cancelled the polling coroutine
-                        //   - deleted the unverified Firebase account
-                        //   - signed the user out
-                        // So here we only fix the navigation back-stack.
-
+                        // viewModel.abandon() in EmailVerify.kt has already cancelled polling,
+                        // deleted the unverified account, and signed out. Here we only fix nav.
                         if (onBoardingBackStack.size > 1) {
-                            // Normal flow: Register → EmailVerification
-                            // Popping reveals the Register entry; rememberSaveable keeps form values.
                             onBoardingBackStack.removeLastOrNull()
                         } else {
-                            // Cold-start flow: app launched directly into EmailVerification.
-                            // Replace this single entry with Register so the user can
-                            // correct their email without being redirected back here.
-                            // Also notify AppNavigation to clear its goToOtp flag so it
-                            // won't re-route to OTP on any future recomposition.
+                            // Cold-start flow: app launched straight into verification.
                             onLogout()
-                            onBoardingBackStack.add(AppRoute.OnBoarding.Register)
-                            onBoardingBackStack.remove(route)
+                            replaceTop(AppRoute.OnBoarding.Welcome)
                         }
                     }
                 )

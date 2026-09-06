@@ -116,9 +116,6 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
 
 
-    //expo player
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

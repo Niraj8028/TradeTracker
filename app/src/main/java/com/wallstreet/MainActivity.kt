@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
 
     private val analyticsManager: AnalyticsManager by inject()
     private val tradeStore: TradeStore by inject()
+    private val onboardingPreferences: OnboardingPreferences by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Enable Firestore debug logging
@@ -81,9 +82,8 @@ class MainActivity : ComponentActivity() {
         val destination = when {
             user == null -> StartDestination.Auth
             !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
-            else -> {
-                StartDestination.Home
-            }
+            !onboardingPreferences.isOnboardingCompleted(user.uid) -> StartDestination.Onboarding
+            else -> StartDestination.Home
         }
 
         SplashGate.resolve(destination)
