@@ -8,12 +8,12 @@ import org.junit.Test
 class InsightCopyTest {
 
     @Test
-    fun `render substitutes every token and normalises whitespace`() {
+    fun `render substitutes every token`() {
         val out = InsightCopy.render(
             "mistake.reducing",
             mapOf("mistake" to "FOMO", "prev" to "6", "count" to "2"),
         )
-        assertEquals("You cut FOMO from 6× to 2× — keep that going.", out)
+        assertEquals("FOMO is down from 6x to 2x. Keep it going.", out)
     }
 
     @Test
@@ -25,14 +25,14 @@ class InsightCopyTest {
                 "tradeWord" to "trades", "advice" to "",
             ),
         )
-        assertTrue(out.endsWith("your single most expensive leak."))
-        assertTrue("  " !in out)
+        assertTrue(out, out.endsWith("across 3 trades."))
+        assertTrue(out, "  " !in out)
     }
 
     @Test
-    fun `advice returns the preserved paragraph for a known mistake`() {
+    fun `advice returns the coaching line for a known mistake`() {
         assertEquals(
-            "Trading without a stop exposes you to uncapped losses. Define your exit before you enter the trade.",
+            "With no stop the loss has no floor. Decide your exit before you enter.",
             InsightCopy.advice("No Stop Loss"),
         )
     }
@@ -41,7 +41,7 @@ class InsightCopyTest {
     fun `advice falls back for an unknown mistake`() {
         val out = InsightCopy.advice("Chasing News")
         assertTrue(out.contains("Chasing News"))
-        assertTrue(out.contains("write one rule"))
+        assertTrue(out.contains("one rule"))
     }
 
     @Test

@@ -219,10 +219,7 @@ internal object DoNotEnterMistakeDetector : InsightDetector {
                 insight(
                     id = "$id:${s.name}", category = MISTAKES, severity = WARNING, title = s.name,
                     templateKey = "mistake.doNotEnter",
-                    args = mapOf(
-                        "mistake" to s.name, "winRate" to percent(s.winRate),
-                        "advice" to InsightCopy.advice(s.name),
-                    ),
+                    args = mapOf("mistake" to s.name, "winRate" to percent(s.winRate)),
                     impact = s.totalPnlImpact, sample = s.count,
                 )
             }

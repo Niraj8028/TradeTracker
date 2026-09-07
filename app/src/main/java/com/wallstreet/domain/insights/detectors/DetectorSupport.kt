@@ -1,7 +1,8 @@
 package com.wallstreet.domain.insights.detectors
 
-import com.wallstreet.core.util.formatPercent
 import com.wallstreet.core.util.formatPnl
+import kotlin.math.abs
+import kotlin.math.round
 import com.wallstreet.domain.insights.PriorityScore
 import com.wallstreet.domain.insights.copy.InsightCopy
 import com.wallstreet.domain.insights.copy.InsightThresholds
@@ -14,8 +15,12 @@ import java.time.DayOfWeek
 
 internal fun money(value: Double, symbol: String): String = value.formatPnl(symbol)
 
-/** [value] is already 0..100. */
-internal fun percent(value: Double): String = value.formatPercent()
+/** [value] is already 0..100. Whole numbers where possible, one decimal otherwise. */
+internal fun percent(value: Double): String {
+    val rounded = round(value)
+    return if (abs(value - rounded) < 0.05) "${rounded.toInt()}%"
+    else String.format("%.1f%%", value)
+}
 
 internal fun tradeWord(n: Int): String = if (n == 1) "trade" else "trades"
 

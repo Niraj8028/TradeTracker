@@ -94,7 +94,7 @@ class DirectionTimingDetectorsTest {
         val trades = winners(2, daysAgo = 15) + List(4) { trade(pnl = -50.0, daysAgo = 3) }
         val out = LossStreakDetector.detect(InsightContexts.of(trades))
         assertEquals("discipline.lossStreak", out.single().id)
-        assertTrue(out.single().body.contains("4-trade"))
+        assertTrue(out.single().body.contains("4 losing trades in a row"))
     }
 
     @Test

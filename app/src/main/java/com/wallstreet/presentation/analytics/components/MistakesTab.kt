@@ -89,8 +89,8 @@ fun MistakesTab(
         when {
             cleanEdge != null -> DisciplineBanner(text = cleanEdge.body)
             data.cleanTradeWinRate > 0.0 -> DisciplineBanner(
-                text = "Clean trades — none tagged with a mistake — win " +
-                    "${data.cleanTradeWinRate.formatPercent()}. Discipline is your edge."
+                text = "Your trades with no mistake tagged win " +
+                    "${data.cleanTradeWinRate.formatPercent()}. That discipline is the edge."
             )
         }
 

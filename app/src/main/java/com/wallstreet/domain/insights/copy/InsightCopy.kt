@@ -2,79 +2,79 @@ package com.wallstreet.domain.insights.copy
 
 /**
  * All user-facing insight strings. Templates use `{token}` placeholders filled by the
- * detectors (numbers already formatted). The per-mistake coaching paragraphs are the ones
- * previously hard-coded in the presentation layer, moved here verbatim.
+ * detectors (numbers already formatted). Copy is deliberately short and plain-spoken: one
+ * observation, one instruction, no em-dashes.
  */
 object InsightCopy {
 
     private val templates: Map<String, String> = mapOf(
         "mistake.costliest" to
-            "{mistake} cost you {impact} across {count} {tradeWord} this period — your single most expensive leak. {advice}",
+            "{mistake} is your biggest leak this period: {impact} across {count} {tradeWord}. {advice}",
         "mistake.overallRate.rising" to
-            "You tagged a mistake on {rate} of trades, up from {prev} last period. Tighten your checklist before entries.",
+            "You flagged a mistake on {rate} of trades this period, up from {prev}. Slow down before you enter.",
         "mistake.overallRate.falling" to
-            "Mistake-tagged trades dropped from {prev} to {rate} — you're trading cleaner.",
+            "Flagged mistakes fell from {prev} to {rate}. Cleaner trading is showing up.",
         "mistake.repeating" to
-            "You tagged {mistake} {count}×, up from {prev}× — it isn't improving. {advice}",
+            "{mistake} went from {prev}x to {count}x this period. It isn't improving. {advice}",
         "mistake.reducing" to
-            "You cut {mistake} from {prev}× to {count}× — keep that going.",
+            "{mistake} is down from {prev}x to {count}x. Keep it going.",
         "mistake.cleared" to
-            "Zero {mistake} trades this period, down from {prev}×. That habit looks fixed.",
+            "No {mistake} trades this period, down from {prev}x. That one looks fixed.",
         "mistake.new" to
-            "{mistake} is new this period ({count} {tradeWord}, {impact}). {advice}",
+            "{mistake} showed up for the first time this period: {count} {tradeWord}, {impact}. {advice}",
         "mistake.cleanEdge" to
-            "Your clean trades win {cleanWr} vs {taggedWr} when you tag a mistake — discipline is worth about {gap} points.",
+            "Clean trades win {cleanWr}. Trades with a mistake tag win {taggedWr}. That is {gap} points of edge.",
         "mistake.concentration" to
-            "{mistake} shows up in {pct} of your flagged trades — fixing this one moves the needle most.",
+            "{mistake} is behind {pct} of your flagged trades. Fix this one first.",
         "mistake.doNotEnter" to
-            "Trades where you tag {mistake} win only {winRate} — treat the tag as a do-not-enter signal. {advice}",
+            "{mistake} trades win just {winRate}. Treat the tag as a signal to skip the trade.",
         "strategy.scaleUp" to
-            "{strategy} is your edge — {pf} profit factor over {trades} trades ({pnl}). Consider sizing it up.",
+            "{strategy} is working: {pf} profit factor over {trades} trades, {pnl}. Give it more size.",
         "strategy.drop" to
-            "{strategy} has lost {pnl} across {trades} trades (profit factor {pf}). Park it or paper-trade until it turns.",
+            "{strategy} has lost {pnl} over {trades} trades at a {pf} profit factor. Park it until it turns around.",
         "strategy.declining" to
-            "{strategy} slipped from {prevWr} to {curWr} win rate this period — review recent entries.",
+            "{strategy} win rate fell from {prevWr} to {curWr} this period. Check your recent entries.",
         "strategy.improving" to
-            "{strategy} is trending up — {prevWr} → {curWr} win rate, {pnl} this period.",
+            "{strategy} is picking up: win rate {prevWr} to {curWr}, {pnl} this period.",
         "strategy.needsData" to
-            "Only {trades} trades on {strategy} this period — you need about {min} for a reliable read.",
+            "Only {trades} trades on {strategy} this period. Give it {min} or so before judging it.",
         "strategy.steady" to
-            "{strategy} grinds steadily — max drawdown only {dd} against {pnl} profit.",
+            "{strategy} is steady: {dd} max drawdown against {pnl} profit. Keep running it.",
         "direction.edge" to
-            "You win {betterWr} going {betterSide} vs {worseWr} the other way — favour {betterSide} setups.",
+            "You win {betterWr} going {betterSide}, {worseWr} the other way. Favour {betterSide} setups.",
         "direction.bleeding" to
-            "Your {loserSide} trades are in the red ({loserPnl}) while {winnerSide} is green. Trade {loserSide} smaller — or skip it — until it turns around.",
+            "Your {loserSide} trades are down {loserPnl} while {winnerSide} is green. Trade {loserSide} smaller until it turns.",
         "trend.edge" to
-            "You're sharpest in {bestLabel} markets — {bestWr} win rate vs {worstWr} in {worstLabel}. Prioritise {bestLabel} setups.",
+            "You trade {bestLabel} markets best: {bestWr} win rate against {worstWr} in {worstLabel}. Lean into {bestLabel}.",
         "trend.losing" to
-            "{label} trades are bleeding {pnl} overall — sit them out until you find an edge.",
+            "{label} trades have cost you {pnl} overall. Sit them out until you find an edge there.",
         "timing.bestDay" to
-            "{day} is your strongest day ({pnl}). Protect your process the rest of the week.",
+            "{day} is your best day at {pnl}. Whatever you do then, keep doing it.",
         "timing.worstDay" to
-            "{day} bleeds {pnl} across {trades} trades — trade lighter then.",
+            "{day} has cost you {pnl} over {trades} trades. Trade smaller, or not at all, on {day}.",
         "risk.profitFactor" to
-            "Your profit factor is {pf} — losers are outweighing winners. Tighten your exits.",
+            "Your profit factor is {pf}. Losers are bigger than winners right now. Tighten your exits.",
         "risk.drawdown" to
-            "Your worst equity dip was {dd}. Size down after two losses to avoid deep holes.",
+            "Your worst drawdown this period was {dd}. Cut size after two losses in a row.",
         "discipline.lossStreak" to
-            "You're on a {n}-trade losing streak — the data says step back and reset.",
+            "You're {n} losing trades in a row. Step away and reset before the next one.",
     )
 
-    // Moved verbatim from presentation/analytics/components/MistakeSuggestions.kt.
+    // Short, plain coaching lines per canonical mistake tag.
     private val mistakeAdvice: Map<String, String> = mapOf(
-        "FOMO" to "You're chasing entries after the move has already started. Wait for a pullback or the next clean setup instead of buying strength.",
-        "Early Exit" to "You're cutting winners short. Try scaling out in parts or trailing a stop so profits can run to your target.",
-        "Large Size" to "Oversized positions amplify emotional decisions. Size every trade to a fixed % risk of your account.",
-        "Revenge Trade" to "Trading to win back a loss rarely works. Step away after a losing streak and reset before re-entering.",
-        "No Stop Loss" to "Trading without a stop exposes you to uncapped losses. Define your exit before you enter the trade.",
-        "No Setup" to "You're entering without a defined edge. Only take trades that match a rule from your playbook.",
-        "SL Trailed" to "You trailed your stop too aggressively and got shaken out before the move completed. Give price enough room to breathe while still protecting profit.",
-        "Small SL" to "Your stop was too tight relative to the setup's natural volatility, leading to an early stop-out. Size the stop to the structure, then adjust position size to fit your risk.",
+        "FOMO" to "You're chasing the move after it's already going. Wait for a pullback or the next clean setup.",
+        "Early Exit" to "You're cutting winners short. Scale out in pieces or trail a stop so they can run.",
+        "Large Size" to "Big positions make you trade scared. Risk a fixed percent of your account on every trade.",
+        "Revenge Trade" to "Chasing a loss back rarely works. Walk away after a losing streak and reset.",
+        "No Stop Loss" to "With no stop the loss has no floor. Decide your exit before you enter.",
+        "No Setup" to "You're entering without an edge. Only take trades that match a rule in your playbook.",
+        "SL Trailed" to "You trailed your stop too tight and got shaken out early. Give the trade room while still protecting profit.",
+        "Small SL" to "Your stop was tighter than the setup's normal noise. Set it to the structure, then size the position to your risk.",
     )
 
     fun advice(mistakeName: String): String =
         mistakeAdvice[mistakeName]
-            ?: "Look back at the trades you tagged “$mistakeName” and write one rule that stops it happening again."
+            ?: "Pull up your “$mistakeName” trades and write one rule to stop it repeating."
 
     fun hasTemplate(key: String): Boolean = templates.containsKey(key)
 

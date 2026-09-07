@@ -24,7 +24,7 @@ class MistakeDetectorsTest {
         assertEquals("mistake.costliest", i.id)
         assertEquals(InsightSeverity.CRITICAL, i.severity) // |−1800| ≥ 2×500
         assertTrue(i.body, i.body.contains("No Stop Loss"))
-        assertTrue(i.body, i.body.contains("Define your exit before you enter the trade."))
+        assertTrue(i.body, i.body.contains("Decide your exit before you enter."))
         assertTrue(i.priority in 0.0..1.0)
     }
 
@@ -51,7 +51,7 @@ class MistakeDetectorsTest {
             historyAnchor()
         val out = RepeatingMistakeDetector.detect(InsightContexts.of(trades))
         assertEquals(listOf("mistake.repeating:FOMO"), out.map { it.id })
-        assertTrue(out.first().body, out.first().body.contains("up from 3×"))
+        assertTrue(out.first().body, out.first().body.contains("from 3x to 4x"))
     }
 
     @Test
@@ -61,7 +61,7 @@ class MistakeDetectorsTest {
             historyAnchor()
         val out = ReducingMistakeDetector.detect(InsightContexts.of(trades))
         assertEquals(listOf("mistake.reducing:FOMO"), out.map { it.id })
-        assertTrue(out.first().body.contains("from 6× to 2×"))
+        assertTrue(out.first().body.contains("from 6x to 2x"))
         assertEquals(InsightSeverity.POSITIVE, out.first().severity)
     }
 
@@ -81,7 +81,7 @@ class MistakeDetectorsTest {
             historyAnchor()
         val out = NewMistakeDetector.detect(InsightContexts.of(trades))
         assertEquals(listOf("mistake.new:Large Size"), out.map { it.id })
-        assertTrue(out.first().body.contains("is new this period"))
+        assertTrue(out.first().body.contains("showed up for the first time"))
     }
 
     @Test
