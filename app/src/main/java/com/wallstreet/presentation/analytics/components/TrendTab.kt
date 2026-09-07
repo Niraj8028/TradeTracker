@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -103,6 +104,7 @@ fun TrendTab(
         com.wallstreet.presentation.components.InsightsCard(
             title = "Trading Insights",
             insights = insights,
+            icon = Icons.Outlined.QueryStats,
         )
 
         // 6 ── Trade distribution bar ─────────────────────────────────────────

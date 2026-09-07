@@ -16,10 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.outlined.ReportProblem
+import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -102,10 +103,20 @@ fun MistakesTab(
             )
         }
 
-        MovementSection(title = "Still costing you", icon = Icons.Default.TrendingUp, insights = worsening)
-        MovementSection(title = "Improving", icon = Icons.Default.TrendingDown, insights = improving)
+        MovementSection(
+            title = "Still costing you",
+            icon = Icons.AutoMirrored.Rounded.TrendingDown,
+            accent = DangerRed,
+            insights = worsening,
+        )
+        MovementSection(
+            title = "Improving",
+            icon = Icons.AutoMirrored.Rounded.TrendingUp,
+            accent = SuccessGreen,
+            insights = improving,
+        )
 
-        InsightsCard(title = "Coaching", insights = coaching)
+        InsightsCard(title = "Coaching", insights = coaching, icon = Icons.Outlined.TipsAndUpdates)
     }
 }
 
@@ -261,7 +272,7 @@ private fun CostRankedMistakesCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.WarningAmber,
+                        imageVector = Icons.Outlined.ReportProblem,
                         contentDescription = null,
                         tint = DangerRed,
                         modifier = Modifier.size(15.dp)
@@ -419,6 +430,7 @@ private fun DeltaPill(c: MistakeComparison?) {
 private fun MovementSection(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    accent: Color,
     insights: List<Insight>,
 ) {
     if (insights.isEmpty()) return
@@ -434,12 +446,20 @@ private fun MovementSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(accent.copy(alpha = 0.14f))
+                        .padding(6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(15.dp)
+                    )
+                }
                 Text(
                     text = title,
                     fontSize = 15.sp,

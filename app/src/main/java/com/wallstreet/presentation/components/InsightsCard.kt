@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +41,7 @@ fun InsightsCard(
     title: String,
     insights: List<Insight>,
     modifier: Modifier = Modifier,
-    icon: ImageVector = Icons.Default.Lightbulb,
+    icon: ImageVector = Icons.Outlined.AutoAwesome,
     maxItems: Int = Int.MAX_VALUE,
 ) {
     if (insights.isEmpty()) return

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.TrackChanges
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -81,7 +82,11 @@ fun StrategySuccessView(
 
         uiState.strategyInsights.firstOrNull()?.let { headline ->
             item {
-                InsightsCard(title = "Strategy focus", insights = listOf(headline))
+                InsightsCard(
+                    title = "Strategy focus",
+                    insights = listOf(headline),
+                    icon = Icons.Outlined.TrackChanges,
+                )
             }
         }
 

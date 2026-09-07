@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.TrackChanges
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -162,7 +163,11 @@ private fun StrategyDetailSuccess(
             maxDrawdown = state.maxDrawdown,
             winStreak = state.winStreak
         )
-        InsightsCard(title = "Strategy insights", insights = state.insights)
+        InsightsCard(
+            title = "Strategy insights",
+            insights = state.insights,
+            icon = Icons.Outlined.TrackChanges,
+        )
         EquityCurveChart(
             equityCurveData = state.equityCurveData,
             selectedPeriod = selectedPeriod,
