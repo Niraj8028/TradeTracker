@@ -3,6 +3,7 @@ package com.wallstreet.presentation.log_trade.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,15 +37,7 @@ fun StrategyDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    androidx.compose.foundation.layout.Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Text(
-            text = "Strategy",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+    Box(modifier = modifier.fillMaxWidth()) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = it }

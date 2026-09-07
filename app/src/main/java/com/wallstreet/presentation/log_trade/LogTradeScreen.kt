@@ -586,15 +586,20 @@ private fun TradeInput(
                 if (prefix != null) {
                     Text(
                         text = prefix,
-                        fontSize = 14.sp,
+                        fontSize = 14.5.sp,
+                        fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
                 }
-                Box(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
+                ) {
                     if (value.isEmpty()) {
                         Text(
                             text = placeholder,
-                            fontSize = 14.sp,
+                            fontSize = 14.5.sp,
+                            fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
