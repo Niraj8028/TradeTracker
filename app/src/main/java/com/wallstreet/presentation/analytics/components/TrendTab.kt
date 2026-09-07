@@ -66,16 +66,17 @@ private fun metaFor(dir: TrendDirection) = when (dir) {
 // ── Root composable ───────────────────────────────────────────────────────────
 
 @Composable
-fun TrendTab(data: TrendPerformanceData) {
+fun TrendTab(
+    data: TrendPerformanceData,
+    insights: List<com.wallstreet.domain.model.insights.Insight> = emptyList(),
+) {
     if (data.stats.isEmpty()) {
         EmptyTrendView()
         return
     }
 
     val totalTrades  = data.stats.sumOf { it.trades }
-    val totalPnl     = data.stats.sumOf { it.totalPnl }
     val best         = data.stats.maxByOrNull { it.winRate }
-    val worst        = data.stats.minByOrNull { it.winRate }
 
     Column(
         modifier = Modifier
@@ -98,12 +99,10 @@ fun TrendTab(data: TrendPerformanceData) {
         // 4 ── Comparison matrix (all directions side-by-side) ─────────────────
         ComparisonMatrixCard(stats = data.stats, totalTrades = totalTrades)
 
-        // 5 ── Auto-generated insights ────────────────────────────────────────
-        TrendInsightsCard(
-            stats        = data.stats,
-            totalTrades  = totalTrades,
-            best         = best,
-            worst        = worst
+        // 5 ── Engine insights ───────────────────────────────────────────────
+        com.wallstreet.presentation.components.InsightsCard(
+            title = "Trading Insights",
+            insights = insights,
         )
 
         // 6 ── Trade distribution bar ─────────────────────────────────────────
@@ -491,170 +490,6 @@ private fun ComparisonMatrixCard(stats: List<TrendStat>, totalTrades: Int) {
             }
         }
     }
-}
-
-// ── 5. Auto-generated insights ────────────────────────────────────────────────
-
-private data class Insight(val text: String, val isWarning: Boolean = false)
-
-@Composable
-private fun TrendInsightsCard(
-    stats: List<TrendStat>,
-    totalTrades: Int,
-    best: TrendStat?,
-    worst: TrendStat?
-) {
-    val insights = buildInsights(stats, totalTrades, best, worst, LocalCurrencySymbol.current)
-    if (insights.isEmpty()) return
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(16.dp)
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Card header
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(PrimaryBlue.copy(alpha = 0.14f))
-                        .padding(6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(15.dp)
-                    )
-                }
-                Text(
-                    text = "Trading Insights",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
-
-            // Insight rows
-            insights.forEachIndexed { index, insight ->
-                val accentColor = if (insight.isWarning) DangerRed else SuccessGreen
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 3.dp)
-                            .size(6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(accentColor)
-                    )
-                    Text(
-                        text = insight.text,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 19.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                if (index < insights.lastIndex) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 16.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun buildInsights(
-    stats: List<TrendStat>,
-    totalTrades: Int,
-    best: TrendStat?,
-    worst: TrendStat?,
-    symbol: String = "$"
-): List<Insight> {
-    val result = mutableListOf<Insight>()
-
-    // 1. Win rate gap between best and worst
-    if (best != null && worst != null && best.direction != worst.direction) {
-        val diff = best.winRate - worst.winRate
-        if (diff >= 10) {
-            val bestMeta  = metaFor(best.direction)
-            val worstMeta = metaFor(worst.direction)
-            result += Insight(
-                "You're sharpest in ${bestMeta.label} markets — ${best.winRate.formatPercent()} win rate " +
-                "vs just ${worst.winRate.formatPercent()} in ${worstMeta.label}. " +
-                "Prioritise ${bestMeta.label} setups and stay patient elsewhere.",
-                isWarning = false
-            )
-        }
-    }
-
-    // 2. Best avg P&L direction
-    val bestAvg = stats.maxByOrNull {
-        if (it.trades > 0) it.totalPnl / it.trades else Double.NEGATIVE_INFINITY
-    }
-    if (bestAvg != null && bestAvg.trades > 0) {
-        val avg = bestAvg.totalPnl / bestAvg.trades
-        if (avg > 0) {
-            result += Insight(
-                "${metaFor(bestAvg.direction).label} trades are your most profitable — " +
-                "${avg.formatPnl(symbol)} on average across ${bestAvg.trades} trades. " +
-                "This is where your edge is strongest."
-            )
-        }
-    }
-
-    // 3. Poor-performing direction warning
-    val poorStat = stats
-        .filter { it.trades >= 3 }
-        .minByOrNull { it.winRate }
-    if (poorStat != null && poorStat.winRate < 45) {
-        result += Insight(
-            "${metaFor(poorStat.direction).label} is your weak spot — only " +
-            "${poorStat.winRate.formatPercent()} win rate over ${poorStat.trades} trades. " +
-            "Trade these smaller or wait for cleaner setups.",
-            isWarning = true
-        )
-    }
-
-    // 4. Dominant condition (if one direction has ≥ 50% of tagged trades)
-    if (totalTrades > 0) {
-        val dominant = stats.maxByOrNull { it.trades }
-        if (dominant != null) {
-            val pct = (dominant.trades.toFloat() / totalTrades * 100).toInt()
-            if (pct >= 55) {
-                result += Insight(
-                    "$pct% of your trades happen in ${metaFor(dominant.direction).label} markets. " +
-                    "Make sure that's where your edge is — not just where you're most comfortable."
-                )
-            }
-        }
-    }
-
-    // 5. Negative total P&L direction
-    val loser = stats.filter { it.trades >= 2 }.minByOrNull { it.totalPnl }
-    if (loser != null && loser.totalPnl < 0) {
-        result += Insight(
-            "${metaFor(loser.direction).label} trades are bleeding ${loser.totalPnl.formatPnl(symbol)} overall. " +
-            "These conditions are working against you — sit them out until you find an edge.",
-            isWarning = true
-        )
-    }
-
-    return result.take(4) // cap at 4 insights to keep card compact
 }
 
 // ── 6. Trade distribution bar ─────────────────────────────────────────────────

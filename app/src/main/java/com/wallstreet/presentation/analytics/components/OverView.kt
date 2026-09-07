@@ -16,6 +16,8 @@ import com.wallstreet.domain.model.OverviewStats
 import com.wallstreet.domain.model.RecentTradeItem
 import com.wallstreet.domain.model.Trade
 import com.wallstreet.domain.model.TradeSummary
+import com.wallstreet.domain.model.insights.Insight
+import com.wallstreet.presentation.components.InsightsCard
 
 @Composable
 fun OverView(
@@ -23,7 +25,8 @@ fun OverView(
     overviewStats: OverviewStats,
     dayPerformance: DayPerformance,
     recentTrades: List<RecentTradeItem>,
-    allTrades: List<Trade>
+    allTrades: List<Trade>,
+    insights: List<Insight> = emptyList(),
 ) {
     Column(
         modifier = Modifier
@@ -35,9 +38,7 @@ fun OverView(
     ) {
         OverviewKpiStrip(stats = overviewStats)
         LongShortCard(summary = summary)
-        if (summary.totalTrades > 0) {
-            LongShortInsightsCard(summary = summary)
-        }
+        InsightsCard(title = "Insights", insights = insights)
         DayWisePerformance(dayPerformance)
         Calendar(allTrades = allTrades)
     }

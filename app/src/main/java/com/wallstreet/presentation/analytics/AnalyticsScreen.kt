@@ -15,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wallstreet.domain.model.insights.InsightCategory
+import com.wallstreet.ui.theme.LocalCurrencySymbol
 import com.wallstreet.presentation.analytics.components.AppTabRow
 import com.wallstreet.presentation.analytics.components.FilterOption
 import com.wallstreet.presentation.analytics.components.FilterTab
@@ -98,6 +100,14 @@ private fun AnalyticsContent(
             onSelectFilter = onFilterSelect
         )
 
+        val byCategory = state.insightsByCategory
+        val overviewInsights = (
+            byCategory[InsightCategory.DIRECTION].orEmpty() +
+                byCategory[InsightCategory.TIMING].orEmpty() +
+                byCategory[InsightCategory.RISK].orEmpty() +
+                byCategory[InsightCategory.DISCIPLINE].orEmpty()
+            ).sortedByDescending { it.priority }
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f)
@@ -108,10 +118,19 @@ private fun AnalyticsContent(
                     overviewStats = state.overviewStats,
                     dayPerformance = state.dayPerformance,
                     recentTrades = state.recentTrades,
-                    allTrades = state.allTrades
+                    allTrades = state.allTrades,
+                    insights = overviewInsights,
                 )
-                1 -> MistakesTab(data = state.mistakesAnalysis)
-                2 -> TrendTab(data = state.trendPerformance)
+                1 -> MistakesTab(
+                    data = state.mistakesAnalysis,
+                    insights = byCategory[InsightCategory.MISTAKES].orEmpty(),
+                    comparisons = state.mistakeComparisons,
+                    currencySymbol = LocalCurrencySymbol.current,
+                )
+                2 -> TrendTab(
+                    data = state.trendPerformance,
+                    insights = byCategory[InsightCategory.TREND].orEmpty(),
+                )
             }
         }
     }

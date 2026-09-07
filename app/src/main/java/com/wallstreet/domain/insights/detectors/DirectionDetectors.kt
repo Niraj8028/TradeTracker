@@ -4,6 +4,7 @@ import com.wallstreet.domain.insights.InsightDetector
 import com.wallstreet.domain.insights.copy.InsightThresholds as T
 import com.wallstreet.domain.model.insights.Insight
 import com.wallstreet.domain.model.insights.InsightCategory.DIRECTION
+import com.wallstreet.domain.model.insights.InsightCategory.TREND
 import com.wallstreet.domain.model.insights.InsightContext
 import com.wallstreet.domain.model.insights.InsightSeverity.INFO
 import com.wallstreet.domain.model.insights.InsightSeverity.WARNING
@@ -64,7 +65,7 @@ internal object BleedingDirectionDetector : InsightDetector {
 /** You perform far better in one market condition than another. */
 internal object TrendEdgeDetector : InsightDetector {
     override val id = "trend.edge"
-    override val category = DIRECTION
+    override val category = TREND
     override fun detect(ctx: InsightContext): List<Insight> {
         val stats = ctx.current.trend.stats.filter { it.trades > 0 }
         val best = stats.maxByOrNull { it.winRate } ?: return emptyList()
@@ -74,7 +75,7 @@ internal object TrendEdgeDetector : InsightDetector {
         if (best.winRate - worst.winRate < T.WIN_RATE_GAP_PP) return emptyList()
         return listOf(
             insight(
-                id = id, category = DIRECTION, severity = INFO, title = "Market-condition edge",
+                id = id, category = TREND, severity = INFO, title = "Market-condition edge",
                 templateKey = "trend.edge",
                 args = mapOf(
                     "bestLabel" to trendLabel(best.direction),
@@ -92,13 +93,13 @@ internal object TrendEdgeDetector : InsightDetector {
 /** A market condition that is costing you money. */
 internal object TrendLosingDetector : InsightDetector {
     override val id = "trend.losing"
-    override val category = DIRECTION
+    override val category = TREND
     override fun detect(ctx: InsightContext): List<Insight> =
         ctx.current.trend.stats
             .filter { it.trades >= T.MIN_SAMPLE_DAY && (it.totalPnl < 0 || it.winRate < T.TREND_WEAK_WR) }
             .map { s ->
                 insight(
-                    id = "$id:${s.direction}", category = DIRECTION, severity = WARNING,
+                    id = "$id:${s.direction}", category = TREND, severity = WARNING,
                     title = trendLabel(s.direction), templateKey = "trend.losing",
                     args = mapOf(
                         "label" to trendLabel(s.direction),

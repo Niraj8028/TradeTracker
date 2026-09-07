@@ -1,7 +1,7 @@
 package com.wallstreet.domain.model.insights
 
 /** Which surface an insight belongs to. */
-enum class InsightCategory { MISTAKES, STRATEGY, DIRECTION, TIMING, RISK, DISCIPLINE }
+enum class InsightCategory { MISTAKES, STRATEGY, DIRECTION, TREND, TIMING, RISK, DISCIPLINE }
 
 /** Drives the accent colour in the shared InsightsCard. */
 enum class InsightSeverity { CRITICAL, WARNING, INFO, POSITIVE }
