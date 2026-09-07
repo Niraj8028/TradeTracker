@@ -52,6 +52,7 @@ class UserRepositoryImpl(
                 AccountPrefs(
                     onboardingCompleted = explicit || !roles.isNullOrEmpty(),
                     currencyCode = currency,
+                    roles = roles.orEmpty().filterIsInstance<String>(),
                 )
             )
         } catch (e: Exception) {
