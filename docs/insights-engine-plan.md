@@ -93,6 +93,11 @@ Detectors are pure stateless objects held in top-level `val` lists — not DI be
 `InsightEngine`, `BuildInsightContextUseCase`, `GetStrategyInsightsUseCase`,
 `StrategyStatsCalculator` get Koin registrations.
 
+`InsightEngine`, `BuildInsightContextUseCase` and every detector are **pure Kotlin with zero
+Android / coroutine dependencies** — input `List<Trade>` (+ context), output `List<Insight>`.
+That keeps them trivially unit-testable and lets the exact same code run from a ViewModel today
+or a WorkManager `Worker` later (see *Performance & compute strategy*) without a rewrite.
+
 ### Core types (signatures)
 
 ```kotlin
@@ -286,6 +291,44 @@ class BuildInsightContextUseCase(
 Analytics slices **both** windows from the uncapped `allTrades`, so the `GetTradesUseCase`
 limit=100 bug does not affect insights.
 
+## Performance & compute strategy
+
+The engine is cheap: every step is an O(n)/O(n log n) pass over an in-memory `List<Trade>`
+(≤ 5000, realistically 1–2k lifetime). One run ≈ 6 grouping/summing passes × 2 windows +
+`TradeMath` scalars + ~24 detectors that each read 2–3 numbers — low single-digit milliseconds
+on a normal device. It does **not** warrant a WorkManager job, service, or periodic
+precompute-and-cache for *displaying* insights; that only pays off for closed-app nudges (see
+below). Decisions:
+
+1. **Compute reactively on a background dispatcher — no worker.** The insight flow is
+   `.flowOn(Dispatchers.Default)`, split off `_selectedTabIndex` (tab swipes don't recompute),
+   and recomputes only when the time filter changes or the trades Flow emits new content. Apply
+   `distinctUntilChanged()` to the windowed + all-time trade flows before `combine`, so an
+   idempotent Room re-emit (same rows) is a no-op. Optional: a small LRU keyed by
+   `(filter, tradesHash)` if profiling shows filter-toggle churn — start without it.
+2. **Keep the engine Android-free and Worker-ready.** `InsightEngine.run(context)` /
+   `runStrategy(context)` and `BuildInsightContextUseCase` take plain data and return plain
+   data — no `Context`, no coroutines, no Firebase. So the same code can later run inside the
+   existing sync `Worker` to power notifications without refactoring.
+3. **Instrument the run with a Firebase Performance trace.** Wrap the
+   `buildInsightContext(...) + insightEngine.run(...)` call in the project's `withTrace(...)`
+   helper (`insights_analytics` / `insights_strategy`) so real p50/p95 from devices is
+   observable instead of assumed. Also emit the `insight_shown` events already in the plan.
+4. **Fix `TradeRepositoryImpl.getRecentTrades` to use the indexed DAO query.** It currently
+   loads the entire `trades` table and filters/limits in memory (the DAO already has
+   `getRecentTrades(userId, fromMillis, limit)` with a `WHERE tradeDate >= :fromMillis LIMIT`
+   query that is unused). This Room read — not the arithmetic — is the dominant cost, and it
+   already slows Home / Analytics / Strategy. Switch to the indexed query and honour the
+   `limit` arg (also closes the `GetTradesUseCase` limit=100 gap). Isolated change, parity
+   test first; benefits the whole app, not just insights.
+
+**When a background worker becomes worth it:** only for notifying the user while the app is
+closed ("you're on a 4-trade losing streak", "FOMO is creeping back"). That path piggybacks on
+the existing `SyncScheduler` `Worker`: after a sync completes, run the same pure engine, diff
+against the last persisted `InsightSnapshot`, fire a notification. It aligns with the
+"notifications & nudges" roadmap pillar and is out of scope here — the point 2 purity
+constraint is what keeps that door open.
+
 ## Wiring
 
 ### Prefs (one-liners)
@@ -302,10 +345,12 @@ limit=100 bug does not affect insights.
   - `personalizationFlow(userId): Flow<Personalization(roles, symbol)>` — a `flow { emit(...) }`
     that reads `getAccountPrefs` once, `.onStart { emit(empty) }.catch { emit(default) }`.
   - Split a **tab-independent** `analyticsData` flow: `_selectedFilter.flatMapLatest { combine(
-    windowTrades, allTrades, personalizationFlow) { ... buildInsightContext(...) ; insightEngine.run(ctx) ... } }.flowOn(Dispatchers.Default)`
+    windowTrades.distinctUntilChanged(), allTrades.distinctUntilChanged(), personalizationFlow) {
+    ... withTrace("insights_analytics") { buildInsightContext(...); insightEngine.run(ctx) } ... } }.flowOn(Dispatchers.Default)`
     (`combine` stays at 3 inner args). Then
     `uiState = combine(analyticsData, _selectedTabIndex) { d, tab -> d.toSuccess(tab) }` —
-    tab switches no longer recompute stats/insights (removes existing waste).
+    tab switches no longer recompute stats/insights (removes existing waste); idempotent Room
+    re-emits are dropped by `distinctUntilChanged`.
   - Instrumentation: `MutableSet<String> loggedImpressions`; on `Success`, for each insight in
     the categories visible on the current tab, `if (loggedImpressions.add(id))
     analyticsManager.logEvent("insight_shown", mapOf("id" to id, "category" to category.name,
@@ -399,6 +444,11 @@ takes `StrategyStatsCalculator`.
   for stragglers.
 - `GetEquityCurveDataUsecase` — leave as-is (different granularity); optionally reuse
   `TradeMath.maxDrawdownFromSeries` only if trivial.
+- **`TradeRepositoryImpl.getRecentTrades`** — switch from "load whole table + filter in memory"
+  to the existing unused indexed DAO query (`WHERE tradeDate >= :fromMillis ... LIMIT :limit`),
+  and honour the `limit` arg (also closes `GetTradesUseCase` limit=100). Parity test first;
+  biggest real-world perf win, benefits Home / Analytics / Strategy too. See *Performance &
+  compute strategy* point 4. Do this in Phase 1 alongside `TradeMath`.
 
 ## Testing
 
@@ -423,10 +473,11 @@ Helpers (`app/src/test/java/com/wallstreet/testutil/`): `MainDispatcherRule` (JU
 
 ## Risks
 
-- **`GetTradesUseCase` limit=100.** Analytics immune (windows from uncapped `allTrades`).
-  `GetStrategyInsightsUseCase` queries the repo directly at limit 1000. `StrategyDetailViewModel`'s
-  existing `getTradesUsecase(userId, period, 500)` path stays capped — per-strategy counts are
-  small so detail verdicts are usually fine; flagged, fix is the user's scope call.
+- **`GetTradesUseCase` limit=100.** Analytics is immune (windows sliced from uncapped
+  `allTrades`). The Phase-1 `getRecentTrades` fix (Shared cleanups / Performance point 4) closes
+  this properly; until then `GetStrategyInsightsUseCase` queries the repo directly at limit 1000
+  and `StrategyDetailViewModel`'s capped `getTradesUsecase(userId, period, 500)` path is
+  acceptable because per-strategy counts are small.
 - **`strategy` free-text vs `strategyId`.** Detectors group by `strategyId`, skip blank — matches
   `GetStrategyStatsUsecase`. Trades with only free-text strategy are invisible to strategy
   insights (acceptable v1).
@@ -436,9 +487,11 @@ Helpers (`app/src/test/java/com/wallstreet/testutil/`): `MainDispatcherRule` (JU
 - **Small-sample noise.** Every detector has a min-sample gate + confidence term;
   `previous == null` disables movement detectors; `perCategoryCap` keeps cards short; verdict
   hysteresis via wide thresholds + `NEEDS_MORE_DATA`.
-- **Recompute cost.** 6 sync use cases × 2 windows + engine per emission. Mitigated by
-  `.flowOn(Dispatchers.Default)`, splitting insights off `_selectedTabIndex`, single `allTrades`
-  source (no new Firestore reads).
+- **Recompute cost.** ~few ms per run (6 sync use cases × 2 windows + engine). Mitigated by
+  `.flowOn(Dispatchers.Default)`, splitting insights off `_selectedTabIndex`,
+  `distinctUntilChanged` on the trade flows, single `allTrades` source (no new Firestore reads).
+  The dominant cost is the Room read, addressed by the Phase-1 `getRecentTrades` fix. A
+  `withTrace` around the run gives real device numbers. See *Performance & compute strategy*.
 - **`WhileSubscribed(5000)` re-subscription** rebuilds the `personalizationFlow` Firestore read
   when returning after >5s; `.onStart { emit(empty) }` keeps UI unblocked. Consider `shareIn`
   if profiling shows churn.
@@ -450,7 +503,9 @@ Helpers (`app/src/test/java/com/wallstreet/testutil/`): `MainDispatcherRule` (JU
 - **Phase 0** — add test deps; delete `com.example.myapplication` tests; add `MainDispatcherRule`
   + `TradeFixtures`.
 - **Phase 1** — `TradeMath.kt` + `TradeMathTest`; repoint `StrategyDetailViewModel` inline math
-  (parity tests); extract `StrategyStatsCalculator`, repoint `GetStrategyStatsUsecase`.
+  (parity tests); extract `StrategyStatsCalculator`, repoint `GetStrategyStatsUsecase`; fix
+  `TradeRepositoryImpl.getRecentTrades` to use the indexed DAO query + honour `limit` (parity
+  test — same rows out for existing callers).
 - **Phase 2** — engine core types + `PriorityScore` + `InsightCopy` (+ moved `curatedAdvice`) +
   `InsightThresholds`; `InsightEngineTest`.
 - **Phase 3** — detectors (catalog above) + per-detector tests; `BuildInsightContextUseCase` +
@@ -482,3 +537,7 @@ Helpers (`app/src/test/java/com/wallstreet/testutil/`): `MainDispatcherRule` (JU
     "Strategy focus" headline. Strategy detail: per-strategy insights card below risk/reward.
   - New account (no history): no movement insights, no crashes, empty states intact.
 - Firebase Analytics DebugView: `insight_shown` events with `{id, category, severity}`.
+- Firebase Performance: `insights_analytics` / `insights_strategy` traces present; p50 within a
+  few ms, p95 not pathological on a mid-tier device with a large trade history.
+- Rapidly toggle the time filter and swipe tabs: no main-thread jank; tab swipes issue no
+  recompute (log/trace count unchanged).
