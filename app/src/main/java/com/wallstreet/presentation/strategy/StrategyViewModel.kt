@@ -8,15 +8,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.wallstreet.core.preferences.CurrencyPreferences
 import com.wallstreet.core.result.Result
+import com.wallstreet.domain.analytics.AnalyticsManager
 import com.wallstreet.domain.repository.AuthRepository
+import com.wallstreet.domain.repository.UserRepository
 import com.wallstreet.domain.model.TimePeriod
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
@@ -26,8 +33,15 @@ class StrategyViewModel(
     private val deleteStrategyUseCase: DeleteStrategyUseCase,
     private val addStrategyUseCase: AddStrategyUseCase,
     private val getStrategyStatsUsecase: GetStrategyStatsUsecase,
-    private val authRepository: AuthRepository
+    private val getStrategyInsightsUseCase: GetStrategyInsightsUseCase,
+    private val userRepository: UserRepository,
+    private val currencyPreferences: CurrencyPreferences,
+    private val analyticsManager: AnalyticsManager,
+    private val authRepository: AuthRepository,
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
+
+    private val loggedInsightIds = mutableSetOf<String>()
 
     private val _selectedPeriod = MutableStateFlow(TimePeriod.ONE_MONTH)
     val selectedPeriod: StateFlow<TimePeriod> = _selectedPeriod.asStateFlow()
@@ -41,6 +55,12 @@ class StrategyViewModel(
     private val _actionState = MutableStateFlow<ActionState>(ActionState.Idle)
     val actionState: StateFlow<ActionState> = _actionState.asStateFlow()
 
+    private suspend fun personalization(userId: String): Pair<List<String>, String> {
+        val roles = (userRepository.getAccountPrefs(userId) as? Result.Success)?.data?.roles.orEmpty()
+        val symbol = runCatching { currencyPreferences.currencySymbol.first() }.getOrDefault("$")
+        return roles to symbol
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<StrategiesUiState> = combine(
         _selectedPeriod, _sortOption, _sortDirection
@@ -49,7 +69,11 @@ class StrategyViewModel(
     }.flatMapLatest { (period, sort, dir) ->
         val userId = authRepository.getCurrentUser()?.id
             ?: return@flatMapLatest flowOf(StrategiesUiState.Loading)
-        getStrategyStatsUsecase(userId, period).map { stats ->
+        val (roles, symbol) = personalization(userId)
+        combine(
+            getStrategyStatsUsecase(userId, period),
+            getStrategyInsightsUseCase(userId, period, roles, symbol),
+        ) { stats, insightsResult ->
             val sorted = when (sort) {
                 StrategySortOption.PNL      -> stats.sortedByDescending { it.totalPnl }
                 StrategySortOption.WIN_RATE -> stats.sortedByDescending { it.winRate }
@@ -60,14 +84,39 @@ class StrategyViewModel(
             val directedList = if (dir == SortDirection.DESC) sorted else sorted.reversed()
             val finalList = directedList.filter { it.totalTrades > 0 } +
                             directedList.filter { it.totalTrades == 0 }
-            StrategiesUiState.Success(strategyStats = finalList, selectedPeriod = period) as StrategiesUiState
+            val insights = listOfNotNull(insightsResult.headline) +
+                insightsResult.insightsByStrategyId.values.flatten()
+                    .distinctBy { it.id }
+                    .filter { it.id != insightsResult.headline?.id }
+            logNewInsights(insights)
+            StrategiesUiState.Success(
+                strategyStats = finalList,
+                selectedPeriod = period,
+                strategyInsights = insights,
+                verdictByStrategyId = insightsResult.verdictByStrategyId,
+            ) as StrategiesUiState
         }.onStart { emit(StrategiesUiState.Loading) }
             .catch { e -> emit(StrategiesUiState.Error(e.message ?: "Unknown error")) }
-    }.stateIn(
+    }.flowOn(computeDispatcher).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = StrategiesUiState.Loading
     )
+
+    private fun logNewInsights(insights: List<com.wallstreet.domain.model.insights.Insight>) {
+        insights.forEach { insight ->
+            if (loggedInsightIds.add(insight.id)) {
+                analyticsManager.logEvent(
+                    "insight_shown",
+                    mapOf(
+                        "id" to insight.id,
+                        "category" to insight.category.name,
+                        "severity" to insight.severity.name,
+                    ),
+                )
+            }
+        }
+    }
 
     fun onPeriodSelected(period: TimePeriod) {
         _selectedPeriod.value = period

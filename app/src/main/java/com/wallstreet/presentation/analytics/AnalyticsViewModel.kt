@@ -27,6 +27,7 @@ import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
 import com.wallstreet.domain.usecase.insights.BuildInsightContextUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -59,6 +60,7 @@ class AnalyticsViewModel(
     private val insightEngine: InsightEngine,
     private val currencyPreferences: CurrencyPreferences,
     private val analyticsManager: AnalyticsManager,
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     private val _selectedTabIndex = MutableStateFlow(0)
@@ -108,7 +110,7 @@ class AnalyticsViewModel(
                 mistakeComparisons = ctx.mistakeComparisons,
             )
         }
-    }.flowOn(Dispatchers.Default)
+    }.flowOn(computeDispatcher)
 
     private val loggedInsightIds = mutableSetOf<String>()
 

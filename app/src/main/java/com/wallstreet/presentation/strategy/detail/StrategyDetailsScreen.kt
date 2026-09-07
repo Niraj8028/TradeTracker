@@ -37,6 +37,7 @@ import com.wallstreet.presentation.analytics.components.TrendPerformanceCard
 import com.wallstreet.presentation.home.components.EquityCurveChart
 import com.wallstreet.presentation.home.components.PeriodSelector
 import com.wallstreet.presentation.home.components.SymbolPerformanceCard
+import com.wallstreet.presentation.components.InsightsCard
 import com.wallstreet.presentation.home.components.TopMistakesCard
 import com.wallstreet.presentation.strategy.detail.components.StrategyHeaderCard
 import com.wallstreet.presentation.strategy.detail.components.StrategyRiskRewardCard
@@ -161,6 +162,7 @@ private fun StrategyDetailSuccess(
             maxDrawdown = state.maxDrawdown,
             winStreak = state.winStreak
         )
+        InsightsCard(title = "Strategy insights", insights = state.insights)
         EquityCurveChart(
             equityCurveData = state.equityCurveData,
             selectedPeriod = selectedPeriod,

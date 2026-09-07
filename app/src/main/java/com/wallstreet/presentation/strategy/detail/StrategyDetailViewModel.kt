@@ -12,7 +12,11 @@ import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
+import com.wallstreet.core.preferences.CurrencyPreferences
+import com.wallstreet.core.result.Result
 import com.wallstreet.core.util.TradeMath
+import com.wallstreet.domain.repository.UserRepository
+import com.wallstreet.domain.usecase.strategy.GetStrategyInsightsUseCase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -42,6 +47,9 @@ class StrategyDetailViewModel(
     private val mistakesAnalysisUsecase: GetMistakesAnalysisUsecase,
     private val symbolPerformanceUsecase: GetSymbolPerformanceUsecase,
     private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase,
+    private val getStrategyInsightsUseCase: GetStrategyInsightsUseCase,
+    private val userRepository: UserRepository,
+    private val currencyPreferences: CurrencyPreferences,
 ) : ViewModel() {
 
     private val _selectedPeriod = MutableStateFlow(TimePeriod.ONE_MONTH)
@@ -56,10 +64,14 @@ class StrategyDetailViewModel(
                 )
             }
 
+            val roles = (userRepository.getAccountPrefs(userId) as? Result.Success)?.data?.roles.orEmpty()
+            val symbol = runCatching { currencyPreferences.currencySymbol.first() }.getOrDefault("$")
+
             combine(
                 getTradesUsecase(userId, period, 500),
-                getStrategyUseCase()
-            ) { trades, strategies ->
+                getStrategyUseCase(),
+                getStrategyInsightsUseCase(userId, period, roles, symbol),
+            ) { trades, strategies, insightsResult ->
                 val strategy = strategies.firstOrNull { it.id == strategyId }
                     ?: return@combine StrategyDetailUiState.Error("Strategy not found")
 
@@ -86,7 +98,8 @@ class StrategyDetailViewModel(
                     profitFactor = profitFactor,
                     maxDrawdown = maxDrawdown,
                     winStreak = winStreak,
-                    trendPerformance = getTrendPerformanceUseCase(strategyTrades)
+                    trendPerformance = getTrendPerformanceUseCase(strategyTrades),
+                    insights = insightsResult.insightsByStrategyId[strategyId].orEmpty()
                 )
             }
         }

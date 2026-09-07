@@ -71,6 +71,7 @@ class AnalyticsViewModelTest {
         insightEngine = insightEngine,
         currencyPreferences = currencyPreferences,
         analyticsManager = analyticsManager,
+        computeDispatcher = mainDispatcherRule.dispatcher,
     )
 
     private fun stubHappyPath(roles: List<String> = listOf("Forex")) {
