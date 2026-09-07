@@ -2,9 +2,11 @@ package com.wallstreet.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.preferences.CurrencyPreferences
 import com.wallstreet.core.result.Result
 import com.wallstreet.domain.model.User
 import com.wallstreet.domain.repository.TradeRepository
+import com.wallstreet.domain.repository.UserRepository
 import com.wallstreet.domain.usecase.auth.DeleteAccountUseCase
 import com.wallstreet.domain.usecase.auth.GetCurrentUserUseCase
 import com.wallstreet.domain.usecase.auth.SignOutUseCase
@@ -19,10 +21,18 @@ class ProfileViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val signOutUseCase: SignOutUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
-    private val tradeRepository: TradeRepository
+    private val tradeRepository: TradeRepository,
+    private val currencyPreferences: CurrencyPreferences,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
 
     val user: User? = getCurrentUserUseCase()
+
+    /** Persist the chosen currency locally (reactive UI) and to the account doc (portable). */
+    fun setCurrency(code: String) = viewModelScope.launch {
+        currencyPreferences.setCurrency(code)
+        user?.id?.let { userRepository.setCurrencyCode(it, code) }
+    }
 
     private val _isLoggedOut = MutableStateFlow(false)
     val isLoggedOut: StateFlow<Boolean> = _isLoggedOut.asStateFlow()

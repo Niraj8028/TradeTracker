@@ -1,53 +1,59 @@
 package com.wallstreet.presentation.auth.login
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.*
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
 import com.wallstreet.R
-import com.wallstreet.ui.theme.SuccessGreen
+import com.wallstreet.presentation.auth.components.AuthHeader
+import com.wallstreet.presentation.auth.components.AuthPrimaryButton
+import com.wallstreet.presentation.auth.components.AuthScaffold
+import com.wallstreet.presentation.auth.components.AuthSocialButton
+import com.wallstreet.presentation.auth.components.AuthTextField
+import com.wallstreet.presentation.auth.components.AuthTextLink
+import com.wallstreet.presentation.auth.components.rememberGoogleSignInLauncher
 import org.koin.androidx.compose.koinViewModel
-import timber.log.Timber
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToOtp: (String) -> Unit,
+    onNavigateToOnboarding: () -> Unit,
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,11 +62,9 @@ fun LoginScreen(
 
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     var showForgotDialog by rememberSaveable { mutableStateOf(false) }
     var resetEmail by rememberSaveable { mutableStateOf("") }
-    // track whether the current snackbar message is an error or a success
     var snackbarIsError by remember { mutableStateOf(true) }
 
     LaunchedEffect(uiState.navigateToOtp) {
@@ -70,7 +74,9 @@ fun LoginScreen(
         }
     }
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) onLoginSuccess()
+        if (uiState.isSuccess) {
+            if (uiState.needsOnboarding) onNavigateToOnboarding() else onLoginSuccess()
+        }
     }
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -93,347 +99,177 @@ fun LoginScreen(
         if (uiState.resetEmailSent) {
             viewModel.clearResetEmailSent()
             showForgotDialog = false
-            snackbarIsError = false   // success — show in green
+            snackbarIsError = false
             snackbarHostState.showSnackbar(context.getString(R.string.login_reset_email_sent))
         }
     }
 
-    // Google Sign-In launcher
-    val googleLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            try {
-                val account = GoogleSignIn
-                    .getSignedInAccountFromIntent(result.data)
-                    .getResult(ApiException::class.java)
-                account.idToken?.let { viewModel.signInWithGoogle(it) }
-            } catch (e: ApiException) {
-                Timber.e(e, "Google Sign-In exception")
-            }
-        }
-    }
+    val triggerGoogleSignIn = rememberGoogleSignInLauncher(
+        onIdToken = { viewModel.signInWithGoogle(it) },
+        onError = { viewModel.onGoogleSignInFailed() },
+    )
 
-    // ── Forgot-password dialog ──────────────────────────────────────────────
     if (showForgotDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!uiState.isLoading) showForgotDialog = false },
-            title = { Text(stringResource(R.string.login_reset_password_title)) },
-            text = {
-                Column {
-                    Text(
-                        stringResource(R.string.login_reset_password_message),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = resetEmail,
-                        onValueChange = { resetEmail = it },
-                        placeholder = { Text(stringResource(R.string.login_reset_password_placeholder)) },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = { if (resetEmail.isNotBlank()) viewModel.forgotPassword(resetEmail) }
-                        ),
-                        singleLine = true,
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { viewModel.forgotPassword(resetEmail) },
-                    enabled = !uiState.isLoading && resetEmail.isNotBlank()
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(stringResource(R.string.login_send_reset_link))
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showForgotDialog = false },
-                    enabled = !uiState.isLoading
-                ) {
-                    Text(stringResource(R.string.login_cancel))
-                }
-            }
+        ForgotPasswordDialog(
+            email = resetEmail,
+            onEmailChange = { resetEmail = it },
+            isLoading = uiState.isLoading,
+            onDismiss = { if (!uiState.isLoading) showForgotDialog = false },
+            onSend = { viewModel.forgotPassword(resetEmail) },
         )
     }
 
-    Scaffold(
-        snackbarHost = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 50.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) { snackbarData ->
-                    Snackbar(
-                        containerColor = if (snackbarIsError)
-                            MaterialTheme.colorScheme.error else SuccessGreen,
-                        contentColor = Color.White,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(snackbarData.visuals.message)
-                    }
-                }
-            }
-        }
-    ) { padding ->
+    AuthScaffold(
+        snackbarHostState = snackbarHostState,
+        snackbarIsError = snackbarIsError,
+        header = {
+            AuthHeader(
+                title = stringResource(R.string.login_title),
+                subtitle = stringResource(R.string.login_subtitle),
+            )
+        },
+        sheetContent = {
+            AuthTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = stringResource(R.string.auth_email_address),
+                placeholder = stringResource(R.string.auth_email_placeholder),
+                leadingIcon = Icons.Filled.Email,
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next,
+                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+            )
+            AuthTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = stringResource(R.string.auth_password),
+                placeholder = stringResource(R.string.auth_password_placeholder),
+                leadingIcon = Icons.Filled.Lock,
+                isPassword = true,
+                imeAction = ImeAction.Done,
+                onImeAction = {
+                    focusManager.clearFocus()
+                    viewModel.signIn(email, password)
+                },
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-
-            // ── TOP: Logo + branding ────────────────────────────────────────
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .padding(top = padding.calculateTopPadding() + 30.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clipToBounds(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.globe),
-                        contentDescription = "TradeTrack Globe",
-                        modifier = Modifier.fillMaxSize(0.7f),
-                        contentScale = ContentScale.Fit
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = {
+                    resetEmail = email
+                    showForgotDialog = true
+                }) {
+                    Text(
+                        stringResource(R.string.auth_forgot_password),
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
-                Text(
-                    stringResource(R.string.login_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    stringResource(R.string.login_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
 
-            // ── BOTTOM CARD ─────────────────────────────────────────────────
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .imePadding()                    // slide up when keyboard appears
-                    .verticalScroll(rememberScrollState())
-                    .align(Alignment.BottomCenter),
-                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 4.dp
+            AuthPrimaryButton(
+                text = stringResource(R.string.auth_sign_in),
+                onClick = {
+                    focusManager.clearFocus()
+                    viewModel.signIn(email, password)
+                },
+                loading = uiState.isLoading,
+            )
+
+            OrDivider()
+
+            AuthSocialButton(
+                text = stringResource(R.string.auth_continue_with_google),
+                iconRes = R.drawable.google_icon,
+                onClick = triggerGoogleSignIn,
+                enabled = !uiState.isLoading,
+            )
+
+            AuthTextLink(
+                prefix = stringResource(R.string.auth_dont_have_account),
+                actionText = stringResource(R.string.auth_sign_up),
+                onClick = onNavigateToRegister,
+            )
+        }
+    )
+}
+
+@Composable
+internal fun OrDivider() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+        )
+        Text(
+            "  ${stringResource(R.string.auth_or)}  ",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+        )
+    }
+}
+
+@Composable
+private fun ForgotPasswordDialog(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    isLoading: Boolean,
+    onDismiss: () -> Unit,
+    onSend: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.login_reset_password_title)) },
+        text = {
+            Column {
+                Text(
+                    stringResource(R.string.login_reset_password_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = onEmailChange,
+                    placeholder = { Text(stringResource(R.string.login_reset_password_placeholder)) },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { if (email.isNotBlank()) onSend() },
+                    ),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onSend,
+                enabled = !isLoading && email.isNotBlank(),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    // ── Email ──────────────────────────────────────────────
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.auth_email_address),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                        OutlinedTextField(
-                            value = email,
-                            onValueChange = { email = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(stringResource(R.string.auth_email_placeholder)) },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Email,
-                                imeAction = ImeAction.Next          // move to password
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                            ),
-                            singleLine = true,
-                            shape = RoundedCornerShape(50.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // ── Password ───────────────────────────────────────────
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.auth_password),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text(stringResource(R.string.auth_password_placeholder)) },
-                            visualTransformation = if (passwordVisible)
-                                VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(
-                                        if (passwordVisible) Icons.Filled.Visibility
-                                        else Icons.Filled.VisibilityOff, null
-                                    )
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Done          // trigger sign-in
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = {
-                                    focusManager.clearFocus()
-                                    viewModel.signIn(email, password)
-                                }
-                            ),
-                            singleLine = true,
-                            shape = RoundedCornerShape(50.dp)
-                        )
-                    }
-
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = {
-                            resetEmail = email
-                            showForgotDialog = true
-                        }) {
-                            Text(
-                                stringResource(R.string.auth_forgot_password),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-
-                    // ── Sign In Button ─────────────────────────────────────
-                    Button(
-                        onClick = {
-                            focusManager.clearFocus()
-                            viewModel.signIn(email, password)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(50.dp),
-                        enabled = !uiState.isLoading
-                    ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                stringResource(R.string.auth_sign_in),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // ── Divider ────────────────────────────────────────────
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                        Text(
-                            "  ${stringResource(R.string.auth_or)}  ",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // ── Google Sign-In ─────────────────────────────────────
-                    OutlinedButton(
-                        onClick = {
-                            val gso = GoogleSignInOptions
-                                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                .requestIdToken(context.getString(R.string.default_web_client_id))
-                                .requestEmail().build()
-                            googleLauncher.launch(
-                                GoogleSignIn.getClient(context, gso).signInIntent
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(50.dp),
-                        enabled = !uiState.isLoading   // block during any in-flight request
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.google_icon),
-                            contentDescription = "Google",
-                            modifier = Modifier.size(20.dp)   // fixed size so icon is consistent
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            stringResource(R.string.auth_continue_with_google),
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
-                        )
-                    }
-
-                    Spacer(Modifier.height(20.dp))
-
-                    TextButton(onClick = onNavigateToRegister) {
-                        Text(buildAnnotatedString {
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                                append(stringResource(R.string.auth_dont_have_account))
-                            }
-                            withStyle(
-                                SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append(stringResource(R.string.auth_sign_up))
-                            }
-                        })
-                    }
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.height(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Text(stringResource(R.string.login_send_reset_link))
                 }
             }
-        }
-    }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isLoading) {
+                Text(stringResource(R.string.login_cancel))
+            }
+        },
+    )
 }

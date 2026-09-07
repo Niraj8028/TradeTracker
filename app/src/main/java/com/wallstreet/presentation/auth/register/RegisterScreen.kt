@@ -1,41 +1,34 @@
 package com.wallstreet.presentation.auth.register
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.*
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
+import androidx.compose.ui.focus.FocusDirection
 import com.wallstreet.R
+import com.wallstreet.presentation.auth.components.AuthHeader
+import com.wallstreet.presentation.auth.components.AuthPrimaryButton
+import com.wallstreet.presentation.auth.components.AuthScaffold
+import com.wallstreet.presentation.auth.components.AuthSocialButton
+import com.wallstreet.presentation.auth.components.AuthTextField
+import com.wallstreet.presentation.auth.components.AuthTextLink
+import com.wallstreet.presentation.auth.components.rememberGoogleSignInLauncher
+import com.wallstreet.presentation.auth.login.OrDivider
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -43,6 +36,7 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToOtp: (String) -> Unit,
+    onNavigateToOnboarding: () -> Unit,
     viewModel: RegisterViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -53,9 +47,9 @@ fun RegisterScreen(
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val passwordMismatch = confirmPassword.isNotEmpty() && confirmPassword != password
 
     LaunchedEffect(uiState.navigateToOtp) {
         if (uiState.navigateToOtp) {
@@ -64,7 +58,9 @@ fun RegisterScreen(
         }
     }
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) onRegisterSuccess()
+        if (uiState.isSuccess) {
+            if (uiState.needsOnboarding) onNavigateToOnboarding() else onRegisterSuccess()
+        }
     }
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
@@ -77,7 +73,7 @@ fun RegisterScreen(
                 "ERROR_NAME_EMPTY"            -> context.getString(R.string.error_name_empty)
                 "ERROR_EMAIL_EMPTY"           -> context.getString(R.string.error_email_empty)
                 "ERROR_PASSWORD_TOO_SHORT"    -> context.getString(R.string.error_password_too_short)
-                "ERROR_PASSWORDS_DO_NOT_MATCH"-> context.getString(R.string.error_passwords_do_not_match)
+                "ERROR_PASSWORDS_DO_NOT_MATCH" -> context.getString(R.string.error_passwords_do_not_match)
                 else -> error
             }
             snackbarHostState.showSnackbar(message)
@@ -85,433 +81,92 @@ fun RegisterScreen(
         }
     }
 
-    val googleLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        try {
-            val account = GoogleSignIn
-                .getSignedInAccountFromIntent(result.data)
-                .getResult(ApiException::class.java)
-            val token = account.idToken
-            if (token != null) {
-                viewModel.signUpWithGoogle(token)
-            } else {
-                viewModel.onGoogleSignInFailed()
-            }
-        } catch (_: Exception) {
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.onGoogleSignInFailed()
-            }
-            // RESULT_CANCELED = user pressed back, no error needed
-        }
-    }
+    val triggerGoogleSignIn = rememberGoogleSignInLauncher(
+        onIdToken = { viewModel.signUpWithGoogle(it) },
+        onError = { viewModel.onGoogleSignInFailed() },
+    )
 
-    // Helper: submit the form
     val submit = {
         focusManager.clearFocus()
         viewModel.signUp(fullName, email, password, confirmPassword)
     }
 
-    Scaffold(
-        snackbarHost = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 50.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) { snackbarData ->
-                    Snackbar(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(snackbarData.visuals.message)
-                    }
-                }
-            }
+    AuthScaffold(
+        snackbarHostState = snackbarHostState,
+        snackbarIsError = true,
+        sheetHeightFraction = 0.8f,
+        header = {
+            AuthHeader(
+                title = stringResource(R.string.register_title_create) +
+                    stringResource(R.string.register_title_account),
+                subtitle = stringResource(R.string.register_subtitle),
+                showLogo = false,
+            )
+        },
+        sheetContent = {
+            AuthTextField(
+                value = fullName,
+                onValueChange = { fullName = it },
+                label = stringResource(R.string.register_full_name),
+                placeholder = stringResource(R.string.register_full_name_placeholder),
+                leadingIcon = Icons.Filled.Person,
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next,
+                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+            )
+            AuthTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = stringResource(R.string.auth_email_address),
+                placeholder = stringResource(R.string.auth_email_placeholder),
+                leadingIcon = Icons.Filled.Email,
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next,
+                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+            )
+            AuthTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = stringResource(R.string.auth_password),
+                placeholder = stringResource(R.string.auth_password_placeholder),
+                leadingIcon = Icons.Filled.Lock,
+                isPassword = true,
+                imeAction = ImeAction.Next,
+                onImeAction = { focusManager.moveFocus(FocusDirection.Down) },
+            )
+            AuthTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = stringResource(R.string.register_confirm_password),
+                placeholder = stringResource(R.string.auth_password_placeholder),
+                leadingIcon = Icons.Filled.LockOpen,
+                isPassword = true,
+                isError = passwordMismatch,
+                errorText = stringResource(R.string.error_passwords_do_not_match),
+                imeAction = ImeAction.Done,
+                onImeAction = { submit() },
+            )
+
+            AuthPrimaryButton(
+                text = stringResource(R.string.register_button),
+                onClick = { submit() },
+                loading = uiState.isLoading,
+            )
+
+            OrDivider()
+
+            AuthSocialButton(
+                text = stringResource(R.string.auth_continue_with_google),
+                iconRes = R.drawable.google_icon,
+                onClick = triggerGoogleSignIn,
+                enabled = !uiState.isLoading,
+            )
+
+            AuthTextLink(
+                prefix = stringResource(R.string.auth_already_have_account),
+                actionText = stringResource(R.string.auth_sign_in),
+                onClick = onNavigateToLogin,
+            )
         }
-    ) { padding ->
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-
-            // ── TOP: Title + subtitle ───────────────────────────────────────
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .padding(
-                        top = padding.calculateTopPadding() + 48.dp,
-                        start = 24.dp,
-                        end = 24.dp
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                color = MaterialTheme.colorScheme.onBackground,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        ) {
-                            append(stringResource(R.string.register_title_create))
-                        }
-                        withStyle(
-                            SpanStyle(
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-                        ) { append(stringResource(R.string.register_title_account)) }
-                    },
-                    style = MaterialTheme.typography.headlineLarge,
-                    letterSpacing = (-0.5).sp
-                )
-
-                Spacer(Modifier.height(10.dp))
-
-                Text(
-                    stringResource(R.string.register_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
-
-            // ── BOTTOM CARD ─────────────────────────────────────────────────
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.8f)
-                    .align(Alignment.BottomCenter),
-                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                shadowElevation = 16.dp
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .imePadding()                    // slide up when keyboard appears
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 12.dp, bottom = 28.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-                    Spacer(Modifier.height(24.dp))
-
-                    // ── Full Name ──────────────────────────────────────────
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.register_full_name),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        OutlinedTextField(
-                            value = fullName,
-                            onValueChange = { fullName = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = {
-                                Text(
-                                    stringResource(R.string.register_full_name_placeholder),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next          // → email
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                            ),
-                            singleLine = true,
-                            shape = RoundedCornerShape(50.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.height(14.dp))
-
-                    // ── Email ──────────────────────────────────────────────
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.auth_email_address),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        OutlinedTextField(
-                            value = email,
-                            onValueChange = { email = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = {
-                                Text(
-                                    stringResource(R.string.auth_email_placeholder),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.Email,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Email,
-                                imeAction = ImeAction.Next          // → password
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                            ),
-                            singleLine = true,
-                            shape = RoundedCornerShape(50.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.height(14.dp))
-
-                    // ── Password ───────────────────────────────────────────
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.auth_password),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = {
-                                Text(
-                                    stringResource(R.string.auth_password_placeholder),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.Lock,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            visualTransformation = if (passwordVisible)
-                                VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(
-                                        if (passwordVisible) Icons.Filled.Visibility
-                                        else Icons.Filled.VisibilityOff,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Next          // → confirm password
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                            ),
-                            singleLine = true,
-                            shape = RoundedCornerShape(50.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.height(14.dp))
-
-                    // ── Confirm Password ───────────────────────────────────
-                    Column(
-                        Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.register_confirm_password),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        // Inline mismatch hint (no snackbar needed for this one)
-                        val passwordMismatch = confirmPassword.isNotEmpty() &&
-                                confirmPassword != password
-
-                        OutlinedTextField(
-                            value = confirmPassword,
-                            onValueChange = { confirmPassword = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            placeholder = {
-                                Text(
-                                    stringResource(R.string.auth_password_placeholder),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.LockOpen,
-                                    contentDescription = null,
-                                    tint = if (passwordMismatch)
-                                        MaterialTheme.colorScheme.error
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            visualTransformation = if (confirmPasswordVisible)
-                                VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = {
-                                    confirmPasswordVisible = !confirmPasswordVisible
-                                }) {
-                                    Icon(
-                                        if (confirmPasswordVisible) Icons.Filled.Visibility
-                                        else Icons.Filled.VisibilityOff,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            },
-                            isError = passwordMismatch,
-                            supportingText = if (passwordMismatch) {
-                                { Text(stringResource(R.string.error_passwords_do_not_match)) }
-                            } else null,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Done           // → submit form
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = { submit() }
-                            ),
-                            singleLine = true,
-                            shape = RoundedCornerShape(50.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.height(24.dp))
-
-                    // ── Create Account Button ──────────────────────────────
-                    Button(
-                        onClick = { submit() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(50.dp),
-                        enabled = !uiState.isLoading
-                    ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                stringResource(R.string.register_button),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                letterSpacing = 0.5.sp
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // ── "or" Divider ───────────────────────────────────────
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                        )
-                        Text(
-                            "  ${stringResource(R.string.auth_or)}  ",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.weight(1f),
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                        )
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // ── Google Sign Up ─────────────────────────────────────
-                    OutlinedButton(
-                        onClick = {
-                            val gso = GoogleSignInOptions
-                                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                .requestIdToken(context.getString(R.string.default_web_client_id))
-                                .requestEmail().build()
-                            googleLauncher.launch(
-                                GoogleSignIn.getClient(context, gso).signInIntent
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(50.dp),
-                        enabled = !uiState.isLoading   // block during any in-flight request
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.google_icon),
-                            contentDescription = "Google",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            stringResource(R.string.auth_continue_with_google),
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
-                        )
-                    }
-
-                    Spacer(Modifier.height(20.dp))
-
-                    TextButton(onClick = onNavigateToLogin) {
-                        Text(buildAnnotatedString {
-                            withStyle(
-                                SpanStyle(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp
-                                )
-                            ) { append(stringResource(R.string.auth_already_have_account)) }
-                            withStyle(
-                                SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp
-                                )
-                            ) { append(stringResource(R.string.auth_sign_in)) }
-                        })
-                    }
-                }
-            }
-        }
-    }
+    )
 }

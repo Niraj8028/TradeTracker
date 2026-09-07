@@ -31,7 +31,7 @@ class AuthRepositoryImpl(
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = result.user!!
 
-            // TODO: remove this bypass before merging
+            // Unverified accounts cannot sign in — the caller routes this to the OTP screen.
             if (!firebaseUser.isEmailVerified) {
                 auth.signOut()
                 return Result.Error("EMAIL_NOT_VERIFIED")
@@ -47,7 +47,18 @@ class AuthRepositoryImpl(
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         val result = auth.signInWithCredential(credential).await()
         val user = result.user!!.toUserModel()
-        saveUserToFirestore(user)
+        // Only seed the Firestore profile for a brand-new account — a returning user may
+        // have edited their name/photo, so don't overwrite it on every sign-in. This is
+        // best-effort: a transient read/write failure here must not fail an otherwise
+        // successful sign-in (auth already succeeded and the session is live).
+        try {
+            val docRef = firestore.collection(AppConstants.COLLECTION_USERS).document(user.id)
+            if (!docRef.get().await().exists()) {
+                saveUserToFirestore(user)
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Could not seed Google user profile; continuing sign-in")
+        }
         Result.Success(user)
     } catch (e: Exception) {
         Result.Error(e.friendlyMessage(), e)
@@ -77,7 +88,7 @@ class AuthRepositoryImpl(
     override suspend fun verifyEmail(): Result<Boolean> = try {
         auth.currentUser?.reload()?.await()
         val isVerified = auth.currentUser?.isEmailVerified ?: false
-        Result.Success(true)
+        Result.Success(isVerified)
     } catch (e: Exception) {
         Timber.e(e, e.friendlyMessage())
         Result.Error(e.friendlyMessage(), e)

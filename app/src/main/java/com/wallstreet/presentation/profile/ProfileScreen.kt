@@ -68,7 +68,6 @@ fun ProfileScreen(
     val currencyPrefs = remember { CurrencyPreferences(context) }
     val currentCurrencyCode by currencyPrefs.currencyCode.collectAsState(initial = "USD")
     var showCurrencySheet by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isLoggedOut) {
@@ -76,7 +75,12 @@ fun ProfileScreen(
     }
 
     if (user == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
             Text("No user logged in", style = MaterialTheme.typography.bodyMedium)
         }
         return
@@ -85,6 +89,8 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            // Opaque root so tab-switch slide transitions don't bleed through.
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -259,7 +265,7 @@ fun ProfileScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .hapticClickable(HapticStyle.Light) {
-                                scope.launch { currencyPrefs.setCurrency(code) }
+                                viewModel.setCurrency(code)
                                 showCurrencySheet = false
                             }
                             .padding(vertical = 14.dp),

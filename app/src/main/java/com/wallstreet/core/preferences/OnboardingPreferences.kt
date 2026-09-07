@@ -10,15 +10,22 @@ import kotlinx.coroutines.flow.first
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_prefs")
 
+/**
+ * Local, per-account cache of "this user finished onboarding". The source of truth is the
+ * user's Firestore doc (see UserRepository.isOnboardingCompleted); this just avoids a network
+ * round-trip on subsequent logins on the same install.
+ */
 class OnboardingPreferences(private val context: Context) {
 
-    private val ONBOARDING_KEY = booleanPreferencesKey("onboarding_completed")
+    private fun key(userId: String) = booleanPreferencesKey("onboarding_completed_$userId")
 
-    suspend fun isOnboardingCompleted(): Boolean {
-        return context.dataStore.data.first()[ONBOARDING_KEY] ?: false
+    suspend fun isOnboardingCompleted(userId: String): Boolean {
+        if (userId.isBlank()) return false
+        return context.dataStore.data.first()[key(userId)] ?: false
     }
 
-    suspend fun setOnboardingCompleted() {
-        context.dataStore.edit { it[ONBOARDING_KEY] = true }
+    suspend fun setOnboardingCompleted(userId: String) {
+        if (userId.isBlank()) return
+        context.dataStore.edit { it[key(userId)] = true }
     }
 }

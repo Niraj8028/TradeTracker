@@ -16,6 +16,16 @@ val currencySymbols: Map<String, String> = mapOf(
     "CAD" to "C$",
 )
 
+val currencyNames: Map<String, String> = mapOf(
+    "USD" to "US Dollar",
+    "INR" to "Indian Rupee",
+    "EUR" to "Euro",
+    "GBP" to "British Pound",
+    "JPY" to "Japanese Yen",
+    "AUD" to "Australian Dollar",
+    "CAD" to "Canadian Dollar",
+)
+
 class CurrencyPreferences(private val context: Context) {
 
     private val CURRENCY_KEY = stringPreferencesKey("currency_code")

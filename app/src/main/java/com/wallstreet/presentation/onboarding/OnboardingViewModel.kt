@@ -1,11 +1,11 @@
 package com.wallstreet.presentation.onboarding
 
-import android.os.Bundle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallstreet.core.preferences.CurrencyPreferences
+import com.wallstreet.core.result.Result
 import com.wallstreet.domain.analytics.AnalyticsManager
 import com.wallstreet.domain.usecase.onboarding.CompleteOnboardingUseCase
-import com.wallstreet.core.result.Result
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,90 +14,86 @@ import kotlinx.coroutines.launch
 
 class OnboardingViewModel(
     private val analyticsManager: AnalyticsManager,
-    private val completeOnboardingUseCase: CompleteOnboardingUseCase
+    private val completeOnboardingUseCase: CompleteOnboardingUseCase,
+    private val currencyPreferences: CurrencyPreferences,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
 
-    private var videoStartLogged = false
-    private var videoCompleteLogged = false
-    private var isFinishing = false
-
     init {
         analyticsManager.logEvent("onboarding_start")
+        analyticsManager.logEvent("onboarding_step_view", mapOf("step" to 0))
     }
 
-    fun onUserTypeSelected(role: String) {
+    fun onRoleToggled(role: String) {
         val isSelecting = !_uiState.value.selectedRoles.contains(role)
-        
-        // Log event outside of update block for thread safety
-        analyticsManager.logEvent("role_selected", mapOf(
-            "role_name" to role,
-            "is_selected" to isSelecting
-        ))
-
+        analyticsManager.logEvent(
+            "role_selected",
+            mapOf("role_name" to role, "is_selected" to isSelecting)
+        )
         _uiState.update { state ->
-            val newSelected = if (isSelecting) {
-                state.selectedRoles + role
-            } else {
-                state.selectedRoles - role
-            }
+            val newSelected = if (isSelecting) state.selectedRoles + role
+            else state.selectedRoles - role
             state.copy(selectedRoles = newSelected)
         }
     }
 
-    fun onPageSwiped(page: Int) {
-        if (page == 1 && !videoStartLogged) {
-            analyticsManager.logEvent("tutorial_video_start")
-            videoStartLogged = true
-        }
+    fun onCurrencySelected(code: String) {
+        _uiState.update { it.copy(selectedCurrency = code) }
+        analyticsManager.logEvent("currency_selected", mapOf("code" to code))
     }
 
-    fun onPlayingChanged(playing: Boolean) {
-        _uiState.update { it.copy(isPlaying = playing) }
+    fun goToStep(index: Int) {
+        if (index == _uiState.value.stepIndex) return
+        _uiState.update { it.copy(stepIndex = index) }
+        analyticsManager.logEvent("onboarding_step_view", mapOf("step" to index))
     }
 
-    fun onProgressChanged(
-        progress: Float,
-        currentMs: Long,
-        durationMs: Long
-    ) {
-        if (progress >= 0.99f && !videoCompleteLogged) {
-            analyticsManager.logEvent("tutorial_video_complete")
-            videoCompleteLogged = true
-        }
-
-        _uiState.update {
-            it.copy(
-                progress = progress,
-                currentMs = currentMs,
-                durationMs = durationMs
-            )
-        }
+    fun nextStep(lastIndex: Int) {
+        goToStep((_uiState.value.stepIndex + 1).coerceAtMost(lastIndex))
     }
 
-    fun onFinish() {
-        if (isFinishing) return
-        isFinishing = true
+    fun prevStep() {
+        goToStep((_uiState.value.stepIndex - 1).coerceAtLeast(0))
+    }
+
+    fun onNotificationsResult(granted: Boolean) {
+        analyticsManager.logEvent("notifications_prompt_result", mapOf("granted" to granted))
+    }
+
+    fun finish() {
+        if (_uiState.value.isFinishing) return
+        _uiState.update { it.copy(isFinishing = true, error = null) }
 
         viewModelScope.launch {
-            val roles = _uiState.value.selectedRoles
-            
-            // 1. Set User Property (List as comma-separated string)
-            analyticsManager.setUserProperty("user_roles", roles.joinToString(","))
-            
-            // 2. Log Completion Event
-            analyticsManager.logEvent("onboarding_complete", mapOf(
-                "roles_count" to roles.size
-            ))
+            val state = _uiState.value
 
-            // 3. Complete onboarding via UseCase (handles Firestore & Preferences)
-            val result = completeOnboardingUseCase(roles.toSet())
-            if (result is Result.Error) {
-                isFinishing = false
-                // Handle error if needed, maybe show a toast or log it
+            analyticsManager.setUserProperty("user_roles", state.selectedRoles.joinToString(","))
+            analyticsManager.logEvent(
+                "onboarding_complete",
+                mapOf("roles_count" to state.selectedRoles.size)
+            )
+
+            when (val result =
+                completeOnboardingUseCase(state.selectedRoles.toSet(), state.selectedCurrency)) {
+                is Result.Error -> _uiState.update {
+                    it.copy(
+                        isFinishing = false,
+                        error = result.message.ifBlank { "Couldn't finish setup. Please try again." },
+                    )
+                }
+
+                else -> {
+                    // Only mirror the choice into the local cache once the account write landed.
+                    currencyPreferences.setCurrency(state.selectedCurrency)
+                    _uiState.update { it.copy(finished = true) }
+                }
             }
         }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 }

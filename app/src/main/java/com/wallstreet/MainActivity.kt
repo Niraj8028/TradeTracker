@@ -13,9 +13,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.wallstreet.core.preferences.OnboardingPreferences
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
+import com.wallstreet.core.result.Result
 import com.wallstreet.core.splash.SplashGate
 import com.wallstreet.core.splash.StartDestination
 import com.wallstreet.domain.analytics.AnalyticsManager
+import com.wallstreet.domain.repository.UserRepository
 import com.wallstreet.data.store.TradeStore
 import com.wallstreet.navigation.AppNavigation
 import com.wallstreet.ui.theme.WallStreetAndroidTheme
@@ -28,10 +30,12 @@ class MainActivity : ComponentActivity() {
 
     private val analyticsManager: AnalyticsManager by inject()
     private val tradeStore: TradeStore by inject()
+    private val onboardingPreferences: OnboardingPreferences by inject()
+    private val userRepository: UserRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Enable Firestore debug logging
-        FirebaseFirestore.setLoggingEnabled(true)
+        // Verbose Firestore logging in debug builds only.
+        FirebaseFirestore.setLoggingEnabled(BuildConfig.DEBUG)
 
         val splashScreen = installSplashScreen()
 
@@ -81,11 +85,32 @@ class MainActivity : ComponentActivity() {
         val destination = when {
             user == null -> StartDestination.Auth
             !user.isEmailVerified -> StartDestination.Otp(user.email ?: "")
-            else -> {
-                StartDestination.Home
-            }
+            hasCompletedOnboarding(user.uid) -> StartDestination.Home
+            else -> StartDestination.Onboarding
         }
 
         SplashGate.resolve(destination)
+    }
+
+    /**
+     * The local cache is only authoritative when it says "done". If it doesn't, fall back to
+     * the account's Firestore doc — the source of truth — so an app update or a device switch
+     * (where the cache was never seeded) doesn't force a completed user back through onboarding.
+     * A failed read is treated as "done": re-running onboarding would overwrite the account
+     * currency, and the gate re-checks on the next launch anyway.
+     */
+    private suspend fun hasCompletedOnboarding(uid: String): Boolean {
+        if (onboardingPreferences.isOnboardingCompleted(uid)) return true
+        return when (val prefs = userRepository.getAccountPrefs(uid)) {
+            is Result.Success -> {
+                if (prefs.data.onboardingCompleted) {
+                    onboardingPreferences.setOnboardingCompleted(uid)
+                    true
+                } else {
+                    false
+                }
+            }
+            else -> true
+        }
     }
 }
