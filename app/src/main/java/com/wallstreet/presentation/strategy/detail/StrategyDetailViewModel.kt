@@ -12,7 +12,7 @@ import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
-import kotlin.math.max
+import com.wallstreet.core.util.TradeMath
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.Dispatchers
@@ -64,32 +64,13 @@ class StrategyDetailViewModel(
                     ?: return@combine StrategyDetailUiState.Error("Strategy not found")
 
                 val strategyTrades = trades.filter { it.strategyId == strategyId }
-                val sorted = strategyTrades.sortedBy { it.tradeDate }
 
-                val grossWin = sorted.filter { (it.profitLoss ?: 0.0) > 0 }.sumOf { it.profitLoss ?: 0.0 }
-                val grossLoss = sorted.filter { (it.profitLoss ?: 0.0) < 0 }.sumOf { -(it.profitLoss ?: 0.0) }
-                val profitFactor = if (grossLoss > 0) grossWin / grossLoss else if (grossWin > 0) 999.0 else 0.0
-
-                var equity = 0.0
-                var peak = 0.0
-                var maxDrawdown = 0.0
-                for (t in sorted) {
-                    equity += t.profitLoss ?: 0.0
-                    peak = max(peak, equity)
-                    maxDrawdown = max(maxDrawdown, peak - equity)
-                }
-
-                var currentStreak = 0
-                var winStreak = 0
-                for (t in sorted) {
-                    val pnl = t.profitLoss ?: 0.0
-                    if (pnl > 0) {
-                        currentStreak++
-                        winStreak = max(winStreak, currentStreak)
-                    } else if (pnl < 0) {
-                        currentStreak = 0
-                    }
-                }
+                // Aggregate risk math lives in TradeMath now; the 999.0 sentinel for a
+                // no-losses history is preserved here at the call site.
+                val profitFactor = TradeMath.profitFactor(strategyTrades)
+                    ?: if (TradeMath.grossProfit(strategyTrades) > 0.0) 999.0 else 0.0
+                val maxDrawdown = TradeMath.maxDrawdown(strategyTrades).amount
+                val winStreak = TradeMath.winStreak(strategyTrades)
 
                 StrategyDetailUiState.Success(
                     strategy = strategy,
