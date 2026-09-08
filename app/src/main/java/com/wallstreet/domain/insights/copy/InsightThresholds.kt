@@ -20,6 +20,9 @@ object InsightThresholds {
     const val TREND_WEAK_WR = 45.0
     const val DO_NOT_ENTER_WR = 30.0
     const val PROFIT_FACTOR_FLOOR = 1.0
+    const val MIN_SAMPLE_RR = 10          // closed trades before judging reward:risk size
+    const val RR_WEAK_MAX = 1.5           // avgWin/avgLoss below this = "barely ahead"
+    const val RR_STRONG = 2.0             // avgWin/avgLoss at or above this = ideal
     const val LOSS_STREAK = 3
     const val REDUCE_FRACTION = 0.34          // ≥ 1/3 fewer occurrences ⇒ "reducing"
     const val CONCENTRATION_PCT = 50.0

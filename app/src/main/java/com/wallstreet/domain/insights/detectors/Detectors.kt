@@ -24,6 +24,7 @@ val analyticsDetectors: List<InsightDetector> = listOf(
     BestDayDetector,
     WorstDayDetector,
     ProfitFactorRiskDetector,
+    RewardRiskDetector,
     DrawdownRiskDetector,
     LossStreakDetector,
 )

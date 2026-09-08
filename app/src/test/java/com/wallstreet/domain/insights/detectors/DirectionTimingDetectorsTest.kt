@@ -102,5 +102,33 @@ class DirectionTimingDetectorsTest {
         val ctx = InsightContexts.of(List(6) { trade(pnl = -100.0, daysAgo = 5) })
         assertTrue(ProfitFactorRiskDetector.detect(ctx).isEmpty())
         assertTrue(DrawdownRiskDetector.detect(ctx).isEmpty())
+        assertTrue(RewardRiskDetector.detect(ctx).isEmpty())
+    }
+
+    @Test
+    fun `reward vs risk warns when wins barely beat losses`() {
+        val trades = List(6) { trade(pnl = 120.0, daysAgo = 5) } +
+            List(6) { trade(pnl = -100.0, daysAgo = 5) }
+        val out = RewardRiskDetector.detect(InsightContexts.of(trades))
+        assertEquals("risk.rewardRisk", out.single().id)
+        assertEquals(InsightSeverity.WARNING, out.single().severity)
+        assertTrue(out.single().body, out.single().body.contains("1.2x"))
+    }
+
+    @Test
+    fun `reward vs risk is positive when winners are much bigger`() {
+        val trades = List(6) { trade(pnl = 300.0, daysAgo = 5) } +
+            List(5) { trade(pnl = -100.0, daysAgo = 5) }
+        val out = RewardRiskDetector.detect(InsightContexts.of(trades))
+        assertEquals(InsightSeverity.POSITIVE, out.single().severity)
+    }
+
+    @Test
+    fun `reward vs risk is critical when losers are bigger than winners`() {
+        val trades = List(4) { trade(pnl = 50.0, daysAgo = 5) } +
+            List(6) { trade(pnl = -150.0, daysAgo = 5) }
+        val out = RewardRiskDetector.detect(InsightContexts.of(trades))
+        assertEquals(InsightSeverity.CRITICAL, out.single().severity)
+        assertTrue(out.single().body.contains("bigger than your average win"))
     }
 }

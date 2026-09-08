@@ -105,6 +105,48 @@ internal object DrawdownRiskDetector : InsightDetector {
     }
 }
 
+/**
+ * Size of the average win vs the average loss. Winners much bigger than losers is the goal;
+ * near-parity means the edge is thin and the trader should cut losses sooner or hold winners
+ * for a bigger target.
+ */
+internal object RewardRiskDetector : InsightDetector {
+    override val id = "risk.rewardRisk"
+    override val category = RISK
+    override fun detect(ctx: InsightContext): List<Insight> {
+        val closed = ctx.current.trades.mapNotNull { it.profitLoss }
+        val wins = closed.count { it > 0.0 }
+        val losses = closed.count { it < 0.0 }
+        if (closed.size < T.MIN_SAMPLE_RR || wins < 3 || losses < 3) return emptyList()
+
+        val avgWin = ctx.current.avgWin
+        val avgLoss = ctx.current.avgLoss // positive magnitude
+        if (avgWin <= 0.0 || avgLoss <= 0.0) return emptyList()
+
+        val rr = avgWin / avgLoss
+        val args = mapOf(
+            "rr" to "${String.format("%.1f", rr)}x",
+            "avgWin" to money(avgWin, ctx.currencySymbol),
+            "avgLoss" to money(-avgLoss, ctx.currencySymbol),
+        )
+        return when {
+            rr < 1.0 -> listOf(
+                insight(id, RISK, CRITICAL, "Loss size", "risk.rewardRisk.inverted", args,
+                    impact = avgLoss, sample = closed.size)
+            )
+            rr < T.RR_WEAK_MAX -> listOf(
+                insight(id, RISK, WARNING, "Reward vs risk", "risk.rewardRisk.weak", args,
+                    impact = avgLoss, sample = closed.size)
+            )
+            rr >= T.RR_STRONG -> listOf(
+                insight(id, RISK, POSITIVE, "Reward vs risk", "risk.rewardRisk.strong", args,
+                    impact = 0.0, sample = closed.size)
+            )
+            else -> emptyList()
+        }
+    }
+}
+
 /** Currently on a losing streak. */
 internal object LossStreakDetector : InsightDetector {
     override val id = "discipline.lossStreak"

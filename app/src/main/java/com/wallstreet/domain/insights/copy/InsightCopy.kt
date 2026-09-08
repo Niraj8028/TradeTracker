@@ -54,6 +54,12 @@ object InsightCopy {
             "{day} has cost you {pnl} over {trades} trades. Trade smaller, or not at all, on {day}.",
         "risk.profitFactor" to
             "Your profit factor is {pf}. Losers are bigger than winners right now. Tighten your exits.",
+        "risk.rewardRisk.weak" to
+            "Your average win is {rr} your average loss: {avgWin} vs {avgLoss}. That is barely ahead. Cut losers sooner, or hold winners for a bigger target.",
+        "risk.rewardRisk.inverted" to
+            "Your average loss ({avgLoss}) is bigger than your average win ({avgWin}). A good hit rate can't carry that. Tighten your stops and let winners run.",
+        "risk.rewardRisk.strong" to
+            "Your average win is {rr} your average loss: {avgWin} vs {avgLoss}. That is the shape you want. Keep taking full targets.",
         "risk.drawdown" to
             "Your worst drawdown this period was {dd}. Cut size after two losses in a row.",
         "discipline.lossStreak" to
