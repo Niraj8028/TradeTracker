@@ -8,6 +8,7 @@ import com.wallstreet.core.logging.CrashlyticsTree
 import com.wallstreet.di.appModule
 import com.wallstreet.di.databaseModule
 import com.wallstreet.di.firebaseModule
+import com.wallstreet.di.insightsModule
 import com.wallstreet.di.repositoryModule
 import com.wallstreet.di.useCaseModule
 import com.wallstreet.di.viewModelModule
@@ -37,6 +38,7 @@ class TradeTrack: Application() {
                 databaseModule,
                 repositoryModule,
                 useCaseModule,
+                insightsModule,
                 viewModelModule
             )
         }

@@ -33,9 +33,6 @@ import com.wallstreet.presentation.home.HomeScreen
 import com.wallstreet.presentation.log_trade.LogTradeScreen
 import com.wallstreet.presentation.profile.ProfileScreen
 import com.wallstreet.presentation.profile.screens.DeleteAccountScreen
-import com.wallstreet.presentation.profile.screens.PrivacyPolicyScreen
-import com.wallstreet.presentation.profile.screens.SecurityPrivacyScreen
-import com.wallstreet.presentation.profile.screens.TermsOfServiceScreen
 import com.wallstreet.presentation.strategy.StrategiesScreen
 import com.wallstreet.presentation.strategy.detail.StrategyDetailsScreen
 import kotlinx.serialization.modules.SerializersModule
@@ -90,18 +87,6 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                     subclass(
                         AppRoute.Home.StrategyDetailRoute::class,
                         AppRoute.Home.StrategyDetailRoute.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.SecurityPrivacyRoute::class,
-                        AppRoute.Home.SecurityPrivacyRoute.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.PrivacyPolicyRoute::class,
-                        AppRoute.Home.PrivacyPolicyRoute.serializer()
-                    )
-                    subclass(
-                        AppRoute.Home.TermsOfServiceRoute::class,
-                        AppRoute.Home.TermsOfServiceRoute.serializer()
                     )
                     subclass(
                         AppRoute.Home.DeleteAccountRoute::class,
@@ -195,9 +180,6 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                     entry<AppRoute.Home.ProfileRoute> {
                         ProfileScreen(
                             onLogout = onLogout,
-                            onSecurityPrivacy = { homeBackStack.add(AppRoute.Home.SecurityPrivacyRoute) },
-                            onPrivacyPolicy = { homeBackStack.add(AppRoute.Home.PrivacyPolicyRoute) },
-                            onTermsOfService = { homeBackStack.add(AppRoute.Home.TermsOfServiceRoute) },
                             onDeleteAccount = { homeBackStack.add(AppRoute.Home.DeleteAccountRoute) }
                         )
                     }
@@ -241,27 +223,6 @@ fun HomeNavigation(onLogout: () -> Unit, modifier: Modifier = Modifier) {
                                 }
                             }
                         )
-                    }
-                    entry<AppRoute.Home.SecurityPrivacyRoute> {
-                        SecurityPrivacyScreen(onBack = {
-                            if (homeBackStack.size > 1) {
-                                homeBackStack.removeLastOrNull()
-                            }
-                        })
-                    }
-                    entry<AppRoute.Home.PrivacyPolicyRoute> {
-                        PrivacyPolicyScreen(onBack = {
-                            if (homeBackStack.size > 1) {
-                                homeBackStack.removeLastOrNull()
-                            }
-                        })
-                    }
-                    entry<AppRoute.Home.TermsOfServiceRoute> {
-                        TermsOfServiceScreen(onBack = {
-                            if (homeBackStack.size > 1) {
-                                homeBackStack.removeLastOrNull()
-                            }
-                        })
                     }
                     entry<AppRoute.Home.DeleteAccountRoute> {
                         DeleteAccountScreen(

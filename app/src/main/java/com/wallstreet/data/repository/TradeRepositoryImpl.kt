@@ -41,11 +41,8 @@ class TradeRepositoryImpl(
     }
 
     override fun getRecentTrades(userId: String, fromMilis: Long, limit: Int): Flow<List<Trade>> =
-        tradeDao.getAllTrades(userId).map { entities ->
-            entities.map { it.toDomain() }
-                .filter { it.tradeDate >= fromMilis }
-                .take(limit)
-        }
+        tradeDao.getRecentTrades(userId, fromMilis, limit)
+            .map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun syncPendingTrades(userId: String): Boolean {
         val pending = tradeDao.getPendingSyncTrades(userId)

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.wallstreet.core.util.format
 import com.wallstreet.core.util.formatPercent
 import com.wallstreet.core.util.formatPnl
+import com.wallstreet.domain.model.insights.StrategyVerdict
 import com.wallstreet.domain.model.strategy.StrategyStats
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.LocalCurrencySymbol
@@ -58,7 +59,8 @@ fun StrategyCard(
     onStrategyClick: () -> Unit,
     isSelectionMode: Boolean,
     isSelected: Boolean,
-    onSelectionChanged: (Boolean) -> Unit
+    onSelectionChanged: (Boolean) -> Unit,
+    verdict: StrategyVerdict? = null,
 ) {
     val pnlColor = if (stats.totalPnl >= 0) SuccessGreen else DangerRed
 
@@ -116,6 +118,7 @@ fun StrategyCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                VerdictPill(verdict)
             }
             RankBadge(rank = rank)
         }
@@ -212,6 +215,30 @@ fun StrategyCard(
             )
         }
     }
+}
+
+@Composable
+private fun VerdictPill(verdict: StrategyVerdict?) {
+    if (verdict == null) return
+    val (label, color) = when (verdict) {
+        StrategyVerdict.SCALE_UP -> "Scale up" to SuccessGreen
+        StrategyVerdict.KEEP -> "Keep" to PrimaryBlue
+        StrategyVerdict.REVIEW -> "Review" to Color(0xFFEA580C)
+        StrategyVerdict.DROP -> "Drop" to DangerRed
+        StrategyVerdict.NEEDS_MORE_DATA -> "More data" to Color(0xFF64748B)
+    }
+    Text(
+        text = label,
+        color = color,
+        fontWeight = FontWeight.Bold,
+        fontSize = 10.sp,
+        letterSpacing = 0.2.sp,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(color.copy(alpha = 0.16f))
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    )
 }
 
 @Composable

@@ -11,6 +11,7 @@ import com.wallstreet.domain.model.SymbolStat
 import com.wallstreet.domain.model.TimePeriod
 import com.wallstreet.domain.model.TradeSummary
 import com.wallstreet.domain.model.TrendPerformanceData
+import com.wallstreet.domain.model.insights.Insight
 
 sealed interface StrategyDetailUiState {
     data object Loading : StrategyDetailUiState
@@ -31,6 +32,7 @@ sealed interface StrategyDetailUiState {
         val profitFactor: Double,
         val maxDrawdown: Double,
         val winStreak: Int,
-        val trendPerformance: TrendPerformanceData
+        val trendPerformance: TrendPerformanceData,
+        val insights: List<Insight> = emptyList(),
     ) : StrategyDetailUiState
 }

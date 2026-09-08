@@ -29,7 +29,7 @@ interface TradeDao {
     fun getAllTrades(userId: String): Flow<List<TradeEntity>>
 
     @Query("SELECT * FROM trades WHERE userId = :userId AND tradeDate >= :fromMillis ORDER BY tradeDate DESC LIMIT :limit")
-    suspend fun getRecentTrades(userId: String, fromMillis: Long, limit: Int): List<TradeEntity>
+    fun getRecentTrades(userId: String, fromMillis: Long, limit: Int): Flow<List<TradeEntity>>
 
     @Query("SELECT * FROM trades WHERE userId = :userId AND syncStatus != 'SYNCED'")
     suspend fun getPendingSyncTrades(userId: String): List<TradeEntity>

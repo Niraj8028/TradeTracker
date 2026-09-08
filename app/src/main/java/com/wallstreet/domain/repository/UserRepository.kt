@@ -6,6 +6,7 @@ import com.wallstreet.core.result.Result
 data class AccountPrefs(
     val onboardingCompleted: Boolean,
     val currencyCode: String?,
+    val roles: List<String> = emptyList(),
 )
 
 interface UserRepository {

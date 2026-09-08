@@ -17,6 +17,7 @@ import com.wallstreet.domain.usecase.strategy.AddStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.DeleteStrategyUseCase
 import com.wallstreet.domain.usecase.strategy.GetStrategyStatsUsecase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
+import com.wallstreet.domain.usecase.strategy.StrategyStatsCalculator
 import com.wallstreet.domain.usecase.strategy.UpdateStrategyUseCase
 import com.wallstreet.domain.usecase.trade.AddTradeUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
@@ -40,7 +41,8 @@ val useCaseModule = module {
     factory { DeleteStrategyUseCase(get()) }
     factory { UpdateStrategyUseCase(get()) }
     factory { GetStrategyUseCase(get()) }
-    factory { GetStrategyStatsUsecase(get(), get()) }
+    factory { StrategyStatsCalculator() }
+    factory { GetStrategyStatsUsecase(get(), get(), get()) }
     factory { DeleteAccountUseCase(get()) }
     factory { GetEquityCurveDataUsecase() }
     factory { GetMistakesAnalysisUsecase() }

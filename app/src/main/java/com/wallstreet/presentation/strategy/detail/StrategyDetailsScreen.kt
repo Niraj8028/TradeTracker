@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.TrackChanges
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import com.wallstreet.presentation.analytics.components.TrendPerformanceCard
 import com.wallstreet.presentation.home.components.EquityCurveChart
 import com.wallstreet.presentation.home.components.PeriodSelector
 import com.wallstreet.presentation.home.components.SymbolPerformanceCard
+import com.wallstreet.presentation.components.InsightsCard
 import com.wallstreet.presentation.home.components.TopMistakesCard
 import com.wallstreet.presentation.strategy.detail.components.StrategyHeaderCard
 import com.wallstreet.presentation.strategy.detail.components.StrategyRiskRewardCard
@@ -160,6 +162,11 @@ private fun StrategyDetailSuccess(
             profitFactor = state.profitFactor,
             maxDrawdown = state.maxDrawdown,
             winStreak = state.winStreak
+        )
+        InsightsCard(
+            title = "Strategy insights",
+            insights = state.insights,
+            icon = Icons.Outlined.TrackChanges,
         )
         EquityCurveChart(
             equityCurveData = state.equityCurveData,

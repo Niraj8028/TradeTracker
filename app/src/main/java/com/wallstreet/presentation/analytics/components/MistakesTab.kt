@@ -16,9 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.outlined.ReportProblem
+import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,21 +39,43 @@ import com.wallstreet.core.util.formatPercent
 import com.wallstreet.core.util.formatPnl
 import com.wallstreet.domain.model.MistakeStat
 import com.wallstreet.domain.model.MistakesAnalysisData
+import com.wallstreet.domain.model.insights.Insight
+import com.wallstreet.domain.model.insights.InsightSeverity
+import com.wallstreet.domain.model.insights.MistakeComparison
+import com.wallstreet.presentation.components.InsightsCard
 import com.wallstreet.ui.theme.DangerRed
 import com.wallstreet.ui.theme.LocalCurrencySymbol
-import com.wallstreet.ui.theme.PrimaryBlue
 import com.wallstreet.ui.theme.SuccessGreen
 import com.wallstreet.ui.theme.WarningOrange
 import kotlin.math.abs
 
 @Composable
-fun MistakesTab(data: MistakesAnalysisData) {
+fun MistakesTab(
+    data: MistakesAnalysisData,
+    insights: List<Insight> = emptyList(),
+    comparisons: List<MistakeComparison> = emptyList(),
+    currencySymbol: String = "$",
+) {
     val ranked = data.topMistakes.filter { it.count > 0 }
 
-    if (ranked.isEmpty()) {
+    if (ranked.isEmpty() && insights.isEmpty()) {
         EmptyMistakesView()
         return
     }
+
+    val worsening = insights.filter {
+        (it.id.startsWith("mistake.repeating") || it.id.startsWith("mistake.new") ||
+            it.id == "mistake.overallRate") && it.severity != InsightSeverity.POSITIVE
+    }
+    val improving = insights.filter {
+        it.id.startsWith("mistake.reducing") || it.id.startsWith("mistake.cleared") ||
+            (it.id == "mistake.overallRate" && it.severity == InsightSeverity.POSITIVE)
+    }
+    val coaching = insights.filter {
+        it.id == "mistake.costliest" || it.id.startsWith("mistake.doNotEnter") ||
+            it.id == "mistake.concentration"
+    }
+    val cleanEdge = insights.firstOrNull { it.id == "mistake.cleanEdge" }
 
     Column(
         modifier = Modifier
@@ -61,23 +85,42 @@ fun MistakesTab(data: MistakesAnalysisData) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1 ── Quick-look summary strip ───────────────────────────────────────
         MistakeSummaryStrip(data = data)
 
-        // 2 ── Discipline banner (clean win rate) ─────────────────────────────
-        if (data.cleanTradeWinRate > 0.0) {
-            DisciplineBanner(cleanWinRate = data.cleanTradeWinRate)
+        when {
+            cleanEdge != null -> DisciplineBanner(text = cleanEdge.body)
+            data.cleanTradeWinRate > 0.0 -> DisciplineBanner(
+                text = "Your trades with no mistake tagged win " +
+                    "${data.cleanTradeWinRate.formatPercent()}. That discipline is the edge."
+            )
         }
 
-        // 3 ── Ranked mistakes by financial impact ────────────────────────────
-        RankedMistakesCard(ranked = ranked)
+        if (ranked.isNotEmpty()) {
+            CostRankedMistakesCard(
+                ranked = ranked,
+                comparisons = comparisons.associateBy { it.name },
+                symbol = currencySymbol,
+            )
+        }
 
-        // 4 ── Auto-generated coaching suggestions ─────────────────────────────
-        SuggestionsCard(data = data)
+        MovementSection(
+            title = "Still costing you",
+            icon = Icons.AutoMirrored.Rounded.TrendingDown,
+            accent = DangerRed,
+            insights = worsening,
+        )
+        MovementSection(
+            title = "Improving",
+            icon = Icons.AutoMirrored.Rounded.TrendingUp,
+            accent = SuccessGreen,
+            insights = improving,
+        )
+
+        InsightsCard(title = "Coaching", insights = coaching, icon = Icons.Outlined.TipsAndUpdates)
     }
 }
 
-// ── 1. Summary strip ───────────────────────────────────────────────────────────
+// ── Summary strip ─────────────────────────────────────────────────────────────
 
 @Composable
 private fun MistakeSummaryStrip(data: MistakesAnalysisData) {
@@ -157,10 +200,10 @@ private fun MistakeChip(
     }
 }
 
-// ── 2. Discipline banner ────────────────────────────────────────────────────────
+// ── Discipline banner ─────────────────────────────────────────────────────────
 
 @Composable
-private fun DisciplineBanner(cleanWinRate: Double) {
+private fun DisciplineBanner(text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -187,31 +230,24 @@ private fun DisciplineBanner(cleanWinRate: Double) {
                     modifier = Modifier.size(22.dp)
                 )
             }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = "Clean trades win ${cleanWinRate.formatPercent()}",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Trades with no mistakes tagged perform best — discipline is your edge.",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 16.sp
-                )
-            }
+            Text(
+                text = text,
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 18.sp,
+            )
         }
     }
 }
 
-// ── 3. Ranked mistakes card ─────────────────────────────────────────────────────
+// ── Cost-ranked mistakes ──────────────────────────────────────────────────────
 
 @Composable
-private fun RankedMistakesCard(ranked: List<MistakeStat>) {
+private fun CostRankedMistakesCard(
+    ranked: List<MistakeStat>,
+    comparisons: Map<String, MistakeComparison>,
+    symbol: String,
+) {
     val byImpact = ranked.sortedBy { it.totalPnlImpact }
     val maxAbsImpact = byImpact.maxOf { abs(it.totalPnlImpact) }.coerceAtLeast(1.0)
     val midpoint = (byImpact.size + 1) / 2
@@ -236,7 +272,7 @@ private fun RankedMistakesCard(ranked: List<MistakeStat>) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.WarningAmber,
+                        imageVector = Icons.Outlined.ReportProblem,
                         contentDescription = null,
                         tint = DangerRed,
                         modifier = Modifier.size(15.dp)
@@ -250,7 +286,7 @@ private fun RankedMistakesCard(ranked: List<MistakeStat>) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Ranked by total P&L cost",
+                        text = "Total P&L cost · change vs last period",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -260,12 +296,13 @@ private fun RankedMistakesCard(ranked: List<MistakeStat>) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
 
             byImpact.forEachIndexed { index, stat ->
-                val accentColor = if (index < midpoint) DangerRed else WarningOrange
                 MistakeRow(
                     rank = index + 1,
                     stat = stat,
                     maxAbsImpact = maxAbsImpact,
-                    accentColor = accentColor
+                    accentColor = if (index < midpoint) DangerRed else WarningOrange,
+                    comparison = comparisons[stat.name],
+                    symbol = symbol,
                 )
             }
         }
@@ -277,7 +314,9 @@ private fun MistakeRow(
     rank: Int,
     stat: MistakeStat,
     maxAbsImpact: Double,
-    accentColor: Color
+    accentColor: Color,
+    comparison: MistakeComparison?,
+    symbol: String,
 ) {
     val barFraction = (abs(stat.totalPnlImpact) / maxAbsImpact).toFloat().coerceIn(0f, 1f)
     val impactColor = if (stat.totalPnlImpact < 0) DangerRed else SuccessGreen
@@ -291,9 +330,7 @@ private fun MistakeRow(
             text = "$rank",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .widthIn(min = 16.dp)
-                .padding(top = 1.dp),
+            modifier = Modifier.widthIn(min = 16.dp).padding(top = 1.dp),
             fontSize = 12.sp,
             maxLines = 1
         )
@@ -302,15 +339,21 @@ private fun MistakeRow(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text(
-                text = stat.name,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 13.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = stat.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                DeltaPill(comparison)
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -327,7 +370,7 @@ private fun MistakeRow(
                 )
             }
             Text(
-                text = "avg ${stat.avgPnlImpact.formatPnl(LocalCurrencySymbol.current)} · ${stat.winRate.formatPercent()} WR",
+                text = "avg ${stat.avgPnlImpact.formatPnl(symbol)} · ${stat.winRate.formatPercent()} WR",
                 fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -340,7 +383,7 @@ private fun MistakeRow(
             verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             Text(
-                text = stat.totalPnlImpact.formatPnl(LocalCurrencySymbol.current),
+                text = stat.totalPnlImpact.formatPnl(symbol),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = impactColor,
@@ -359,13 +402,38 @@ private fun MistakeRow(
     }
 }
 
-// ── 4. Suggestions card ─────────────────────────────────────────────────────────
+@Composable
+private fun DeltaPill(c: MistakeComparison?) {
+    if (c == null) return
+    val (label, color) = when {
+        c.isNew -> "NEW" to WarningOrange
+        c.delta > 0 -> "▲${c.delta}" to DangerRed
+        c.delta < 0 -> "▼${-c.delta}" to SuccessGreen
+        else -> return
+    }
+    Text(
+        text = label,
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
+        color = color,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(color.copy(alpha = 0.14f))
+            .padding(horizontal = 5.dp, vertical = 1.dp),
+        maxLines = 1,
+    )
+}
+
+// ── Movement section (repeating / reducing) ───────────────────────────────────
 
 @Composable
-private fun SuggestionsCard(data: MistakesAnalysisData) {
-    val suggestions = buildMistakeSuggestions(data, LocalCurrencySymbol.current)
-    if (suggestions.isEmpty()) return
-
+private fun MovementSection(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    accent: Color,
+    insights: List<Insight>,
+) {
+    if (insights.isEmpty()) return
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -381,29 +449,26 @@ private fun SuggestionsCard(data: MistakesAnalysisData) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(PrimaryBlue.copy(alpha = 0.14f))
+                        .background(accent.copy(alpha = 0.14f))
                         .padding(6.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Lightbulb,
+                        imageVector = icon,
                         contentDescription = null,
-                        tint = PrimaryBlue,
+                        tint = accent,
                         modifier = Modifier.size(15.dp)
                     )
                 }
                 Text(
-                    text = "Suggestions",
+                    text = title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
-
-            suggestions.forEachIndexed { index, suggestion ->
-                val accentColor = if (suggestion.isWarning) DangerRed else SuccessGreen
+            insights.forEachIndexed { index, item ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.Top
@@ -413,17 +478,19 @@ private fun SuggestionsCard(data: MistakesAnalysisData) {
                             .padding(top = 5.dp)
                             .size(6.dp)
                             .clip(RoundedCornerShape(50))
-                            .background(accentColor)
+                            .background(
+                                if (item.severity == InsightSeverity.POSITIVE) SuccessGreen else DangerRed
+                            )
                     )
                     Text(
-                        text = suggestion.detail,
+                        text = item.body,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 19.sp,
                         modifier = Modifier.weight(1f)
                     )
                 }
-                if (index < suggestions.lastIndex) {
+                if (index < insights.lastIndex) {
                     HorizontalDivider(
                         modifier = Modifier.padding(start = 16.dp),
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
@@ -434,7 +501,7 @@ private fun SuggestionsCard(data: MistakesAnalysisData) {
     }
 }
 
-// ── Empty state ─────────────────────────────────────────────────────────────────
+// ── Empty state ──────────────────────────────────────────────────────────────
 
 @Composable
 private fun EmptyMistakesView() {

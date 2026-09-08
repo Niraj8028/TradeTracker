@@ -2,13 +2,17 @@ package com.wallstreet.presentation.strategy
 
 import com.wallstreet.domain.model.strategy.StrategyStats
 import com.wallstreet.domain.model.TimePeriod
+import com.wallstreet.domain.model.insights.Insight
+import com.wallstreet.domain.model.insights.StrategyVerdict
 
 sealed interface StrategiesUiState {
     data object Loading : StrategiesUiState
     data class Error(val message: String) : StrategiesUiState
     data class Success(
         val strategyStats: List<StrategyStats>,
-        val selectedPeriod: TimePeriod
+        val selectedPeriod: TimePeriod,
+        val strategyInsights: List<Insight> = emptyList(),
+        val verdictByStrategyId: Map<String, StrategyVerdict> = emptyMap(),
     ) : StrategiesUiState
 }
 

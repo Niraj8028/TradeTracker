@@ -12,7 +12,11 @@ import com.wallstreet.domain.usecase.home.GetHomeStateUsecase
 import com.wallstreet.domain.usecase.home.GetMistakesAnalysisUsecase
 import com.wallstreet.domain.usecase.home.GetSymbolPerformanceUsecase
 import com.wallstreet.domain.usecase.home.getRecentTradeData
-import kotlin.math.max
+import com.wallstreet.core.preferences.CurrencyPreferences
+import com.wallstreet.core.result.Result
+import com.wallstreet.core.util.TradeMath
+import com.wallstreet.domain.repository.UserRepository
+import com.wallstreet.domain.usecase.strategy.GetStrategyInsightsUseCase
 import com.wallstreet.domain.usecase.strategy.GetStrategyUseCase
 import com.wallstreet.domain.usecase.trade.GetTradesUseCase
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -42,6 +47,9 @@ class StrategyDetailViewModel(
     private val mistakesAnalysisUsecase: GetMistakesAnalysisUsecase,
     private val symbolPerformanceUsecase: GetSymbolPerformanceUsecase,
     private val getTrendPerformanceUseCase: GetTrendPerformanceUseCase,
+    private val getStrategyInsightsUseCase: GetStrategyInsightsUseCase,
+    private val userRepository: UserRepository,
+    private val currencyPreferences: CurrencyPreferences,
 ) : ViewModel() {
 
     private val _selectedPeriod = MutableStateFlow(TimePeriod.ONE_MONTH)
@@ -56,40 +64,25 @@ class StrategyDetailViewModel(
                 )
             }
 
+            val roles = (userRepository.getAccountPrefs(userId) as? Result.Success)?.data?.roles.orEmpty()
+            val symbol = runCatching { currencyPreferences.currencySymbol.first() }.getOrDefault("$")
+
             combine(
                 getTradesUsecase(userId, period, 500),
-                getStrategyUseCase()
-            ) { trades, strategies ->
+                getStrategyUseCase(),
+                getStrategyInsightsUseCase(userId, period, roles, symbol),
+            ) { trades, strategies, insightsResult ->
                 val strategy = strategies.firstOrNull { it.id == strategyId }
                     ?: return@combine StrategyDetailUiState.Error("Strategy not found")
 
                 val strategyTrades = trades.filter { it.strategyId == strategyId }
-                val sorted = strategyTrades.sortedBy { it.tradeDate }
 
-                val grossWin = sorted.filter { (it.profitLoss ?: 0.0) > 0 }.sumOf { it.profitLoss ?: 0.0 }
-                val grossLoss = sorted.filter { (it.profitLoss ?: 0.0) < 0 }.sumOf { -(it.profitLoss ?: 0.0) }
-                val profitFactor = if (grossLoss > 0) grossWin / grossLoss else if (grossWin > 0) 999.0 else 0.0
-
-                var equity = 0.0
-                var peak = 0.0
-                var maxDrawdown = 0.0
-                for (t in sorted) {
-                    equity += t.profitLoss ?: 0.0
-                    peak = max(peak, equity)
-                    maxDrawdown = max(maxDrawdown, peak - equity)
-                }
-
-                var currentStreak = 0
-                var winStreak = 0
-                for (t in sorted) {
-                    val pnl = t.profitLoss ?: 0.0
-                    if (pnl > 0) {
-                        currentStreak++
-                        winStreak = max(winStreak, currentStreak)
-                    } else if (pnl < 0) {
-                        currentStreak = 0
-                    }
-                }
+                // Aggregate risk math lives in TradeMath now; the 999.0 sentinel for a
+                // no-losses history is preserved here at the call site.
+                val profitFactor = TradeMath.profitFactor(strategyTrades)
+                    ?: if (TradeMath.grossProfit(strategyTrades) > 0.0) 999.0 else 0.0
+                val maxDrawdown = TradeMath.maxDrawdown(strategyTrades).amount
+                val winStreak = TradeMath.winStreak(strategyTrades)
 
                 StrategyDetailUiState.Success(
                     strategy = strategy,
@@ -105,7 +98,8 @@ class StrategyDetailViewModel(
                     profitFactor = profitFactor,
                     maxDrawdown = maxDrawdown,
                     winStreak = winStreak,
-                    trendPerformance = getTrendPerformanceUseCase(strategyTrades)
+                    trendPerformance = getTrendPerformanceUseCase(strategyTrades),
+                    insights = insightsResult.insightsByStrategyId[strategyId].orEmpty()
                 )
             }
         }

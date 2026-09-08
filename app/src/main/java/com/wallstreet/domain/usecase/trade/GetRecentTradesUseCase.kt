@@ -21,7 +21,7 @@ class GetTradesUseCase(private val tradeRepository: TradeRepository) {
             .toInstant()
             .toEpochMilli()
 
-        return tradeRepository.getRecentTrades(userId, cutOfMillis, 100);
+        return tradeRepository.getRecentTrades(userId, cutOfMillis, limit)
     }
 }
 

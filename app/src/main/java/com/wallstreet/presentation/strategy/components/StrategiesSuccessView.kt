@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.TrackChanges
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wallstreet.domain.model.Strategy
 import com.wallstreet.domain.model.TimePeriod
+import com.wallstreet.presentation.components.InsightsCard
 import com.wallstreet.presentation.home.components.PeriodSelector
 import com.wallstreet.presentation.strategy.StrategiesUiState
 import com.wallstreet.presentation.strategy.SortDirection
@@ -78,6 +80,16 @@ fun StrategySuccessView(
             PeriodSelector(selectedPeriod = timePeriod, onPeriodSelected = onPeriodSelected)
         }
 
+        uiState.strategyInsights.firstOrNull()?.let { headline ->
+            item {
+                InsightsCard(
+                    title = "Strategy focus",
+                    insights = listOf(headline),
+                    icon = Icons.Outlined.TrackChanges,
+                )
+            }
+        }
+
         item {
             SortFilterBar(
                 count = stats.size,
@@ -103,7 +115,8 @@ fun StrategySuccessView(
                     onStrategyClick = { onStrategyClick(sid) },
                     isSelectionMode = isSelectionMode,
                     isSelected = isSelected,
-                    onSelectionChanged = { onSelectionChanged(strategyStats.strategy, it) }
+                    onSelectionChanged = { onSelectionChanged(strategyStats.strategy, it) },
+                    verdict = uiState.verdictByStrategyId[sid],
                 )
             }
         }
