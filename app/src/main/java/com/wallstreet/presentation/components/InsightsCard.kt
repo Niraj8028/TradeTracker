@@ -110,6 +110,14 @@ fun InsightsCard(
                     )
                 }
             }
+
+            Text(
+                text = "For journaling and reflection only. Not financial advice.",
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.padding(top = 2.dp),
+            )
         }
     }
 }
