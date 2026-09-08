@@ -26,7 +26,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.wallstreet"
+        // Play requires a globally unique id and com.wallstreet was taken.
+        // namespace stays com.wallstreet so no source package has to move.
+        applicationId = "com.tradecoach.app"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
