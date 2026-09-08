@@ -1,0 +1,11 @@
+// file: com.wallstreet.core.splash.SplashGate.kt
+package com.wallstreet.core.splash
+
+sealed interface StartDestination {
+    data object Unknown : StartDestination
+    data object Home : StartDestination
+    data object Auth : StartDestination
+    data class Otp(val email: String) : StartDestination
+    data object Onboarding : StartDestination
+
+}

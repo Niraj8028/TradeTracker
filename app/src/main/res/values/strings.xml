@@ -1,3 +1,82 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">TradeCoach</string>
+    <string name="nav_journal">Journal</string>
+    <string name="nav_analytics">Analytics</string>
+    <string name="nav_strategies">Strategies</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_log_trade">Log Trade</string>
+    <!-- Onboarding -->
+    <string name="onboarding_roles_title">What do you trade?</string>
+    <string name="onboarding_roles_subtitle">Pick the markets and styles you focus on. This tailors your journal and analytics.</string>
+    <string name="onboarding_currency_title">Your currency</string>
+    <string name="onboarding_currency_subtitle">All P&amp;L and stats are shown in this currency. You can change it later in Profile.</string>
+    <string name="onboarding_notifications_title">Stay on track</string>
+    <string name="onboarding_notifications_subtitle">Get gentle reminders to journal your trades and review your week.</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_finish">Finish</string>
+    <string name="onboarding_enable_notifications">Enable notifications</string>
+    <string name="onboarding_maybe_later">Maybe later</string>
+
+    <!-- Auth Common -->
+    <string name="auth_email_address">Email Address</string>
+    <string name="auth_email_placeholder">Enter your email id</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_password_placeholder">••••••••</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_sign_up">Sign Up</string>
+    <string name="auth_or">or</string>
+    <string name="auth_continue_with_google">Continue with Google</string>
+    <string name="auth_dont_have_account">Don\'t have an account?\u0020</string>
+    <string name="auth_already_have_account">Already have an account?\u0020</string>
+
+    <!-- Welcome Screen -->
+    <string name="welcome_tagline">Journal every trade, understand every mistake, and build the discipline that compounds.</string>
+    <string name="welcome_get_started">Get Started</string>
+    <string name="welcome_have_account">I already have an account</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">TradeCoach</string>
+    <string name="login_subtitle">Master your trading psychology</string>
+    <string name="login_reset_password_title">Reset Password</string>
+    <string name="login_reset_password_message">Enter your email and we\'ll send you a reset link.</string>
+    <string name="login_reset_password_placeholder">Enter your email</string>
+    <string name="login_send_reset_link">Send Reset Link</string>
+    <string name="login_reset_email_sent">Password reset email sent. Check your inbox.</string>
+    <string name="login_cancel">Cancel</string>
+
+    <!-- Register Screen -->
+    <string name="register_title_create">Create\u0020</string>
+    <string name="register_title_account">Account</string>
+    <string name="register_subtitle">Set up your profile and start mastering your trades today</string>
+    <string name="register_full_name">Full Name</string>
+    <string name="register_full_name_placeholder">Enter your name</string>
+    <string name="register_confirm_password">Confirm Password</string>
+    <string name="register_button">Create Account</string>
+
+    <!-- Verification Screen -->
+    <string name="verification_title">Verify Your Email</string>
+    <string name="verification_message">We sent a verification link to your email.\nClick the link in your inbox and we\'ll\nautomatically continue.</string>
+    <string name="verification_waiting">Waiting for verification…</string>
+    <string name="verification_resend">Resend Verification Link</string>
+    <string name="verification_email_resent">Verification email resent!</string>
+    <string name="verification_open_email_app">Open Email App</string>
+    <string name="verification_no_email">Didn\'t receive the email? </string>
+    <string name="verification_success_title">You\'re Verified!</string>
+    <string name="verification_success_message">Taking you in…</string>
+    <string name="verification_wrong_email">Wrong email? Go back</string>
+    <string name="verification_ive_verified">I\'ve verified my email</string>
+    <string name="verification_not_verified_yet">Not verified yet — tap the link in your inbox, then try again.</string>
+    <!-- Auth Errors -->
+    <string name="error_email_already_in_use">An account with this email already exists</string>
+    <string name="error_invalid_password">Incorrect password</string>
+    <string name="error_user_not_found">No account found with this email</string>
+    <string name="error_network_connection">Network error. Please check your connection</string>
+    <string name="error_unknown">An error occurred</string>
+    <string name="error_user_not_logged_in">User not logged in</string>
+    <string name="error_email_not_verified">Please verify your email to continue</string>
+    <string name="error_name_empty">Name cannot be empty</string>
+    <string name="error_email_empty">Email cannot be empty</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
+    <string name="error_passwords_do_not_match">Passwords do not match</string>
 </resources>
