@@ -30,12 +30,13 @@ import com.wallstreet.R
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.Shield
+import com.wallstreet.core.constants.AppLinks
 import com.wallstreet.core.preferences.CurrencyPreferences
 import com.wallstreet.core.preferences.ThemePreferences
 import com.wallstreet.core.preferences.ThemeTypes
@@ -43,6 +44,7 @@ import com.wallstreet.core.preferences.currencySymbols
 import com.wallstreet.core.util.HapticStyle
 import com.wallstreet.core.util.haptic
 import com.wallstreet.core.util.hapticClickable
+import com.wallstreet.core.util.openUrl
 import com.wallstreet.presentation.profile.components.ConfirmationDialog
 import com.wallstreet.presentation.profile.components.ThemeToggle
 import com.wallstreet.ui.theme.DangerRed
@@ -55,9 +57,6 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel(),
-    onSecurityPrivacy: () -> Unit,
-    onPrivacyPolicy: () -> Unit,
-    onTermsOfService: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
     val user = viewModel.user
@@ -171,19 +170,10 @@ fun ProfileScreen(
         // ── Account ──────────────────────────────────────────────────
         ProfileSection(label = "ACCOUNT") {
             ProfileMenuItem(
-                icon = Icons.Filled.AdminPanelSettings,
-                label = "Security & Privacy",
-                onClick = onSecurityPrivacy
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 56.dp),
-                color = MaterialTheme.colorScheme.outline.copy(0.4f),
-                thickness = 0.5.dp
-            )
-            ProfileMenuItem(
                 icon = Icons.Filled.PrivacyTip,
                 label = "Privacy Policy",
-                onClick = onPrivacyPolicy
+                sublabel = "Opens in your browser",
+                onClick = { context.openUrl(AppLinks.PRIVACY_POLICY) }
             )
             HorizontalDivider(
                 modifier = Modifier.padding(start = 56.dp),
@@ -193,7 +183,19 @@ fun ProfileScreen(
             ProfileMenuItem(
                 icon = Icons.Filled.Gavel,
                 label = "Terms of Service",
-                onClick = onTermsOfService
+                sublabel = "Opens in your browser",
+                onClick = { context.openUrl(AppLinks.TERMS_OF_USE) }
+            )
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 56.dp),
+                color = MaterialTheme.colorScheme.outline.copy(0.4f),
+                thickness = 0.5.dp
+            )
+            ProfileMenuItem(
+                icon = Icons.Filled.Shield,
+                label = "Child Safety Standards",
+                sublabel = "Opens in your browser",
+                onClick = { context.openUrl(AppLinks.CHILD_SAFETY) }
             )
         }
 
